@@ -1,5 +1,6 @@
 import {Table, Column, Model, DataType, ForeignKey} from "sequelize-typescript";
 import { User } from "./user";
+import { Subreddit } from "./subreddit";
 
 @Table({
     tableName: "post", timestamps: false
@@ -14,15 +15,15 @@ export class Post extends Model {
 
     @ForeignKey(() => User)
     @Column({ 
-        primaryKey: true,
-        type: DataType.UUID
+        type: DataType.UUID,
+        allowNull: false
     })
     declare user_id: string;
 
     @ForeignKey(() => Subreddit)
     @Column({ 
-        primaryKey: true,
-        type: DataType.UUID
+        type: DataType.UUID,
+        allowNull: false
     })
     declare subreddit_id: string;
 
@@ -55,6 +56,4 @@ export class Post extends Model {
         allowNull: false
     })
     declare updated_at: Date;
-
-
 }

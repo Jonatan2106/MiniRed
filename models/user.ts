@@ -1,4 +1,4 @@
-import {Table, Column, Model, DataType, ForeignKey} from "sequelize-typescript";
+import {Table, Column, Model, DataType} from "sequelize-typescript";
 
 @Table({
     tableName: "user", timestamps: false
@@ -7,41 +7,40 @@ import {Table, Column, Model, DataType, ForeignKey} from "sequelize-typescript";
 export class User extends Model {
     @Column({ 
         primaryKey: true,
-        type: DataType.UUID
-    })
-    declare post_id: string;
-
-    @ForeignKey(() => User)
-    @Column({ 
-        primaryKey: true,
+        allowNull: false,
         type: DataType.UUID
     })
     declare user_id: string;
-
-    @ForeignKey(() => Subreddit)
-    @Column({ 
-        primaryKey: true,
-        type: DataType.UUID
-    })
-    declare subreddit_id: string;
 
     @Column({ 
         type: DataType.STRING,
         allowNull: false
     })
-    declare title: string;
+    declare username: string;
 
     @Column({
-        type: DataType.TEXT,
+        type: DataType.STRING,
         allowNull: true
     })
-    declare content: string;
+    declare email: string;
+
+    @Column({
+        type: DataType.STRING,
+        allowNull: true
+    })
+    declare password: string;
     
+    @Column({
+        type: DataType.ENUM("ADMIN", "USER"),
+        allowNull: false
+    })
+    declare user_type: string;
+
     @Column({
         type: DataType.BLOB,
         allowNull: false
     })
-    declare image: string;
+    declare profile_pic: string;
 
     @Column({
         type: DataType.DATE,
@@ -54,6 +53,4 @@ export class User extends Model {
         allowNull: false
     })
     declare updated_at: Date;
-
-
 }
