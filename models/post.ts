@@ -43,7 +43,7 @@ export class Post extends Model {
         type: DataType.BLOB,
         allowNull: false
     })
-    declare image: string;
+    declare image: Blob;
 
     @Column({
         type: DataType.DATE,

@@ -1,7 +1,7 @@
 'use strict';
 
 /** @type {import('sequelize-cli').Migration} */
-module.exports = {
+export default {
   async up (queryInterface, Sequelize) {
     await queryInterface.createTable('comment', {
       comment_id: {
@@ -11,11 +11,23 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.UUID,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'user', 
+          key: 'user_id'    
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
       post_id: {
         type: Sequelize.UUID,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'post', 
+          key: 'post_id'    
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
       parent_comment_id: {
         type: Sequelize.UUID,

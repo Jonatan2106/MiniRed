@@ -2,9 +2,9 @@
   "development": {
     "username": "postgres",
     "password": "changeme",
-    "database": "MiniRed",
+    "database": "minired_db",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "postgres"
   },
   "test": {
     "username": "root",

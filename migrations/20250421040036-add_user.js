@@ -1,28 +1,32 @@
 'use strict';
 
 /** @type {import('sequelize-cli').Migration} */
-module.exports = {
+export default {
   async up (queryInterface, Sequelize) {
-    await queryInterface.createTable('subreddit', {
-      subreddit_id: {
+    await queryInterface.createTable('user', {
+      user_id: {
         type: Sequelize.UUID,
         primaryKey: true,
         allowNull: false
       },
-      name: {
+      username: {
         type: Sequelize.STRING,
         allowNull: false
       },
-      title: {
+      email: {
         type: Sequelize.STRING,
         allowNull: true
       },
-      description: {
+      password: {
         type: Sequelize.STRING,
         allowNull: false
       },
-      url: {
-        type: Sequelize.STRING,
+      user_type: {
+        type: Sequelize.ENUM("ADMIN", "USER"), 
+        allowNull: false
+      },
+      profile_pic: {
+        type: Sequelize.BLOB,
         allowNull: false
       },
       created_at: {
@@ -30,19 +34,15 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.NOW,
       },
-      created_by: {
+      updated_at: {
         type: Sequelize.DATE,
         allowNull: false,
         defaultValue: Sequelize.NOW,
       },
-      is_privated: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false
-      }
     })
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.dropTable("subreddit");
+    await queryInterface.dropTable("user");
   }
 };

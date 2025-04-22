@@ -1,7 +1,7 @@
 'use strict';
 
 /** @type {import('sequelize-cli').Migration} */
-module.exports = {
+export default {
   async up (queryInterface, Sequelize) {
     await queryInterface.createTable('vote', {
       vote_id: {
@@ -11,7 +11,13 @@ module.exports = {
       },
       user_id: {
         type: Sequelize.UUID,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'user', 
+          key: 'user_id'    
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
       kategori_id: {
         type: Sequelize.UUID,
