@@ -1,4 +1,6 @@
-import {Table, Column, Model, DataType} from "sequelize-typescript";
+import {Table, Column, Model, DataType, HasMany} from "sequelize-typescript";
+import {Post} from "./post";
+import {Comment} from "./comment";
 
 @Table({
     tableName: "user", timestamps: false
@@ -54,4 +56,14 @@ export class User extends Model {
         allowNull: false
     })
     declare updated_at: Date;
+
+    @HasMany(() => Post, { 
+        foreignKey: 'user_id' 
+    })
+    declare posts: Post[];
+
+    @HasMany(() => Comment, { 
+        foreignKey: 'user_id' 
+    })
+    declare comments: Comment[];
 }
