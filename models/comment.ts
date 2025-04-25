@@ -1,6 +1,7 @@
-import {Table, Column, Model, DataType, ForeignKey} from "sequelize-typescript";
+import {Table, Column, Model, DataType, ForeignKey, HasMany} from "sequelize-typescript";
 import { User } from "./user";
 import { Post } from "./post";
+import { Vote } from "./vote";
 
 @Table({
     tableName: "comment", timestamps: false
@@ -51,4 +52,13 @@ export class Comment extends Model {
         allowNull: false
     })
     declare updated_at: Date;
+
+    @HasMany(() => Vote, {
+        foreignKey: "kategori_id",
+        constraints: false,
+        scope: {
+            kategori_type: "COMMENT"
+        }
+    })
+    declare votes: Vote[];    
 }

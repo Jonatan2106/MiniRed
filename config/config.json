@@ -1,7 +1,7 @@
 {
   "development": {
     "username": "postgres",
-    "password": "changeme",
+    "password": "admin",
     "database": "minired_db",
     "host": "127.0.0.1",
     "dialect": "postgres"
