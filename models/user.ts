@@ -32,7 +32,8 @@ export class User extends Model {
     
     @Column({
         type: DataType.ENUM("ADMIN", "USER"),
-        allowNull: false
+        allowNull: false,
+        defaultValue: "USER"
     })
     declare user_type: string;
 
