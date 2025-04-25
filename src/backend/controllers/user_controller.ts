@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import { User } from '../../../models/user';
+import { Post } from '../../../models/post';
 import { generateToken } from '../utils/jwt_helper';
 
 // POST /register - Register a new user
@@ -54,3 +55,72 @@ export const loginUser = async (req: Request, res: Response) => {
 export const getCurrentUser = (req: Request, res: Response) => {
     res.json(req.body.user);  // Assuming user info is in req.body (from middleware)
 };
+
+// GET /user/:id - get detail user
+export const getUserById = async (req: Request, res: Response) => {
+    try {
+        const user = await User.findByPk(req.params.id);
+        if (user) {
+            res.json(user);
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to fetch user' });
+    }
+};
+
+// GET /user/:id/posts - get user posts
+export const getUserPosts = async (req: Request, res: Response) => {
+    try {
+        const user = await User.findByPk(req.params.id, { include: ['post'] });
+        if (user) {
+            res.json(user.posts);
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to fetch user posts' });
+    }
+};
+
+// GET /user/:id/comments - get user comments
+export const getUserComments = async (req: Request, res: Response) => {
+    try {
+        const user = await User.findByPk(req.params.id, { include: ['comment'] });
+        if (user) {
+            res.json(user.comments);
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to fetch user comments' });
+    }
+}
+
+// PUT /user/me - update user profile
+export const updateUserProfile = async (req: Request, res: Response) => {
+    try {
+        const user = await User.findByPk(req.body.user.id); // Assuming user ID is in req.body.user
+        if (user) {
+            const { username, email, password } = req.body;
+            if (password) {
+                // Hash the new password before saving to the database
+                const hashedPassword = await bcrypt.hash(password, 10);
+                user.password = hashedPassword;
+            }
+            user.username = username || user.username;
+            user.email = email || user.email;
+            await user.save();
+            res.json({ message: 'User profile updated successfully!', user });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to update user profile' });
+    }
+}

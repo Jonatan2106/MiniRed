@@ -1,4 +1,4 @@
-import {Table, Column, Model, DataType, ForeignKey, HasMany} from "sequelize-typescript";
+import {Table, Column, Model, DataType, ForeignKey, HasMany, BelongsTo} from "sequelize-typescript";
 import { User } from "./user";
 import { Subreddit } from "./subreddit";
 import { Vote } from "./vote";
@@ -67,4 +67,8 @@ export class Post extends Model {
     })
     declare votes: Vote[];
 
+    @BelongsTo(() => User, { 
+        foreignKey: 'user_id' 
+    })
+    declare user: User;
 }
