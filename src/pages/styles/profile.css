@@ -1,0 +1,16 @@
+/* src/styles/profile.css */
+.profile-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+.profile-header {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.profile-info {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 10px;
+}

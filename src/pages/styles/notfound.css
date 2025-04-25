@@ -1,0 +1,14 @@
+/* src/styles/notFound.css */
+.not-found-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.not-found-container h1 {
+    font-size: 3rem;
+    font-weight: bold;
+}

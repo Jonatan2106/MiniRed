@@ -1,32 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { fetchFromAPI } from '../../api/api';
+import React, { useState, useEffect } from 'react';
+import '../styles/home.css';
+import '../styles/main.css';
+
+// Define the Post type
+interface Post {
+  post_id: string;
+  title: string;
+  content: string;
+}
 
 const Home = () => {
-  const [posts, setPosts] = useState<any[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]); // Define the type for posts
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await fetchFromAPI('/posts');
-        setPosts(response);
-      } catch (error) {
-        console.error("Error fetching posts", error);
-      }
-    };
-
-    fetchPosts();
+    // Example of fetching posts from the backend API
+    fetch('/api/posts')
+      .then(response => response.json())
+      .then(data => setPosts(data));
   }, []);
 
   return (
-    <div>
-      <h1>Posts</h1>
+    <div className="home-container">
+      <h1 className="home-header">Posts</h1>
       {posts.map(post => (
-        <div key={post.post_id}>
+        <div key={post.post_id} className="post-card">
           <h2>{post.title}</h2>
           <p>{post.content}</p>
           <a href={`/post/${post.post_id}`}>Read more</a>
         </div>
       ))}
+      <button className="load-more-btn">Load more</button>
     </div>
   );
 };
