@@ -28,7 +28,7 @@ export default {
       },
       profile_pic: {
         type: Sequelize.BLOB,
-        allowNull: false
+        allowNull: true
       },
       created_at: {
         type: Sequelize.DATE,

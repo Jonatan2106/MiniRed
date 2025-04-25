@@ -1,18 +1,18 @@
 import bcrypt from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 import { Request, Response } from 'express';
 import { User } from '../../../models/user';
-import { Post } from '../../../models/post';
 import { generateToken } from '../utils/jwt_helper';
 
 // POST /register - Register a new user
 export const registerUser = async (req: Request, res: Response) => {
     try {
         const { username, email, password } = req.body;
-
+        const user_id = uuidv4();
         // Hash the password before saving to the database
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const newUser = await User.create({ username, email, password: hashedPassword });
+        const newUser = await User.create({ user_id, username, email, password: hashedPassword });
         res.status(201).json({ message: 'User registered successfully!', user: newUser });
     } catch (error) {
         console.error(error);

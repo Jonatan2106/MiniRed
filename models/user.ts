@@ -41,7 +41,7 @@ export class User extends Model {
 
     @Column({
         type: DataType.BLOB,
-        allowNull: false
+        allowNull: true
     })
     declare profile_pic: string;
 
