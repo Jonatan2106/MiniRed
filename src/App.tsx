@@ -1,35 +1,23 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.tsx
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'; // Import Router & Routes
+import './App.css'; // Import your CSS file
+import Home from './pages/pages/Home'; // Make sure you create this file later
+import PostDetail from './pages/pages/PostDetail';// Make sure you create this file later
+import Login from './pages/pages/Login';
+import Search from './pages/pages/Search';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Router> {/* Wrap everything with Router */}
+      <Routes> {/* Define the routes here */}
+        <Route path="/" element={<Home />} /> {/* Home route */}
+        <Route path="/post/:id" element={<PostDetail />} /> {/* Post detail route */}
+        <Route path="/search" element={<Search />} /> {/* Profile route */}
+        <Route path="/login" element={<Login />} /> {/* Profile route */}
+      </Routes>
+    </Router>
+  );
+};
 
-export default App
+export default App;
