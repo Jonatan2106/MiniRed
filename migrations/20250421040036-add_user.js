@@ -23,7 +23,8 @@ export default {
       },
       user_type: {
         type: Sequelize.ENUM("ADMIN", "USER"), 
-        allowNull: false
+        allowNull: false,
+        defaultValue: "USER"
       },
       profile_pic: {
         type: Sequelize.BLOB,
