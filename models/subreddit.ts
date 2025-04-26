@@ -29,22 +29,18 @@ export class Subreddit extends Model {
         allowNull: true
     })
     declare description: string;
-    
-    @Column({
-        type: DataType.STRING,
-        allowNull: false
-    })
-    declare url: string;
 
     @Column({
         type: DataType.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataType.NOW
     })
     declare created_at: Date;
 
     @Column({
         type: DataType.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataType.NOW
     })
     declare created_by: Date;
 
@@ -52,5 +48,5 @@ export class Subreddit extends Model {
         type: DataType.BOOLEAN,
         allowNull: false
     })
-    declare ls_private: string;
+    declare is_privated: boolean;
 }
