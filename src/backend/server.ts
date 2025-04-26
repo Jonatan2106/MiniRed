@@ -9,11 +9,9 @@ import { Subreddit } from '../../models/subreddit';
 import { User } from '../../models/user';
 import { Vote } from '../../models/vote';
 import PostRouter from './routes/post_routes';
-import commentRouter from './routes/comment_routes';
 import userRouter from './routes/user_routes';
 import voteRouter from './routes/vote_routes';
 import subredditRouter from './routes/subreddit_routes';
-import SearchRouter from './routes/search_routes';
 
 dotenv.config();
 
@@ -49,11 +47,9 @@ app.get('/', (req, res) => {
 
 // Prefix all post routes with '/api'
 app.use('/api', PostRouter);
-app.use('/api', commentRouter);
 app.use('/api', userRouter);
 app.use('/api', voteRouter);
 app.use('/api', subredditRouter);
-app.use('/api', SearchRouter);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
