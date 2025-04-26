@@ -21,7 +21,7 @@ export default {
       },
       subreddit_id: {
         type: Sequelize.UUID,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: 'subreddit',
           key: 'subreddit_id'
@@ -39,7 +39,7 @@ export default {
       },
       image: {
         type: Sequelize.BLOB,
-        allowNull: false
+        allowNull: true
       },
       created_at: {
         type: Sequelize.DATE,

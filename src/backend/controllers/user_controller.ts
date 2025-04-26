@@ -39,7 +39,7 @@ export const loginUser = async (req: Request, res: Response) => {
             }
             else {
                 // Generate a JWT token
-                const token = generateToken(user.id);
+                const token = generateToken(user.user_id);
 
                 // Send the token to the client
                 res.json({ message: 'Login successful', token });
