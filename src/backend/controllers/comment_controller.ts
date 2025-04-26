@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { Comment } from '../../../models/comment';
+import { v4 } from 'uuid';
+import { User } from '../../../models/user';
 
 // GET /posts/:id/comments - Get comments for a post
 export const getCommentsByPost = async (req: Request, res: Response) => {
@@ -13,16 +15,47 @@ export const getCommentsByPost = async (req: Request, res: Response) => {
   }
 };
 
+// GET /comments/:id - Get a single comment by ID (plus its replies)
+export const getCommentById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const comment = await Comment.findByPk(id, {
+      include: [
+        { model: User, attributes: ['username'] },
+        { 
+          model: Comment,
+          as: 'replies',
+          include: [{ model: User, attributes: ['username'] }]
+        }
+      ]
+    });
+
+    if (!comment) {
+      res.status(404).json({ message: 'Comment not found' });
+    }
+
+    res.json(comment);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch comment' });
+  }
+};
+
 // POST /posts/:id/comments - Add a new comment
 export const addComment = async (req: Request, res: Response) => {
   try {
-    const postId = req.params.id;
-    const { content } = req.body;
+    const post_id = req.params.id;
+    const comment_id = v4();
+    const { content, parent_comment_id } = req.body;
+    const user_id = req.body.userId;
 
     const newComment = await Comment.create({
-      post_id: postId,
+      comment_id,
+      user_id,
+      post_id,
+      parent_comment_id,
       content,
-      user_id: req.body.user_id,  // Assume the user is in req.body (from authentication middleware)
     });
     res.status(201).json(newComment);
   } catch (error) {

@@ -31,7 +31,7 @@ export default {
       },
       parent_comment_id: {
         type: Sequelize.UUID,
-        allowNull: false
+        allowNull: true
       },
       content: {
         type: Sequelize.TEXT,
