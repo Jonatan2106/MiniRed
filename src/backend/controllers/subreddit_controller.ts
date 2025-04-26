@@ -1,20 +1,32 @@
 import { Request, Response } from 'express';
 import { Subreddit } from '../../../models/subreddit';
+import { SubredditMember } from '../../../models/subreddit_member'; // Import this
 import { v4 } from 'uuid';
 
 // POST /subreddits - Create a new subreddit/community
 export const createSubreddit = async (req: Request, res: Response) => {
   try {
     const subreddit_id = v4();
-    const { name, title, description, is_privated } = req.body;
+    const { name, title, description, is_privated } = req.body; 
+    const user_id = req.body.userId; 
 
     const newSubreddit = await Subreddit.create({ 
       subreddit_id,
+      user_id,
       name, 
       title,
       description,
       is_privated 
     });
+
+    await SubredditMember.create({
+      subreddit_id,
+      user_id,  // Creator's user_id
+      joined_at: new Date(),
+      is_moderator: true  
+    });
+
+    // Step 3: Respond with the created subreddit
     res.status(201).json(newSubreddit);
   } catch (error) {
     console.error(error);
@@ -103,5 +115,108 @@ export const getSubredditByName = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to fetch subreddit' });
+  }
+};
+
+// POST /subreddits/:id/join - Join a subreddit
+export const joinSubreddit = async (req: Request, res: Response) => {
+  try {
+    const { id: subreddit_id } = req.params;
+    const user_id = req.body.userId;
+
+    const existingMember = await SubredditMember.findOne({ where: { subreddit_id, user_id } });
+    if (existingMember) {
+      res.status(400).json({ message: 'Already joined' });
+    }
+    else {
+      const newMember = await SubredditMember.create({
+        subreddit_id,
+        user_id,
+        is_moderator: false
+      });
+      res.status(201).json(newMember);
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to join subreddit' });
+  }
+};
+
+// PUT /subreddits/:id/members/:userId/moderator - Change member's moderator status
+export const changeMemberModeratorStatus = async (req: Request, res: Response) => {
+  try {
+    const { id: subreddit_id, userId: target_user_id } = req.params;
+    const { is_moderator } = req.body; // is_moderator will be set to true/false
+    const requester_id = req.body.userId;
+
+    // Check if subreddit exists
+    const subreddit = await Subreddit.findByPk(subreddit_id);
+    if (!subreddit) {
+      res.status(404).json({ message: 'Subreddit not found' });
+    } else {
+      // Check if requester is creator or moderator
+      if (subreddit.user_id !== requester_id) {
+        // Not creator, check if requester is a moderator
+        const requesterMember = await SubredditMember.findOne({ where: { subreddit_id, user_id: requester_id } });
+        if (!requesterMember || !requesterMember.is_moderator) {
+          res.status(403).json({ message: 'Only creator or moderators can change member status' });
+        } else {
+          // Safe to update target member
+          const targetMember = await SubredditMember.findOne({ where: { subreddit_id, user_id: target_user_id } });
+          if (!targetMember) {
+            res.status(404).json({ message: 'Target member not found' });
+          } else {
+            // Corrected: Update the is_moderator field
+            await targetMember.update({ is_moderator });
+            res.json({ message: `Member updated successfully`, member: targetMember });
+          }
+        }
+      } else {
+        // Creator, safe to update target member
+        const targetMember = await SubredditMember.findOne({ where: { subreddit_id, user_id: target_user_id } });
+        if (!targetMember) {
+          res.status(404).json({ message: 'Target member not found' });
+        } else {
+            // Corrected: Update the is_moderator field
+            await targetMember.update({ is_moderator });
+            res.json({ message: `Member updated successfully`, member: targetMember });
+        }
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to change moderator status' });
+  }
+};
+
+// POST /subreddits/:id/leave - Leave a subreddit
+export const leaveSubreddit = async (req: Request, res: Response) => {
+  try {
+    const { id: subreddit_id } = req.params;
+    const user_id = req.body.userId;
+
+    const member = await SubredditMember.findOne({ where: { subreddit_id, user_id } });
+    if (!member) {
+      res.status(404).json({ message: 'Not a member' });
+    }
+    else {
+      await member.destroy();
+      res.json({ message: 'Left subreddit successfully' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to leave subreddit' });
+  }
+};
+
+// GET /subreddits/:id/members - List all members in subreddit
+export const listSubredditMembers = async (req: Request, res: Response) => {
+  try {
+    const { id: subreddit_id } = req.params;
+    const members = await SubredditMember.findAll({ where: { subreddit_id } });
+    res.json(members);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch subreddit members' });
   }
 };
