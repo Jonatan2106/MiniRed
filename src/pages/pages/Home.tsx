@@ -192,6 +192,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
   const [voteCount, setVoteCount] = useState<{ upvotes: number; downvotes: number }>({ upvotes: 0, downvotes: 0 });
   const [commentCount, setCommentCount] = useState<number>(0);
   const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
+  const [voteId, setVoteId] = useState<string | null>(null); // Store the voteId
 
   useEffect(() => {
     fetchVoteCount(); // fetch vote counts
@@ -208,6 +209,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
         .then(data => {
           if (data.vote === 'upvote' || data.vote === 'downvote') {
             setUserVote(data.vote);
+            setVoteId(data.vote.vote_id || null); // Store the voteId
           }
         })
         .catch(error => {
@@ -243,26 +245,71 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
         return;
       }
 
-      const voteType = type === 'upvote' ? true : false;
-
-      const response = await fetch(`http://localhost:5000/api/posts/${post.post_id}/votes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ vote_type: voteType }),
-      });
-
-      if (response.ok) {
-        fetchVoteCount(); // Refresh vote counts
-        setUserVote(type); // Set the user vote locally
+      if (userVote === type) {
+        // If the user clicks the same vote again, cancel/delete the vote
+        await handleCancelVote();
       } else {
-        const errorData = await response.json();
-        alert(errorData.message || 'Failed to vote.');
+        // Otherwise, cast the new vote
+        const voteType = type === 'upvote' ? true : false;
+
+        const response = await fetch(`http://localhost:5000/api/posts/${post.post_id}/votes`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ vote_type: voteType }),
+        });
+
+        const data = await response.json();
+        // console.log(data); // Log the response to ensure we're getting the expected structure
+
+        if (response.ok) {
+          fetchVoteCount(); // Refresh vote counts
+          setUserVote(type); // Set the user vote locally
+
+          // Correctly using vote_id from the response
+          setVoteId(data.vote.vote_id || null); // Use vote_id (not voteId)
+        } else {
+          alert(data.message || 'Failed to vote.');
+        }
       }
     } catch (error) {
       console.error('Error voting:', error);
+    }
+  };
+
+  // Handle canceling the vote
+  const handleCancelVote = async () => {
+    if (!voteId) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login to cancel your vote.');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/votes/${voteId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        console.log('Vote successfully deleted');
+        fetchVoteCount(); // Refresh vote counts
+        setUserVote(null); // Remove the user's vote
+        setVoteId(null); // Reset the voteId
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to cancel vote:', errorData.message);
+        alert(errorData.message || 'Failed to cancel vote.');
+      }
+
+    } catch (error) {
+      console.error('Error canceling vote:', error);
     }
   };
 
@@ -281,7 +328,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
       <div className="post-footer">
         <div className="vote-section">
           <button
-            className={`vote-button ${userVote === 'upvote' ? 'upvoted' : ''}`}
+            className={`vote-button ${userVote === 'upvote' ? 'upvoted' : ''} up`}
             onClick={() => handleVote('upvote')}
           >
             ↑
@@ -291,7 +338,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
           <span className="vote-count">{voteCount.upvotes}</span>
 
           <button
-            className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''}`}
+            className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
             onClick={() => handleVote('downvote')}
           >
             ↓
@@ -308,7 +355,5 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
     </div>
   );
 };
-
-
 
 export default Home;
