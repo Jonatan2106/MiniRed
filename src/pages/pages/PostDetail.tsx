@@ -25,6 +25,24 @@ interface User {
   profilePic: string;
 }
 
+interface Comment {
+  comment_id: string;
+  content: string;
+  user: {
+    username: string;
+  };
+  replies: Comment[]; // Recursive
+}
+
+interface Reply {
+  comment_id: string;
+  content: string;
+  user: {
+    username: string;
+  };
+  replies?: Reply[];
+}
+
 const PostDetail = () => {
   const { id } = useParams();
   const [post, setPost] = useState<any>(null);
@@ -101,8 +119,7 @@ const PostDetail = () => {
   }, [id]);
 
   const handleAddComment = async (e: React.FormEvent) => {
-    e.preventDefault(); // Prevents form submission
-
+    e.preventDefault();
     if (!newComment) return;
 
     const token = localStorage.getItem('token');
@@ -112,7 +129,6 @@ const PostDetail = () => {
     }
 
     try {
-      console.log("Submitting new comment...");
       const response = await fetch(`/api/posts/${id}/comments`, {
         method: 'POST',
         headers: {
@@ -136,8 +152,7 @@ const PostDetail = () => {
   };
 
   const handleReply = async (e: React.FormEvent, parentCommentId: string) => {
-    e.preventDefault(); // Prevents form submission
-
+    e.preventDefault();
     const content = replyContent[parentCommentId];
     if (!content) return;
 
@@ -148,7 +163,6 @@ const PostDetail = () => {
     }
 
     try {
-      console.log("Submitting reply...");
       const response = await fetch(`/api/posts/${id}/comments`, {
         method: 'POST',
         headers: {
@@ -163,13 +177,8 @@ const PostDetail = () => {
 
       if (response.ok) {
         const newReply = await response.json();
-        setComments((prevComments) =>
-          prevComments.map((comment) =>
-            comment.comment_id === parentCommentId
-              ? { ...comment, replies: [...comment.replies, newReply.comment] }
-              : comment
-          )
-        );
+        const updatedComments = addReplyToComment(comments, parentCommentId, newReply.comment);
+        setComments(updatedComments);
         setReplyContent({ ...replyContent, [parentCommentId]: '' });
       } else {
         alert('Failed to add reply');
@@ -180,7 +189,33 @@ const PostDetail = () => {
     }
   };
 
-
+  // Helper to add reply deeply inside the right parent
+  const addReplyToComment = (
+    commentsList: {
+      comment_id: string;
+      replies?: any[];
+      [key: string]: any;
+    }[],
+    parentId: string,
+    newReply: any
+  ): any[] => {
+    return commentsList.map(comment => {
+      if (comment.comment_id === parentId) {
+        return {
+          ...comment,
+          replies: [...(comment.replies || []), newReply],
+        };
+      }
+      if (comment.replies) {
+        return {
+          ...comment,
+          replies: addReplyToComment(comment.replies, parentId, newReply),
+        };
+      }
+      return comment;
+    });
+  };
+  
   return (
     <div>
       {/* Navbar */}
@@ -244,38 +279,13 @@ const PostDetail = () => {
             <div className="comment-section">
               <h2 className="comment-header">Comments</h2>
               {comments.map((comment) => (
-                <div key={comment.comment_id} className="comment-card">
-                  <p className="comment-content">{comment.content}</p>
-                  <p className="comment-author">By {comment.user.username}</p>
-
-                  {/* Nested replies */}
-                  {comment.replies && comment.replies.length > 0 && (
-                    <div className="replies-section">
-                      {comment.replies.map((reply: any) => (
-                        <div key={reply.comment_id} className="reply-card">
-                          <p className="reply-content">{reply.content}</p>
-                          <p className="reply-author">By {reply.user.username}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Reply input */}
-                  <div className="reply-section">
-                    <textarea
-                      value={replyContent[comment.comment_id] || ''}
-                      onChange={(e) =>
-                        setReplyContent({
-                          ...replyContent,
-                          [comment.comment_id]: e.target.value,
-                        })
-                      }
-                      placeholder="Reply to this comment..."
-                      className="reply-input"
-                    ></textarea>
-                    <button onClick={(e) => handleReply(e, comment.comment_id)}>Reply</button>
-                  </div>
-                </div>
+                <Comment
+                  key={comment.comment_id}
+                  comment={comment}
+                  replyContent={replyContent}
+                  setReplyContent={setReplyContent}
+                  handleReply={handleReply}
+                />
               ))}
             </div>
           </>
@@ -286,3 +296,52 @@ const PostDetail = () => {
 };
 
 export default PostDetail;
+
+// --- Recursive Comment component ---
+const Comment = ({
+  comment,
+  replyContent,
+  setReplyContent,
+  handleReply,
+}: {
+  comment: any;
+  replyContent: { [key: string]: string };
+  setReplyContent: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
+  handleReply: (e: React.FormEvent, parentCommentId: string) => void;
+}) => {
+  return (
+    <div className="comment-card">
+      <p className="comment-content">{comment.content}</p>
+      <p className="comment-author">By {comment.user.username}</p>
+
+      <div className="reply-section">
+        <textarea
+          value={replyContent[comment.comment_id] || ''}
+          onChange={(e) =>
+            setReplyContent({
+              ...replyContent,
+              [comment.comment_id]: e.target.value,
+            })
+          }
+          placeholder="Reply to this comment..."
+          className="reply-input"
+        ></textarea>
+        <button onClick={(e) => handleReply(e, comment.comment_id)}>Reply</button>
+      </div>
+
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="replies-section">
+          {comment.replies.map((reply: any) => (
+            <Comment
+              key={reply.comment_id}
+              comment={reply}
+              replyContent={replyContent}
+              setReplyContent={setReplyContent}
+              handleReply={handleReply}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};

@@ -9,15 +9,15 @@
 }
 
 .post-detail-header {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: bold;
     margin-bottom: 1rem;
     color: #FF4500;
 }
 
 .post-detail-content {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
     line-height: 1.6;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .comment-header {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     margin-bottom: 1rem;
     color: #FF4500;
 }
@@ -81,24 +81,8 @@
 .replies-section {
     margin-left: 2rem;
     margin-top: 1rem;
-}
-
-.reply-card {
-    background-color: #353535;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-}
-
-.reply-content {
-    font-size: 1rem;
-    line-height: 1.6;
-}
-
-.reply-author {
-    font-size: 0.9rem;
-    color: #B0B0B0;
-    margin-top: 0.5rem;
+    border-left: 2px solid #333;
+    padding-left: 1rem;
 }
 
 .reply-section {
@@ -106,7 +90,7 @@
 }
 
 .reply-input {
-    width: 96.5%;
+    width: 95%;
     padding: 0.8rem;
     border-radius: 6px;
     background-color: #272729;
@@ -130,8 +114,7 @@
     background-color: #FF5700;
 }
 
-
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
     .post-detail-container {
         padding: 20px;
@@ -141,11 +124,8 @@
         font-size: 2rem;
     }
 
-    .new-comment-input {
-        height: 80px;
-    }
-
+    .new-comment-input,
     .reply-input {
-        height: 50px;
+        height: 80px;
     }
 }
