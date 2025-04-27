@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-    /* Reset some basics */
-    body,
-    html,
-    #root {
-=======
 /* Reset some basics */
 body,
 html,
@@ -298,7 +292,6 @@ img {
     }
 
     .feed {
->>>>>>> 2302aeef350e5094ad9145389cf88f5449f3b36c
         margin: 0;
         padding: 0;
         height: 100%;
@@ -469,3 +462,4 @@ img {
             width: 200px;
         }
     }
+}
