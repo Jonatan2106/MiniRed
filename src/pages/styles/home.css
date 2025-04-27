@@ -11,6 +11,10 @@ html,
 }
 
 /* Navbar */
+.title {
+    color: #D7DADC;
+}
+
 .navbar {
     display: flex;
     align-items: center;

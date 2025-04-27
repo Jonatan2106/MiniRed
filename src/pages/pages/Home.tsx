@@ -29,9 +29,9 @@ interface VoteCount {
   score: number;
 }
 
-interface CommentCount {
-  count: number;
-}
+// interface CommentCount {
+//   count: number;
+// }
 
 const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -113,7 +113,9 @@ const Home = () => {
       {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-left">
-          <div className="logo">MiniRed</div>
+          <div className="logo">
+            <a className="app-title" href="/">MiniRed</a>
+          </div>
         </div>
         <div className="navbar-center">
           <input className="search-input" type="text" placeholder="Search Reddit" />
@@ -152,7 +154,7 @@ const Home = () => {
       <div className="main-content">
         {/* Left Sidebar */}
         <div className="left-sidebar">
-          <h2>Navigation</h2>
+          <h2 className='title'>Navigation</h2>
           <ul>
             <li><a href="/">Home</a></li>
             <li><a href="/popular">Popular</a></li>
@@ -195,6 +197,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
   const [voteId, setVoteId] = useState<string | null>(null); // Store the voteId
 
   useEffect(() => {
+    fetchCommentCount();
     fetchVoteCount(); // fetch vote counts
 
     const token = localStorage.getItem('token');
@@ -233,7 +236,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
   const fetchCommentCount = () => {
     fetch(`http://localhost:5000/api/posts/${post.post_id}/comments/count`)
       .then((response) => response.json())
-      .then((data: CommentCount) => setCommentCount(data.count))
+      .then((data) => setCommentCount(data.commentCount))
       .catch((error) => console.error('Error fetching comment count:', error));
   };
 
@@ -314,45 +317,47 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
   };
 
   return (
-    <div className="post-card">
-      <div className="post-header">
-        <span className="username">{users.get(post.user_id)?.username || "Unknown User"}</span>
-        <span className="timestamp">{new Date(post.created_at).toLocaleString()}</span>
-      </div>
-
-      <a href={`/post/${post.post_id}`} className="post-link">
-        <h2>{post.title}</h2>
-        <p>{post.content}</p>
-      </a>
-
-      <div className="post-footer">
-        <div className="vote-section">
-          <button
-            className={`vote-button ${userVote === 'upvote' ? 'upvoted' : ''} up`}
-            onClick={() => handleVote('upvote')}
-          >
-            ↑
-          </button>
-
-          {/* Display total upvotes */}
-          <span className="vote-count">{voteCount.upvotes}</span>
-
-          <button
-            className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
-            onClick={() => handleVote('downvote')}
-          >
-            ↓
-          </button>
-
-          {/* Display total downvotes */}
-          <span className="vote-count">{voteCount.downvotes}</span>
+    <a href={`/post/${post.post_id}`}>
+      <div className="post-card">
+        <div className="post-header">
+          <span className="username">{users.get(post.user_id)?.username || "Unknown User"}</span>
+          <span className="timestamp">{new Date(post.created_at).toLocaleString()}</span>
         </div>
 
-        <div className="comment-count">
-          <span>{commentCount}</span> <span>Comments</span>
+        <p className="post-link">
+          <h2>{post.title}</h2>
+          <p>{post.content}</p>
+        </p>
+
+        <div className="post-footer">
+          <div className="vote-section">
+            <button
+              className={`vote-button ${userVote === 'upvote' ? 'upvoted' : ''} up`}
+              onClick={() => handleVote('upvote')}
+            >
+              ↑
+            </button>
+
+            {/* Display total upvotes */}
+            <span className="vote-count">{voteCount.upvotes}</span>
+
+            <button
+              className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
+              onClick={() => handleVote('downvote')}
+            >
+              ↓
+            </button>
+
+            {/* Display total downvotes */}
+            <span className="vote-count">{voteCount.downvotes}</span>
+          </div>
+
+          <div className="comment-count">
+            <span>{commentCount}</span> <span>Comments</span>
+          </div>
         </div>
       </div>
-    </div>
+    </a>
   );
 };
 
