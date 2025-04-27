@@ -2,6 +2,7 @@ import {Table, Column, Model, DataType, ForeignKey, HasMany, BelongsTo} from "se
 import { User } from "./user";
 import { Subreddit } from "./subreddit";
 import { Vote } from "./vote";
+import { Comment } from "./comment";
 
 @Table({
     tableName: "post", timestamps: false
@@ -68,6 +69,11 @@ export class Post extends Model {
         }
     })
     declare votes: Vote[];
+
+    @HasMany(() => Comment, { // <--- Tambahkan ini
+        foreignKey: 'post_id'
+    })
+    declare comments: Comment[];
 
     @BelongsTo(() => User, { 
         foreignKey: 'user_id' 

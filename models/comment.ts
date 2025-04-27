@@ -74,4 +74,9 @@ export class Comment extends Model {
             foreignKey: 'user_id' 
         })
     declare user: User;
+
+    @BelongsTo(() => Post, {
+        foreignKey: 'post_id'
+    })
+    declare post: Post;
 }
