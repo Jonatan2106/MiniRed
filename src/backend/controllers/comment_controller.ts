@@ -46,18 +46,18 @@ export const getComment = async (req: Request, res: Response) => {
     }
 };
 
-// 2. Add a comment
 export const addComment = async (req: Request, res: Response) => {
     try {
         const post_id = req.params.id;
-        const { content, parent_comment_id } = req.body;
-        const user_id = req.body.userId;
+        const { content, parent_comment_id, userId } = req.body;
 
+        // Find the post by ID
         const post = await Post.findByPk(post_id);
         if (!post) {
             res.status(404).json({ message: "Post not found" });
         }
 
+        // Check if parent comment exists, if any
         if (parent_comment_id) {
             const parentComment = await Comment.findByPk(parent_comment_id);
             if (!parentComment) {
@@ -65,24 +65,39 @@ export const addComment = async (req: Request, res: Response) => {
             }
         }
 
+        // Generate a new comment ID
         const comment_id = v4();
 
+        // Create the new comment in the database
         const newComment = await Comment.create({
             comment_id,
             post_id,
-            user_id,
+            user_id: userId,
             parent_comment_id: parent_comment_id || null,
             content,
             created_at: new Date(),
             updated_at: new Date(),
         });
 
-        res.status(201).json({ message: "Comment added successfully", comment: newComment });
+        // Fetch the user data (username) for the given userId using Sequelize
+        const user = await User.findByPk(userId);
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+        }
+        else {
+            // Respond with the newly created comment, including the username
+            res.status(201).json({
+                message: "Comment added successfully",
+                comment: { ...newComment.toJSON(), user: { username: user.username }},
+            });
+        }
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to add comment' });
     }
 };
+
 
 //3. Update a comment
 export const updateComment = async (req: Request, res: Response) => {

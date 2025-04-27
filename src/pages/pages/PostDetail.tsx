@@ -37,7 +37,6 @@ const PostDetail = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [users, setUsers] = useState<Map<string, User>>(new Map());
 
-  // Inside the Home component
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -85,7 +84,6 @@ const PostDetail = () => {
     return <div>Error: {error}</div>;
   }
 
-  // Fetch post and comments on initial load
   useEffect(() => {
     const fetchPostAndComments = async () => {
       try {
@@ -102,8 +100,9 @@ const PostDetail = () => {
     fetchPostAndComments();
   }, [id]);
 
-  // Handle adding a new comment
-  const handleAddComment = async () => {
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevents form submission
+
     if (!newComment) return;
 
     const token = localStorage.getItem('token');
@@ -113,6 +112,7 @@ const PostDetail = () => {
     }
 
     try {
+      console.log("Submitting new comment...");
       const response = await fetch(`/api/posts/${id}/comments`, {
         method: 'POST',
         headers: {
@@ -135,8 +135,9 @@ const PostDetail = () => {
     }
   };
 
-  // Handle replying to a comment
-  const handleReply = async (parentCommentId: string) => {
+  const handleReply = async (e: React.FormEvent, parentCommentId: string) => {
+    e.preventDefault(); // Prevents form submission
+
     const content = replyContent[parentCommentId];
     if (!content) return;
 
@@ -147,6 +148,7 @@ const PostDetail = () => {
     }
 
     try {
+      console.log("Submitting reply...");
       const response = await fetch(`/api/posts/${id}/comments`, {
         method: 'POST',
         headers: {
@@ -177,6 +179,7 @@ const PostDetail = () => {
       alert('An error occurred while adding your reply.');
     }
   };
+
 
   return (
     <div>
@@ -235,7 +238,7 @@ const PostDetail = () => {
                 placeholder="Add a comment..."
                 className="new-comment-input"
               ></textarea>
-              <button onClick={handleAddComment}>Submit Comment</button>
+              <button onClick={(e) => handleAddComment(e)}>Submit Comment</button>
             </div>
 
             <div className="comment-section">
@@ -270,7 +273,7 @@ const PostDetail = () => {
                       placeholder="Reply to this comment..."
                       className="reply-input"
                     ></textarea>
-                    <button onClick={() => handleReply(comment.comment_id)}>Reply</button>
+                    <button onClick={(e) => handleReply(e, comment.comment_id)}>Reply</button>
                   </div>
                 </div>
               ))}
