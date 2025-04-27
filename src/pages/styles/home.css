@@ -152,6 +152,47 @@ html,
     text-decoration: underline;
 }
 
+.profile-menu {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+  
+.dropdown-menu {
+    position: absolute;
+    top: 50px;  /* Adjust this to position the dropdown below the profile picture */
+    right: 0;
+    background-color: #fff;
+    color: #000;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+  
+.dropdown-menu a {
+    text-decoration: none;
+    background-color: transparent;
+    border: none;
+    color: #000;
+    cursor: pointer;
+    font-weight: bold;
+}
+  
+.dropdown-menu a:hover {
+    text-decoration: underline;
+}
+
+img {
+    text-decoration: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+}
 /* Responsive */
 @media (max-width: 1000px) {
     .main-content {

@@ -17,11 +17,29 @@ export interface Subreddit {
 }
 
 const Home = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+      fetch('http://localhost:5000/api/me', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          setUser({ username: data.username, profilePic: data.profilePic });
+        })
+        .catch((error) => console.error('Error fetching user data:', error));
+    }
     // Fetch posts
     fetch('http://localhost:5000/api/posts')
       .then(response => response.json())
@@ -29,7 +47,6 @@ const Home = () => {
       .catch((error) => setError('Error fetching posts'));
 
     // Fetch joined communities
-    console.log(localStorage.getItem('token'))
     fetch('http://localhost:5000/api/users/subreddits', {
       method: 'GET',
       headers: {
@@ -38,7 +55,6 @@ const Home = () => {
     })
     .then(response => response.json())
     .then(data => {
-      console.log('Joined Subreddits:', data);
       setJoinedSubreddits(data);
     })
     .catch((error) => console.error('Error fetching joined communities:', error));    
@@ -46,6 +62,16 @@ const Home = () => {
 
   const handleCreatePost = () => {
     window.location.href = '/create-post'; // Change if using React Router
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Remove token
+    setIsLoggedIn(false); // Update the state
+    window.location.href = '/'; // Redirect to homepage (optional)
+  };
+
+  const toggleDropdown = () => {
+    setDropdownOpen((prev) => !prev);
   };
 
   if (error) {
@@ -57,15 +83,38 @@ const Home = () => {
       {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-left">
-          <div className="logo">MyReddit</div>
+          <div className="logo">MiniRed</div>
         </div>
         <div className="navbar-center">
           <input className="search-input" type="text" placeholder="Search Reddit" />
         </div>
         <div className="navbar-right">
-          <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-          <a className="nav-link" href="/login">Login</a>
-          <a className="nav-link" href="/register">Register</a>
+        {isLoggedIn ? (
+          <>
+            <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
+            <div className="profile-menu">
+              <img
+                src={user?.profilePic || "/default-profile.png"}
+                className="profile-pic"
+                onClick={toggleDropdown}
+                alt={user?.username}
+              />
+              {isDropdownOpen && (
+                <div className="dropdown-menu">
+                  <a href="/profile">Profile</a>
+                  <a href="/edit">Edit</a>
+                  <a onClick={handleLogout}>Logout</a>
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
+            <a className="nav-link" href="/login">Login</a>
+            <a className="nav-link" href="/register">Register</a>
+          </>
+        )}
         </div>
       </nav>
 
