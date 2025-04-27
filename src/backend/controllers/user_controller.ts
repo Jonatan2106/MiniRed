@@ -57,6 +57,15 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     res.json(user);  // Assuming user info is in req.body (from middleware)
 };
 
+export const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const posts = await User.findAll();
+    res.json(posts);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching posts', error: err });
+  }
+};
+
 // GET /user/:id - get detail user
 export const getUserById = async (req: Request, res: Response) => {
     try {
