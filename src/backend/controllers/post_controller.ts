@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Post } from '../../../models/post';
+import { v4 } from 'uuid';
 
 // 1. List all posts
 export const getPosts = async (req: Request, res: Response) => {
@@ -28,7 +29,13 @@ export const getPostById = async (req: Request, res: Response) => {
 // 3. Create a new post
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const newPost = await Post.create(req.body);
+    // const newPost = await Post.create(req.body);
+
+    const { subreddit_id, title, content, image } = req.body
+    const post_id = v4();
+    const user_id = req.body.userId;
+
+    const newPost = await Post.create({post_id, user_id, subreddit_id, title, content, image});
     res.status(201).json(newPost);
   } catch (err) {
     res.status(500).json({ message: 'Error creating post', error: err });

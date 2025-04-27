@@ -1,17 +1,17 @@
-import {Table, Column, Model, DataType, ForeignKey, BelongsTo} from "sequelize-typescript";
+import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from "sequelize-typescript";
 import { User } from "./user";
 import { Post } from "./post";
 import { Comment } from "./comment";
 
 @Table({
-    tableName: "vote", timestamps: false
+    tableName: "vote",
+    timestamps: false
 })
-
 export class Vote extends Model {
     @Column({ 
         primaryKey: true,
-        allowNull: false,
-        type: DataType.UUID
+        type: DataType.UUID,
+        allowNull: false
     })
     declare vote_id: string;
 
@@ -32,17 +32,18 @@ export class Vote extends Model {
         type: DataType.ENUM("POST", "COMMENT"),
         allowNull: false
     })
-    declare kategori_type: string;
+    declare kategori_type: "POST" | "COMMENT"; 
 
     @Column({
         type: DataType.BOOLEAN,
-        allowNull: true
+        allowNull: false
     })
     declare vote_type: boolean;
 
     @Column({
         type: DataType.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataType.NOW
     })
     declare created_at: Date;
 

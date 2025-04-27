@@ -18,8 +18,11 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
             res.status(401).json({ message: 'Invalid or expired token' });
         }
         else {
-            req.body.user_ID = decoded.userId;  // Store the userId in req.body
-            next();
+
+            const { userId } = decoded as JwtPayloadWithUserId;
+            req.body.userId = userId;  // Store the userId in req.body
+
+            next(); // Continue to the next middleware or route handler
         }
     }
 };

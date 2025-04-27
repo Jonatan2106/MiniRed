@@ -1,9 +1,9 @@
-import { Router } from 'express';
-import { searchPosts } from '../controllers/search_controller';
+import express from 'express';
+import { searchContent} from '../controllers/search_controller';
+// import { authenticateJWT } from '../middleware/auth_middleware';
 
-const SearchRouter = Router();
+const SearchRouter = express.Router();
 
-// Search for posts by keyword
-SearchRouter.get('/search', searchPosts);
+SearchRouter.get('/search', searchContent);
 
 export default SearchRouter;

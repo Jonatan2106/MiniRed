@@ -39,7 +39,7 @@ export const loginUser = async (req: Request, res: Response) => {
             }
             else {
                 // Generate a JWT token
-                const token = generateToken(user.id);
+                const token = generateToken(user.user_id);
 
                 // Send the token to the client
                 res.json({ message: 'Login successful', token });
@@ -52,8 +52,9 @@ export const loginUser = async (req: Request, res: Response) => {
 };
 
 // GET /me - Get the logged-in user's details
-export const getCurrentUser = (req: Request, res: Response) => {
-    res.json(req.body.user);  // Assuming user info is in req.body (from middleware)
+export const getCurrentUser = async (req: Request, res: Response) => {
+    const user = await User.findByPk(req.body.userId);
+    res.json(user);  // Assuming user info is in req.body (from middleware)
 };
 
 // GET /user/:id - get detail user

@@ -1,72 +1,121 @@
 import { Request, Response } from 'express';
 import { Comment } from '../../../models/comment';
+import { Post } from '../../../models/post';
+import { User } from '../../../models/user';
+import { v4 } from 'uuid';
 
-// GET /posts/:id/comments - Get comments for a post
-export const getCommentsByPost = async (req: Request, res: Response) => {
-  try {
-    const postId = req.params.id;
-    const comments = await Comment.findAll({ where: { post_id: postId } });
-    res.json(comments);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to fetch comments' });
-  }
+//1. Get comments for a post
+export const getComment = async (req: Request, res: Response) => {
+    try {
+        const post_id = req.params.id;
+
+        const post = await Post.findByPk(post_id);
+
+        if (!post) {
+            res.status(404).json({ message: "Post not found" });
+        }
+
+        const comments = await Comment.findAll({
+            where: { 
+                post_id: post_id, 
+                parent_comment_id: null 
+            }, 
+            include: [
+                {
+                    model: User,
+                    attributes: ['user_id', 'username'],
+                },
+                {
+                    model: Comment,
+                    as: 'replies',
+                    include: [
+                        {
+                            model: User,
+                            attributes: ['user_id', 'username'],
+                        }
+                    ]
+                }
+            ],
+            order: [['created_at', 'ASC']]
+        });
+
+        res.status(200).json({ comments });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to get comment' });
+    }
 };
 
-// POST /posts/:id/comments - Add a new comment
+// 2. Add a comment
 export const addComment = async (req: Request, res: Response) => {
-  try {
-    const postId = req.params.id;
-    const { content } = req.body;
+    try {
+        const post_id = req.params.id;
+        const { content, parent_comment_id } = req.body;
+        const user_id = req.body.userId;
 
-    const newComment = await Comment.create({
-      post_id: postId,
-      content,
-      user_id: req.body.user_id,  // Assume the user is in req.body (from authentication middleware)
-    });
-    res.status(201).json(newComment);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to add comment' });
-  }
+        const post = await Post.findByPk(post_id);
+        if (!post) {
+            res.status(404).json({ message: "Post not found" });
+        }
+
+        if (parent_comment_id) {
+            const parentComment = await Comment.findByPk(parent_comment_id);
+            if (!parentComment) {
+                res.status(404).json({ message: "Parent comment not found" });
+            }
+        }
+
+        const comment_id = v4();
+
+        const newComment = await Comment.create({
+            comment_id,
+            post_id,
+            user_id,
+            parent_comment_id: parent_comment_id || null,
+            content,
+            created_at: new Date(),
+            updated_at: new Date(),
+        });
+
+        res.status(201).json({ message: "Comment added successfully", comment: newComment });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to add comment' });
+    }
 };
 
-// PUT /comments/:id - Update a comment
+//3. Update a comment
 export const updateComment = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { content } = req.body;
+    try {
+        const comment = await Comment.findByPk(req.params.id);
+        if (comment) {
+            await comment.update(req.body);
+            res.json(comment);
+        } else {
+            res.status(404).json({ message: 'Comment not found' });
+        }        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to update comment' });
 
-    const comment = await Comment.findByPk(id);
-    if (!comment) { 
-        res.status(404).json({ message: 'Comment not found' });
     }
-    else {
-        comment.content = content;
-        await comment.save();
-        res.json(comment);
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to update comment' });
-  }
 };
 
-// DELETE /comments/:id - Delete a comment
+//4, Delete a comment
 export const deleteComment = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
+    try {
+        
+        const comment = await Comment.findByPk(req.params.id);
 
-    const comment = await Comment.findByPk(id);
-    if (!comment) { 
-        res.status(404).json({ message: 'Comment not found' });
+        if (comment) {
+            await comment.destroy();
+            res.status(204).send();
+        } else {
+            res.status(404).json({message: 'Comment not found'});
+        }
+        
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to delete comment' });
     }
-    else {
-        await comment.destroy();
-        res.status(204).send();
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to delete comment' });
-  }
 };

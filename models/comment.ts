@@ -31,7 +31,7 @@ export class Comment extends Model {
     @ForeignKey(() => Comment)
     @Column({ 
         type: DataType.UUID,
-        allowNull: false
+        allowNull: true
     })
     declare parent_comment_id: string;
 
@@ -43,15 +43,23 @@ export class Comment extends Model {
 
     @Column({
         type: DataType.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataType.NOW
     })
     declare created_at: Date;
 
     @Column({
         type: DataType.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataType.NOW
     })
     declare updated_at: Date;
+
+    @HasMany(() => Comment, { 
+        foreignKey: 'parent_comment_id',
+        as: 'replies'
+      })
+      declare replies: Comment[];      
 
     @HasMany(() => Vote, {
         foreignKey: "kategori_id",

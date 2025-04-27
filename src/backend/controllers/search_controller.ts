@@ -1,27 +1,52 @@
-import { Request, Response } from 'express';
-import { Post } from '../../../models/post';
-import { Op } from 'sequelize';
+import { Request, Response } from "express";
+import { Op } from "sequelize";
+import { Post } from "../../../models/post";
+import { Comment } from "../../../models/comment";
+import { User } from "../../../models/user";
 
-export const searchPosts = async (req: Request, res: Response) => {
-  const { q } = req.query;
+export const searchContent = async (req: Request, res: Response) => {
+    try {
+        const keyword = req.query.keyword as string;
 
-  if (!q) {
-    res.status(400).json({ message: 'Search keyword is required' });
-  }
-  else {
-      try {
+        if (!keyword) {
+            res.status(400).json({ message: "Keyword is required" });
+        }
+
         const posts = await Post.findAll({
-          where: {
-            [Op.or]: [
-              { title: { [Op.iLike]: `%${q}%` } },
-              { content: { [Op.iLike]: `%${q}%` } }
+            where: {
+                content: {
+                    [Op.iLike]: `%${keyword}%`  
+                }
+            },
+            include: [
+                {
+                    model: User,
+                    attributes: ["user_id", "username"]
+                }
             ]
-          }
         });
-        res.status(200).json(posts);
-      } catch (err) {
-        res.status(500).json({ message: 'An error occurred while searching for posts' });
-      }
-  }
 
+            const comments = await Comment.findAll({
+            where: {
+                content: {
+                    [Op.iLike]: `%${keyword}%`
+                }
+            },
+            include: [
+                {
+                    model: User,
+                    attributes: ["user_id", "username"]
+                },
+                {
+                    model: Post,
+                    attributes: ["post_id", "title"]
+                }
+            ]
+        });
+
+        res.status(200).json({ posts, comments });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to search content" });
+    }
 };

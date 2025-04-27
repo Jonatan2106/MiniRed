@@ -24,9 +24,9 @@ export class Post extends Model {
     @ForeignKey(() => Subreddit)
     @Column({ 
         type: DataType.UUID,
-        allowNull: false
+        allowNull: true
     })
-    declare subreddit_id: string;
+    declare subreddit_id?: string;
 
     @Column({ 
         type: DataType.STRING,
@@ -42,19 +42,21 @@ export class Post extends Model {
     
     @Column({
         type: DataType.BLOB,
-        allowNull: false
+        allowNull: true
     })
     declare image: Blob;
 
     @Column({
         type: DataType.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataType.NOW
     })
     declare created_at: Date;
 
     @Column({
         type: DataType.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataType.NOW
     })
     declare updated_at: Date;
 

@@ -24,7 +24,8 @@ export class SubredditMember extends Model {
 
     @Column({
         type: DataType.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: DataType.NOW
     })
     declare joined_at: Date;
 
@@ -32,5 +33,5 @@ export class SubredditMember extends Model {
         type: DataType.BOOLEAN,
         allowNull: false
     })
-    declare ls_moderator: string;
+    declare is_moderator: boolean;
 }
