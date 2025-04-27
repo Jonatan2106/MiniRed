@@ -12,6 +12,8 @@ import PostRouter from './routes/post_routes';
 import userRouter from './routes/user_routes';
 import voteRouter from './routes/vote_routes';
 import subredditRouter from './routes/subreddit_routes';
+import commentRouter from './routes/comment_routes';
+import searchRouter from './routes/search_routes';
 
 dotenv.config();
 
@@ -44,12 +46,14 @@ sequelize.authenticate()
 app.get('/', (req, res) => {
   res.send('Backend is running!');
 });
-
+// 
 // Prefix all post routes with '/api'
 app.use('/api', PostRouter);
 app.use('/api', userRouter);
 app.use('/api', voteRouter);
-app.use('/api', subredditRouter);
+app.use('/api', subredditRouter); 
+app.use('/api', commentRouter); 
+app.use('/api', searchRouter); 
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
