@@ -10,6 +10,8 @@ UserRouter.get('/me', authenticateJWT, getCurrentUser);
 UserRouter.get('/user/:id', authenticateJWT, getUserById);
 UserRouter.get('/user/:id/post', authenticateJWT, getUserPosts); 
 UserRouter.get('/user/:id/comment', authenticateJWT, getUserComments);
+UserRouter.get('/user/me/post', authenticateJWT, getUserPosts); 
+UserRouter.get('/user/me/comment', authenticateJWT, getUserComments);
 UserRouter.put('/user/me', authenticateJWT, updateUserProfile);
 
 export default UserRouter;
