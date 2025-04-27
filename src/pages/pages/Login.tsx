@@ -16,7 +16,7 @@ const Login = () => {
       const token = response.token;
       localStorage.setItem('token', token);  // Store the JWT token in localStorage
       // Redirect to home or profile after successful login
-      navigate('/me');
+      navigate('/');
     } catch (error) {
       setError('Login failed. Please check your credentials.');
     }

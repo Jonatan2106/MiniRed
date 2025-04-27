@@ -1,4 +1,4 @@
-import {Table, Column, Model, DataType, ForeignKey} from "sequelize-typescript";
+import { Table, Column, Model, DataType, ForeignKey, BelongsTo } from "sequelize-typescript";
 import { User } from "./user";
 import { Subreddit } from "./subreddit";
 @Table({
@@ -7,7 +7,7 @@ import { Subreddit } from "./subreddit";
 
 export class SubredditMember extends Model {
     @ForeignKey(() => Subreddit)
-    @Column({ 
+    @Column({
         primaryKey: true,
         allowNull: true,
         type: DataType.UUID
@@ -15,7 +15,7 @@ export class SubredditMember extends Model {
     declare subreddit_id: string;
 
     @ForeignKey(() => User)
-    @Column({ 
+    @Column({
         type: DataType.UUID,
         primaryKey: true,
         allowNull: false
@@ -34,4 +34,7 @@ export class SubredditMember extends Model {
         allowNull: false
     })
     declare is_moderator: boolean;
+
+    @BelongsTo(() => Subreddit)
+    declare subreddit: Subreddit;
 }

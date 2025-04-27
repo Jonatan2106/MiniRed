@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { Op } from "sequelize";
 import { Post } from "../../../models/post";
-import { Comment } from "../../../models/comment";
 import { User } from "../../../models/user";
 
 export const searchContent = async (req: Request, res: Response) => {

@@ -7,23 +7,23 @@ import { v4 } from 'uuid';
 export const createSubreddit = async (req: Request, res: Response) => {
   try {
     const subreddit_id = v4();
-    const { name, title, description, is_privated } = req.body; 
-    const user_id = req.body.userId; 
+    const { name, title, description, is_privated } = req.body;
+    const user_id = req.body.userId;
 
-    const newSubreddit = await Subreddit.create({ 
+    const newSubreddit = await Subreddit.create({
       subreddit_id,
       user_id,
-      name, 
+      name,
       title,
       description,
-      is_privated 
+      is_privated
     });
 
     await SubredditMember.create({
       subreddit_id,
       user_id,  // Creator's user_id
       joined_at: new Date(),
-      is_moderator: true  
+      is_moderator: true
     });
 
     // Step 3: Respond with the created subreddit
@@ -49,11 +49,11 @@ export const getAllSubreddits = async (req: Request, res: Response) => {
 export const getSubredditById = async (req: Request, res: Response) => {
   try {
     const subreddit = await Subreddit.findByPk(req.params.id);
-    if (!subreddit) { 
-        res.status(404).json({ message: 'Subreddit not found' });
+    if (!subreddit) {
+      res.status(404).json({ message: 'Subreddit not found' });
     }
     else {
-        res.json(subreddit);
+      res.json(subreddit);
     }
   } catch (error) {
     console.error(error);
@@ -177,9 +177,9 @@ export const changeMemberModeratorStatus = async (req: Request, res: Response) =
         if (!targetMember) {
           res.status(404).json({ message: 'Target member not found' });
         } else {
-            // Corrected: Update the is_moderator field
-            await targetMember.update({ is_moderator });
-            res.json({ message: `Member updated successfully`, member: targetMember });
+          // Corrected: Update the is_moderator field
+          await targetMember.update({ is_moderator });
+          res.json({ message: `Member updated successfully`, member: targetMember });
         }
       }
     }
@@ -218,5 +218,28 @@ export const listSubredditMembers = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to fetch subreddit members' });
+  }
+};
+
+export const getUserJoinedSubreddits = async (req: Request, res: Response) => {
+  try {
+    console.log(req.body.userId)
+    const user_id = req.body.userId;
+
+    const memberships = await SubredditMember.findAll({
+      where: { user_id },
+      include: {
+        model: Subreddit,
+        attributes: ['subreddit_id', 'name', 'title', 'description']
+      }
+    });
+
+    // Extract subreddit details from memberships
+    const subredditList = memberships.map(membership => membership.subreddit);
+    console.log(subredditList)
+    res.json(subredditList);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch joined subreddits' });
   }
 };
