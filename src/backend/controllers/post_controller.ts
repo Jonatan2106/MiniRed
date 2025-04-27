@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Post } from '../../../models/post';
+import { Comment } from '../../../models/comment';
 import { v4 } from 'uuid';
 
 // 1. List all posts
@@ -69,5 +70,22 @@ export const deletePost = async (req: Request, res: Response) => {
     }
   } catch (err) {
     res.status(500).json({ message: 'Error deleting post', error: err });
+  }
+};
+
+export const getPostCommentsCount = async (req: Request, res: Response) => {
+  try {
+    const postId = req.params.id;
+
+    const commentCount = await Comment.count({
+      where: {
+        post_id: postId,
+      },
+    });
+
+    res.json({ commentCount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch comment count' });
   }
 };

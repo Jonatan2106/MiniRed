@@ -101,28 +101,81 @@ html,
     margin: 0 1rem;
 }
 
+/* Post Card Styling */
 .post-card {
     background-color: #1a1a1b;
+    border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1rem;
-    border-radius: 8px;
+    transition: all 0.2s ease;
 }
 
-.post-card h2 {
-    color: #D7DADC;
-}
-
-.post-card p {
-    color: #818384;
-}
-
-.read-more-link {
-    color: #FF4500;
+/* Post Link Styling */
+.post-link {
+    color: inherit;
     text-decoration: none;
 }
 
-.read-more-link:hover {
-    text-decoration: underline;
+.post-card:hover {
+    background-color: #272727;
+    transform: scale(1.02);
+}
+
+/* Post Header */
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.username {
+    font-weight: bold;
+    color: #FF4500;
+}
+
+.timestamp {
+    color: #B1B1B1;
+    font-size: 0.9rem;
+}
+
+/* Post Title */
+.post-card h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #D7DADC;
+    margin-bottom: 0.5rem;
+}
+
+.post-card p {
+    font-size: 1rem;
+    color: #B1B1B1;
+}
+
+/* Post Footer */
+.post-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.vote-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vote-button:hover {
+    color: #FF7F50;
+}
+
+.vote-count {
+    color: #D7DADC;
+    font-weight: bold;
+}
+
+.comment-count {
+    color: #D7DADC;
+    font-weight: bold;
 }
 
 /* Right Sidebar */
@@ -158,10 +211,10 @@ html,
     align-items: center;
     gap: 10px;
 }
-  
+
 .dropdown-menu {
     position: absolute;
-    top: 50px;  /* Adjust this to position the dropdown below the profile picture */
+    top: 50px;
     right: 0;
     background-color: #fff;
     color: #000;
@@ -172,7 +225,7 @@ html,
     flex-direction: column;
     gap: 8px;
 }
-  
+
 .dropdown-menu a {
     text-decoration: none;
     background-color: transparent;
@@ -181,18 +234,35 @@ html,
     cursor: pointer;
     font-weight: bold;
 }
-  
+
 .dropdown-menu a:hover {
     text-decoration: underline;
 }
 
 img {
-    text-decoration: none;
     border: none;
-    color: #fff;
     cursor: pointer;
-    font-weight: bold;
 }
+
+.vote-button {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: grey;
+    margin: 0 5px;
+}
+
+.vote-button.upvoted {
+    color: orange;
+}
+
+.vote-button.downvoted {
+    color: blue;
+}
+
+
+
 /* Responsive */
 @media (max-width: 1000px) {
     .main-content {
