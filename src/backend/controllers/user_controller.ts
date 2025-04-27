@@ -23,10 +23,10 @@ export const registerUser = async (req: Request, res: Response) => {
 // POST /login - Login user and generate JWT token
 export const loginUser = async (req: Request, res: Response) => {
     try {
-        const { email, password } = req.body;
+        const { username, password } = req.body;
 
         // Find the user by email
-        const user = await User.findOne({ where: { email } });
+        const user = await User.findOne({ where: { username } });
         if (!user) {
             res.status(401).json({ message: 'Invalid credentials' });
         }

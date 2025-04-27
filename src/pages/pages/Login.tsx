@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { fetchFromAPI } from '../../api/api';
+import { useNavigate } from 'react-router-dom';
 import '../styles/login.css';
 import '../styles/main.css';
 
@@ -7,6 +8,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
@@ -14,6 +16,7 @@ const Login = () => {
       const token = response.token;
       localStorage.setItem('token', token);  // Store the JWT token in localStorage
       // Redirect to home or profile after successful login
+      navigate('/me');
     } catch (error) {
       setError('Login failed. Please check your credentials.');
     }

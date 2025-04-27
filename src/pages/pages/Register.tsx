@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { fetchFromAPI } from '../../api/api'; // assuming you have this API helper
+import { fetchFromAPI } from '../../api/api'; 
+import { useNavigate } from 'react-router-dom';
 import '../styles/register.css';
 
 const Register = () => {
@@ -8,6 +9,7 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleRegister = async () => {
     if (password !== confirmPassword) {
@@ -19,6 +21,7 @@ const Register = () => {
       const response = await fetchFromAPI('/register', 'POST', { username, email, password });
       // Handle response (e.g., redirect to login page)
       console.log(response); // On success, maybe redirect or show a success message
+      navigate('/');
     } catch (error) {
       console.error('Registration failed', error);
       setError('Registration failed. Please try again.');
