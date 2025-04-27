@@ -22,6 +22,12 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
         else {
             // const { userId } = decoded as JwtPayloadWithUserId;
             const { userId } = decoded as JwtPayloadWithUserId;
+
+            // Ensure req.body is defined before setting userId
+            if (!req.body) {
+                req.body = {};  // Initialize req.body if it's undefined
+            }
+
             req.body.userId = userId;  // Store the userId in req.body
 
             next(); // Continue to the next middleware or route handler
