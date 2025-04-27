@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import '../styles/home.css';
 import '../styles/main.css';
 
+// Define types
 interface Post {
-  post_id: string;
   user_id: string;
+  post_id: string;
   title: string;
-  content: string;
   created_at: string;
+  content: string;
 }
 
 export interface Subreddit {
@@ -34,74 +35,35 @@ interface VoteCount {
 // }
 
 const Home = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [users, setUsers] = useState<Map<string, User>>(new Map());
 
-  // Inside the Home component
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-      fetch('http://localhost:5000/api/me', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          setUser({ username: data.username, profilePic: data.profilePic });
-        })
-        .catch((error) => console.error('Error fetching user data:', error));
-    }
-
+    // Fetch posts
     fetch('http://localhost:5000/api/posts')
       .then(response => response.json())
       .then(data => setPosts(data))
       .catch((error) => setError('Error fetching posts'));
 
+    // Fetch joined communities
+    console.log(localStorage.getItem('token'))
     fetch('http://localhost:5000/api/users/subreddits', {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       }
     })
-      .then(response => response.json())
-      .then(data => {
-        setJoinedSubreddits(data);
-      })
-      .catch((error) => console.error('Error fetching joined communities:', error));
-
-    fetch('http://localhost:5000/api/user/all')
-      .then(response => response.json())
-      .then((data) => {
-        const userMap = new Map();
-        data.forEach((user: User) => {
-          userMap.set(user.user_id, user);
-        });
-        setUsers(userMap);
-      })
-      .catch((error) => console.error('Error fetching users:', error));
+    .then(response => response.json())
+    .then(data => {
+      console.log('Joined Subreddits:', data);
+      setJoinedSubreddits(data);
+    })
+    .catch((error) => console.error('Error fetching joined communities:', error));    
   }, []);
 
-
   const handleCreatePost = () => {
-    window.location.href = '/create-post';
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
-    window.location.href = '/';
-  };
-
-  const toggleDropdown = () => {
-    setDropdownOpen((prev) => !prev);
+    window.location.href = '/create-post'; // Change if using React Router
   };
 
   if (error) {
@@ -121,32 +83,9 @@ const Home = () => {
           <input className="search-input" type="text" placeholder="Search Reddit" />
         </div>
         <div className="navbar-right">
-          {isLoggedIn ? (
-            <>
-              <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-              <div className="profile-menu">
-                <img
-                  src={user?.profilePic || "/default-profile.png"}
-                  className="profile-pic"
-                  onClick={toggleDropdown}
-                  alt={user?.username}
-                />
-                {isDropdownOpen && (
-                  <div className="dropdown-menu">
-                    <a href="/profile">Profile</a>
-                    <a href="/edit">Edit</a>
-                    <a onClick={handleLogout}>Logout</a>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-              <a className="nav-link" href="/login">Login</a>
-              <a className="nav-link" href="/register">Register</a>
-            </>
-          )}
+          <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
+          <a className="nav-link" href="/login">Login</a>
+          <a className="nav-link" href="/register">Register</a>
         </div>
       </nav>
 
@@ -163,8 +102,12 @@ const Home = () => {
 
         {/* Feed */}
         <div className="feed">
-          {posts.map((post) => (
-            <PostCard key={post.post_id} post={post} users={users} />
+          {posts.map(post => (
+            <div key={post.post_id} className="post-card">
+              <h2>{post.title}</h2>
+              <p>{post.content}</p>
+              <a className="read-more-link" href={`/post/${post.post_id}`}>Read more</a>
+            </div>
           ))}
         </div>
 
