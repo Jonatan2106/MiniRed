@@ -19,3 +19,13 @@ a {
 a:hover {
   color: #007bff;
 }
+
+.app-title {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.app-title:hover {
+  color: #FF4500;
+  text-shadow: 0 0 10px #FF7F50;
+}

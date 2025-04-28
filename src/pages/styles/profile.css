@@ -1,16 +1,100 @@
-/* src/styles/profile.css */
-.profile-container {
+.container {
+    display: flex;
+    height: 100vh;
+    background-color: #1a1a1b;
+    color: #d7dadc;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .sidebar {
+    width: 250px;
+    background-color: #1a1a1b;
     padding: 20px;
-    background-color: #f9f9f9;
-}
-
-.profile-header {
-    font-size: 2rem;
+    border-right: 1px solid #343536;
+  }
+  
+  .sidebar-section {
     margin-bottom: 20px;
-}
-
-.profile-info {
-    font-size: 1rem;
-    color: #555;
+  }
+  
+  .sidebar-section h2 {
+    font-size: 14px;
+    color: #818384;
     margin-bottom: 10px;
-}
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .sidebar li {
+    margin: 10px 0;
+    cursor: pointer;
+  }
+  
+  .sidebar li:hover {
+    color: #ffffff;
+  }
+  
+  .profile-main {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+  }
+  
+  .profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    background-color: #343536;
+    border-radius: 50%;
+    margin-right: 20px;
+  }
+  
+  .profile-info .username {
+    font-size: 24px;
+    margin: 0;
+  }
+  
+  .profile-info .user-handle {
+    font-size: 14px;
+    color: #818384;
+  }
+  
+  .profile-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .tab {
+    background: none;
+    border: none;
+    color: #d7dadc;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 20px;
+  }
+  
+  .tab:hover {
+    background-color: #343536;
+  }
+  
+  .tab.active {
+    background-color: #343536;
+  }
+  
+  .profile-content {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 18px;
+    color: #818384;
+  }
+  

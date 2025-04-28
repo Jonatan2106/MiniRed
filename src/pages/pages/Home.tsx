@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import '../styles/home.css';
 import '../styles/main.css';
 
-// Define types
 interface Post {
   post_id: string;
+  user_id: string;
   title: string;
   content: string;
+  created_at: string;
 }
 
 export interface Subreddit {
@@ -16,6 +17,22 @@ export interface Subreddit {
   description: string;
 }
 
+interface User {
+  user_id: string;
+  username: string;
+  profilePic: string;
+}
+
+interface VoteCount {
+  upvotes: number;
+  downvotes: number;
+  score: number;
+}
+
+interface CommentCount {
+  count: number;
+}
+
 const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -23,7 +40,9 @@ const Home = () => {
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [users, setUsers] = useState<Map<string, User>>(new Map());
 
+  // Inside the Home component
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -40,34 +59,45 @@ const Home = () => {
         })
         .catch((error) => console.error('Error fetching user data:', error));
     }
-    // Fetch posts
+
     fetch('http://localhost:5000/api/posts')
       .then(response => response.json())
       .then(data => setPosts(data))
       .catch((error) => setError('Error fetching posts'));
 
-    // Fetch joined communities
     fetch('http://localhost:5000/api/users/subreddits', {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       }
     })
-    .then(response => response.json())
-    .then(data => {
-      setJoinedSubreddits(data);
-    })
-    .catch((error) => console.error('Error fetching joined communities:', error));    
+      .then(response => response.json())
+      .then(data => {
+        setJoinedSubreddits(data);
+      })
+      .catch((error) => console.error('Error fetching joined communities:', error));
+
+    fetch('http://localhost:5000/api/user/all')
+      .then(response => response.json())
+      .then((data) => {
+        const userMap = new Map();
+        data.forEach((user: User) => {
+          userMap.set(user.user_id, user);
+        });
+        setUsers(userMap);
+      })
+      .catch((error) => console.error('Error fetching users:', error));
   }, []);
 
+
   const handleCreatePost = () => {
-    window.location.href = '/create-post'; // Change if using React Router
+    window.location.href = '/create-post';
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Remove token
-    setIsLoggedIn(false); // Update the state
-    window.location.href = '/'; // Redirect to homepage (optional)
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    window.location.href = '/';
   };
 
   const toggleDropdown = () => {
@@ -83,38 +113,40 @@ const Home = () => {
       {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-left">
-          <div className="logo">MiniRed</div>
+          <div className="logo">
+            <a className="app-title" href="/">MiniRed</a>
+          </div>
         </div>
         <div className="navbar-center">
           <input className="search-input" type="text" placeholder="Search Reddit" />
         </div>
         <div className="navbar-right">
-        {isLoggedIn ? (
-          <>
-            <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-            <div className="profile-menu">
-              <img
-                src={user?.profilePic || "/default-profile.png"}
-                className="profile-pic"
-                onClick={toggleDropdown}
-                alt={user?.username}
-              />
-              {isDropdownOpen && (
-                <div className="dropdown-menu">
-                  <a href="/profile">Profile</a>
-                  <a href="/edit">Edit</a>
-                  <a onClick={handleLogout}>Logout</a>
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          <>
-            <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-            <a className="nav-link" href="/login">Login</a>
-            <a className="nav-link" href="/register">Register</a>
-          </>
-        )}
+          {isLoggedIn ? (
+            <>
+              <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
+              <div className="profile-menu">
+                <img
+                  src={user?.profilePic || "/default-profile.png"}
+                  className="profile-pic"
+                  onClick={toggleDropdown}
+                  alt={user?.username}
+                />
+                {isDropdownOpen && (
+                  <div className="dropdown-menu">
+                    <a href="/profile">Profile</a>
+                    <a href="/edit">Edit</a>
+                    <a onClick={handleLogout}>Logout</a>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
+              <a className="nav-link" href="/login">Login</a>
+              <a className="nav-link" href="/register">Register</a>
+            </>
+          )}
         </div>
       </nav>
 
@@ -122,7 +154,7 @@ const Home = () => {
       <div className="main-content">
         {/* Left Sidebar */}
         <div className="left-sidebar">
-          <h2>Navigation</h2>
+          <h2 className='title'>Navigation</h2>
           <ul>
             <li><a href="/">Home</a></li>
             <li><a href="/popular">Popular</a></li>
@@ -131,12 +163,8 @@ const Home = () => {
 
         {/* Feed */}
         <div className="feed">
-          {posts.map(post => (
-            <div key={post.post_id} className="post-card">
-              <h2>{post.title}</h2>
-              <p>{post.content}</p>
-              <a className="read-more-link" href={`/post/${post.post_id}`}>Read more</a>
-            </div>
+          {posts.map((post) => (
+            <PostCard key={post.post_id} post={post} users={users} />
           ))}
         </div>
 
@@ -160,6 +188,186 @@ const Home = () => {
       </div>
     </div>
   );
+};
+
+const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => {
+  const [voteCount, setVoteCount] = useState<{ upvotes: number; downvotes: number }>({ upvotes: 0, downvotes: 0 });
+  const [commentCount, setCommentCount] = useState<number>(0);
+  const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
+  const [voteId, setVoteId] = useState<string | null>(null); // Store the voteId
+
+  useEffect(() => {
+    fetchCommentCount();
+    fetchVoteCount(); // fetch vote counts
+
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch(`http://localhost:5000/api/posts/${post.post_id}/votes`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.vote === 'upvote' || data.vote === 'downvote') {
+            setUserVote(data.vote);
+            setVoteId(data.vote.vote_id || null); // Store the voteId
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching user vote:', error);
+        });
+    }
+  }, [post.post_id]);
+
+  const fetchVoteCount = () => {
+    fetch(`http://localhost:5000/api/posts/${post.post_id}/votes/count`)
+      .then((response) => response.json())
+      .then((data) => {
+        setVoteCount({
+          upvotes: data.upvotes,
+          downvotes: data.downvotes,
+        });
+      })
+      .catch((error) => console.error('Error fetching vote count:', error));
+  };
+
+  const fetchCommentCount = () => {
+    fetch(`http://localhost:5000/api/posts/${post.post_id}/comments/count`)
+      .then((response) => response.json())
+      .then((data) => setCommentCount(data.commentCount))
+      .catch((error) => console.error('Error fetching comment count:', error));
+  };
+
+  const handleVote = async (type: 'upvote' | 'downvote') => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login to vote.');
+        return;
+      }
+
+      if (userVote === type) {
+        // If the user clicks the same vote again, cancel/delete the vote
+        await handleCancelVote();
+      } else {
+        // Otherwise, cast the new vote
+        const voteType = type === 'upvote' ? true : false;
+
+        const response = await fetch(`http://localhost:5000/api/posts/${post.post_id}/votes`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ vote_type: voteType }),
+        });
+
+        const data = await response.json();
+        // console.log(data); // Log the response to ensure we're getting the expected structure
+
+        if (response.ok) {
+          fetchVoteCount(); // Refresh vote counts
+          setUserVote(type); // Set the user vote locally
+
+          // Correctly using vote_id from the response
+          setVoteId(data.vote.vote_id || null); // Use vote_id (not voteId)
+        } else {
+          alert(data.message || 'Failed to vote.');
+        }
+      }
+    } catch (error) {
+      console.error('Error voting:', error);
+    }
+  };
+
+  // Handle canceling the vote
+  const handleCancelVote = async () => {
+    if (!voteId) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login to cancel your vote.');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/votes/${voteId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        console.log('Vote successfully deleted');
+        fetchVoteCount(); // Refresh vote counts
+        setUserVote(null); // Remove the user's vote
+        setVoteId(null); // Reset the voteId
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to cancel vote:', errorData.message);
+        alert(errorData.message || 'Failed to cancel vote.');
+      }
+
+    } catch (error) {
+      console.error('Error canceling vote:', error);
+    }
+  };
+
+  return (
+    <div className="post-card">
+      {/* Upper part: clickable area */}
+      <a href={`/post/${post.post_id}`} className="post-link">
+        <div className="post-content">
+          <div className="post-header">
+            <span className="username">{users.get(post.user_id)?.username || "Unknown User"}</span>
+            <span className="timestamp">{new Date(post.created_at).toLocaleString()}</span>
+          </div>
+          <h2>{post.title}</h2>
+          <p>{post.content}</p>
+        </div>
+        <hr className='hr'/>
+      </a>
+
+      {/* Bottom part: vote and comment section */}
+      <div className="post-footer">
+        <div className="vote-section">
+          <button
+            className={`vote-button ${userVote === 'upvote' ? 'upvoted' : ''} up`}
+            onClick={(e) => {
+              e.stopPropagation();  // Prevent redirect on button click
+              handleVote('upvote');
+            }}
+          >
+            ↑
+          </button>
+
+          {/* Display total upvotes */}
+          <span className="vote-count">{voteCount.upvotes}</span>
+
+          <button
+            className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
+            onClick={(e) => {
+              e.stopPropagation();  // Prevent redirect on button click
+              handleVote('downvote');
+            }}
+          >
+            ↓
+          </button>
+
+          {/* Display total downvotes */}
+          <span className="vote-count">{voteCount.downvotes}</span>
+        </div>
+
+        <div className="comment-count">
+          <span>{commentCount}</span> <span>Comments</span>
+        </div>
+      </div>
+    </div>
+  );
+
 };
 
 export default Home;

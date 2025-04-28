@@ -91,7 +91,7 @@ export const updateVote = async (req: Request, res: Response) => {
     if (!vote) {
       res.status(404).json({ message: 'Vote not found' });
     }
-    else{
+    else {
       vote.vote_type = vote_type;
       await vote.save();
       res.json(vote);
@@ -111,17 +111,20 @@ export const deleteVote = async (req: Request, res: Response) => {
     const vote = await Vote.findByPk(id);
     if (!vote) {
       res.status(404).json({ message: 'Vote not found' });
-    }
-    else {
-      await vote.destroy();
-      res.status(204).send(); // No Content
+      return; // Make sure to stop execution after sending the response
     }
 
+    // Delete the vote
+    await vote.destroy();
+
+    // Send a 204 No Content status to indicate successful deletion
+    res.status(204).send(); // Ensure the response is sent
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to delete vote' });
   }
 };
+
 
 // GET /posts/:id/votes/count - Get total votes for a post
 export const getPostVotesCount = async (req: Request, res: Response) => {
