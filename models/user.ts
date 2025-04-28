@@ -47,14 +47,14 @@ export class User extends Model {
 
     @Column({
         type: DataType.DATE,
-        allowNull: true,
+        allowNull: false,
         defaultValue: DataType.NOW
     })
     declare created_at: Date;
 
     @Column({
         type: DataType.DATE,
-        allowNull: true,
+        allowNull: false,
         defaultValue: DataType.NOW
     })
     declare updated_at: Date;

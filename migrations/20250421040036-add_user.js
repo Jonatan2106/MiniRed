@@ -32,12 +32,12 @@ export default {
       },
       created_at: {
         type: Sequelize.DATE,
-        allowNull: true,
+        allowNull: false,
         defaultValue: Sequelize.NOW,
       },
       updated_at: {
         type: Sequelize.DATE,
-        allowNull: true,
+        allowNull: false,
         defaultValue: Sequelize.NOW,
       },
     })

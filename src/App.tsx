@@ -7,6 +7,7 @@ import Register from './pages/pages/Register';
 import Search from './pages/pages/Search';
 import Profile from './pages/pages/Profile';
 import NotFound from './pages/pages/NotFound';
+import EditProfile from './pages/pages/EditProfile';
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/search" element={<Search />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/edit" element={<EditProfile />} /> {/* Assuming EditProfile is part of Profile */}
         <Route path="*" element={<NotFound />} /> {/* For handling 404 */}
       </Routes>
     </Router>
