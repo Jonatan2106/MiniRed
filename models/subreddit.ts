@@ -20,7 +20,7 @@ export class Subreddit extends Model {
     })
     declare user_id: string; // <- This is the creator (owner)
 
-    @Column({ 
+    @Column({  //url
         type: DataType.STRING,
         allowNull: false
     })

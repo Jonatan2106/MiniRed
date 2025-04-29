@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Request, Response } from 'express';
 import { User } from '../../../models/user';
+import { Comment } from '../../../models/comment'; 
+import { Post } from '../../../models/post'; 
 import { generateToken } from '../utils/jwt_helper';
 
 // POST /register - Register a new user
@@ -134,3 +136,49 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Failed to update user profile' });
     }
 }
+
+// Get all posts from the logged-in user
+export const getAllPosts = async (req: Request, res: Response) => {
+    try {
+        const userId = req.body.userId; // Get user_id from the request (token payload)
+
+        const posts = await Post.findAll({
+            where: { user_id: userId },
+            include: [
+                {
+                    model: User,
+                    attributes: ['user_id', 'username'],
+                },
+            ],
+            order: [['created_at', 'DESC']],
+        });
+
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to get user posts' });
+    }
+};
+
+// Get all comments from the logged-in user
+export const getAllComments = async (req: Request, res: Response) => {
+    try {
+        const userId = req.body.userId; // Get user_id from the request (token payload)
+
+        const comments = await Comment.findAll({
+            where: { user_id: userId },
+            include: [
+                {
+                    model: User,
+                    attributes: ['user_id', 'username'],
+                },
+            ],
+            order: [['created_at', 'DESC']],
+        });
+
+        res.status(200).json(comments);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to get user comments' });
+    }
+};
