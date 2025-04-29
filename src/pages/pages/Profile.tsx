@@ -13,6 +13,7 @@ interface Post {
 interface Comment {
   comment_id: string;
   post_id: string;
+  post: Post;
   user_id: string;
   content: string;
   created_at: string;
@@ -31,6 +32,17 @@ interface User {
   profilePic: string;
 }
 
+interface Vote {
+  vote_id: string;
+  user_id: string;
+  kategori_id: string;
+  kategori_type: "POST" | "COMMENT"; // Specifies whether the vote is for a post or a comment
+  vote_type: boolean; // true for upvote, false for downvote
+  created_at: string;
+  post?: Post; // Optional, included if the vote is for a post
+  comment?: Comment; // Optional, included if the vote is for a comment
+}
+
 const Profile = () => {
   const [users, setUsers] = useState<Map<string, User>>(new Map());
   const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
@@ -40,6 +52,8 @@ const Profile = () => {
   const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
   const [activeTab, setActiveTab] = useState('Posts');
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [Downvoted, setDownVotes] = useState<Vote[]>([]);
+  const [upvoted, setUpVotes] = useState<Vote[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -58,15 +72,60 @@ const Profile = () => {
         .catch((error) => console.error('Error fetching user data:', error));
     }
 
-    fetch('http://localhost:5000/api/user/me/posts')
+    fetch('http://localhost:5000/api/user/me/posts', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      }
+    })
       .then(response => response.json())
       .then(data => setPosts(data))
       .catch(() => console.error('Error fetching posts'));
 
-    fetch('http://localhost:5000/api/user/me/comments')
-      .then(response => response.json())
-      .then(data => setComments(data))
+    fetch('http://localhost:5000/api/user/me/comments', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then(async (commentsData) => {
+        // Fetch posts for each comment
+        const commentsWithPosts = await Promise.all(
+          commentsData.map(async (comment: Comment) => {
+            const postResponse = await fetch(`http://localhost:5000/api/posts/${comment.post_id}`, {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            const post = await postResponse.json();
+            return { ...comment, post }; // Merge post into comment
+          })
+        );
+        setComments(commentsWithPosts);
+      })
       .catch(() => console.error('Error fetching comments'));
+
+    fetch('http://localhost:5000/api/user/me/downvoted', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      }
+    })
+      .then(response => response.json())
+      .then(data => setDownVotes(data))
+      .catch(() => console.error('Error fetching downvoted posts'));
+
+    fetch('http://localhost:5000/api/user/me/upvoted', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      }
+    })
+      .then(response => response.json())
+      .then(data => setUpVotes(data))
+      .catch(() => console.error('Error fetching upvoted posts'));
 
     fetch('http://localhost:5000/api/users/subreddits', {
       method: 'GET',
@@ -119,7 +178,7 @@ const Profile = () => {
               <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
               <div className="profile-menu">
                 <img
-                  src={user?.profilePic || "/default-profile.png"}
+                  src={user?.profilePic || "/default.png"}
                   className="profile-pic"
                   onClick={toggleDropdown}
                   alt={user?.username}
@@ -218,24 +277,48 @@ const Profile = () => {
             {activeTab === 'Posts' && (
               <div>
                 {posts.length > 0 ? (
-                  posts.map(post => (
-                    <div key={post.post_id} className="post-item">
-                      <h3>{post.title}</h3>
+                  posts.map((post) => (
+                    <div
+                      key={post.post_id}
+                      className="post-item"
+                      onClick={() => {
+                        window.location.href = `/post/${post.post_id}`;
+                      }}
+                    >
+                      <p>
+                        Post Title: <span className="font-semibold">{post.title}</span>
+                      </p>
                       <p>{post.content}</p>
+                      <p className="text-sm">
+                        Posted on {new Date(post.created_at).toLocaleString()}
+                      </p>
                     </div>
                   ))
                 ) : (
-                  <p>No posts available.</p>
+                  <p className="text-gray-500">No posts available.</p>
                 )}
               </div>
             )}
 
+
             {activeTab === 'Comments' && (
               <div>
                 {comments.length > 0 ? (
-                  comments.map(comment => (
-                    <div key={comment.comment_id} className="comment-item">
-                      <p>{comment.content}</p>
+                  comments.map((comment) => (
+                    <div
+                      key={comment.comment_id}
+                      className="comment-item"
+                      onClick={() => {
+                        window.location.href = `/post/${comment.post_id}`;
+                      }}
+                    >
+                      <p>Commented : {comment.content}</p>
+                      <p>
+                        On <span className="font-semibold">Post: {comment.post?.content}</span>
+                      </p>
+                      <p className="text-sm">
+                        {new Date(comment.created_at).toLocaleString()}
+                      </p>
                     </div>
                   ))
                 ) : (
@@ -245,11 +328,75 @@ const Profile = () => {
             )}
 
             {activeTab === 'Upvoted' && (
-              <p>You haven't upvoted any posts yet.</p>
+              <div>
+                {upvoted.length > 0 ? (
+                  upvoted.map((vote) => (
+                    <div
+                      key={vote.vote_id}
+                      className="vote-item"
+                      onClick={() => {
+                        if (vote.kategori_type === "POST" && vote.post) {
+                          window.location.href = `/post/${vote.post.post_id}`;
+                        } else if (vote.kategori_type === "COMMENT" && vote.comment) {
+                          window.location.href = `/post/${vote.comment.post_id}`;
+                        }
+                      }}
+                    >
+                      {vote.kategori_type === "POST" && vote.post ? (
+                        <p>
+                          Upvoted on <span className="font-semibold">Post: {vote.post.title}</span>
+                        </p>
+                      ) : vote.kategori_type === "COMMENT" && vote.comment ? (
+                        <p>
+                          Upvoted on <span className="font-semibold">Comment: {vote.comment.content}</span>
+                        </p>
+                      ) : null}
+                      <p className="text-sm">
+                        {new Date(vote.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p>No upvoted items yet.</p>
+                )}
+              </div>
             )}
+
             {activeTab === 'Downvoted' && (
-              <p>You haven't downvoted any posts yet.</p>
+              <div>
+                {Downvoted.length > 0 ? (
+                  Downvoted.map((vote) => (
+                    <div
+                      key={vote.vote_id}
+                      className="vote-item"
+                      onClick={() => {
+                        if (vote.kategori_type === "POST" && vote.post) {
+                          window.location.href = `/post/${vote.post.post_id}`;
+                        } else if (vote.kategori_type === "COMMENT" && vote.comment) {
+                          window.location.href = `/post/${vote.comment.post_id}`;
+                        }
+                      }}
+                    >
+                      {vote.kategori_type === "POST" && vote.post ? (
+                        <p>
+                          Downvoted on <span className="font-semibold">Post: {vote.post.title}</span>
+                        </p>
+                      ) : vote.kategori_type === "COMMENT" && vote.comment ? (
+                        <p>
+                          Downvoted on <span className="font-semibold">Comment: {vote.comment.content}</span>
+                        </p>
+                      ) : null}
+                      <p className="text-sm">
+                        {new Date(vote.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p>No downvoted items yet.</p>
+                )}
+              </div>
             )}
+
           </div>
         </div>
 

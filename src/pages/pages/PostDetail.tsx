@@ -144,6 +144,7 @@ const PostDetail = () => {
         const updatedComments = addReplyToComment(comments, parentCommentId, newReply.comment);
         setComments(updatedComments);
         setReplyContent({ ...replyContent, [parentCommentId]: '' });
+        await fetchPostAndComments(); // Refetch to rebuild threaded structure
       } else {
         alert('Failed to add reply');
       }

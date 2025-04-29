@@ -181,17 +181,24 @@ html,
     padding: 1rem;
     margin-bottom: 1rem;
     border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
 }
 
-.post-item h3 {
-    font-size: 1.25rem;
-    color: #D7DADC;
-    margin-bottom: 0.5rem;
+.post-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px #FF5722;
 }
 
 .post-item p {
+    margin: 0.5rem 0;
+    color: #D7DADC;
+}
+
+.post-item .text-sm {
     color: #B1B1B1;
-    font-size: 1rem;
+    font-size: 0.875rem;
 }
 
 /* Comment Item */
@@ -200,11 +207,24 @@ html,
     padding: 1rem;
     margin-bottom: 1rem;
     border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.comment-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px #FF5722;
 }
 
 .comment-item p {
+    margin: 0.5rem 0;
+    color: #D7DADC;
+}
+
+.comment-item .text-sm {
     color: #B1B1B1;
-    font-size: 1rem;
+    font-size: 0.875rem;
 }
 
 /* Empty State Message */
@@ -242,30 +262,56 @@ p {
 
 /* Dropdown Menu */
 .dropdown-menu {
-  position: absolute;
-  top: 50px;
-  right: 0;
-  background-color: #fff;
-  color: #000;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background-color: #fff;
+    color: #000;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .dropdown-menu a {
-  text-decoration: none;
-  background-color: transparent;
-  border: none;
-  color: #000;
-  cursor: pointer;
-  font-weight: bold;
+    text-decoration: none;
+    background-color: transparent;
+    border: none;
+    color: #000;
+    cursor: pointer;
+    font-weight: bold;
 }
 
 .dropdown-menu a:hover {
-  text-decoration: underline;
+    text-decoration: underline;
+}
+
+/* Card Style for Upvoted and Downvoted Items */
+.vote-item {
+    background-color: #1a1a1b;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.vote-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px #FF5722;
+}
+
+.vote-item p {
+    margin: 0.5rem 0;
+    color: #D7DADC;
+}
+
+.vote-item .text-sm {
+    color: #B1B1B1;
+    font-size: 0.875rem;
 }
 
 /* Responsive Styles */
