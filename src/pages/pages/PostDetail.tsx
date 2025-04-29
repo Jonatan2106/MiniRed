@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/api';
 import '../styles/postdetail.css';
 import '../styles/main.css';
@@ -42,6 +42,8 @@ const PostDetail = () => {
   const [replyContent, setReplyContent] = useState<{ [key: string]: string }>({});
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -180,7 +182,7 @@ const PostDetail = () => {
 
     return rootComments;
   }
-  
+
   const addReplyToComment = (
     commentsList: Comment[],
     parentId: string,
@@ -211,6 +213,9 @@ const PostDetail = () => {
 
   return (
     <div className="post-detail-container">
+      <button className="back-button" onClick={() => navigate(-1)}>
+        Back
+      </button>
       {post && (
         <>
           <h1 className="post-detail-header">{post.title}</h1>
