@@ -28,8 +28,11 @@ interface User {
 interface Comment {
   comment_id: string;
   content: string;
+  created_at: string;
   user: {
+    user_id: string;
     username: string;
+    profilePic: string;
   };
   replies: Comment[]; // Recursive
 }
@@ -163,9 +166,11 @@ const PostDetail = () => {
         commentMap[c.comment_id] = {
           comment_id: c.comment_id,
           content: c.content,
+          created_at: c.created_at,
           user: c.user,
           replies: [],
         };
+        console.log("TIMESTAMP:", c.created_at);
       }
     });
 
@@ -444,8 +449,22 @@ const Comment = ({
 
   return (
     <div className="comment-card">
+      <div className="comment-header">
+        <div className="comment-author-section">
+          {/* Author Profile Picture */}
+          <img
+            src={comment.user.profilePic || '/default.png'}
+            alt={`${comment.user.username}'s profile`}
+            className="comment-author-profile-pic"
+          />
+          {/* Author Name (Clickable) */}
+          <a href={`/user/${comment.user.user_id}`} className="comment-author">
+            {comment.user.username}
+          </a>
+        </div>
+        <p className="comment-timestamp">{new Date(comment.created_at).toLocaleString()}</p>
+      </div>
       <p className="comment-content">{comment.content}</p>
-      <p className="comment-author">By {comment.user.username}</p>
 
       {/* Kebab Menu */}
       {currentUser?.username === comment.user.username && (

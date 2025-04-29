@@ -71,29 +71,59 @@
     margin-top: 2rem;
 }
 
-.comment-header {
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-    color: #FF4500;
-}
-
 .comment-card {
-    background-color: #272729;
     border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
+    padding: 16px;
+    margin-bottom: 16px;
+    background-color: #1a1a1b;
+    color: #d7dadc;
     position: relative;
 }
 
-.comment-content {
-    font-size: 1rem;
-    line-height: 1.6;
+.comment-header {
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    color: #ff4500;
+    margin-bottom: 30px;
+}
+
+.comment-author-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .comment-author {
-    font-size: 0.9rem;
-    color: #B0B0B0;
-    margin-top: 0.5rem;
+    font-weight: bold;
+    color: #ff4500;
+    font-size: 1rem;
+    text-decoration: none;
+}
+
+.comment-author:hover {
+    text-decoration: underline;
+    color: #d7dadc;
+}
+
+.comment-author-profile-pic {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #444;
+}
+
+.comment-timestamp {
+    font-size: 0.85rem;
+    color: #818384;
+}
+
+.comment-content {
+    margin-bottom: 16px;
+    color: #d7dadc;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .replies-section {
@@ -154,31 +184,41 @@
 }
 
 .vote-button:hover {
-    color: #D7DADC; /* Default hover color */
+    color: #D7DADC;
     border-color: #D7DADC;
 }
 
 .vote-button.up:hover {
-    color: #4CAF50; /* Hover color for upvote */
+    color: #4CAF50;
     border-color: #4CAF50;
 }
 
 .vote-button.down:hover {
-    color: #FF4500; /* Hover color for downvote */
+    color: #FF4500;
     border-color: #FF4500;
 }
 
 .kebab-menu {
     position: absolute;
-    top: 10px;
+    top: 30px;
     right: 4%;
-    padding: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background-color: #272729;
+    border-radius: 50%;
+    color: #D7DADC;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 5;
 }
 
 .kebab-menu:hover {
     background-color: #FF4500;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 50%;
 }
 
 .kebab-menu:hover {
@@ -195,26 +235,28 @@
 
 .menu-options {
     position: absolute;
-    top: 30px;
-    right: 10px;
+    top: 100%;
+    right: 0; 
     background-color: #272729;
     border: 1px solid #444;
     border-radius: 6px;
     padding: 0.5rem;
     z-index: 10;
-}
-
-.menu-options button {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .menu-options button {
     background: none;
     border: none;
     color: white;
-    padding: 0.5rem;
+    padding: 0.5rem 1rem;
     cursor: pointer;
     text-align: left;
     width: 100%;
-    border-radius: 10px;
-}
+    border-radius: 4px;
+  }
 
 .menu-options button:hover {
     background-color: #FF5700;
