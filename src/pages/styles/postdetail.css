@@ -3,7 +3,7 @@
     color: #D7DADC;
     font-family: 'Arial', sans-serif;
     padding: 2rem;
-    max-width: 800px;
+    /* max-width: 800px; */
     margin: 2rem auto;
     border-radius: 8px;
 }
@@ -13,6 +13,24 @@
     font-weight: bold;
     margin-bottom: 1rem;
     color: #FF4500;
+}
+
+.back-button {
+    position: absolute;
+    top: 50px;
+    right: 20px;
+    background-color: #FF4500;
+    color: white;
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    z-index: 10;
+}
+
+.back-button:hover {
+    background-color: #FF5700;
 }
 
 .post-detail-content {
