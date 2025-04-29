@@ -34,26 +34,14 @@ interface Comment {
   replies: Comment[]; // Recursive
 }
 
-interface Reply {
-  comment_id: string;
-  content: string;
-  user: {
-    username: string;
-  };
-  replies?: Reply[];
-}
-
 const PostDetail = () => {
   const { id } = useParams();
-  const [post, setPost] = useState<any>(null);
-  const [comments, setComments] = useState<any[]>([]);
+  const [post, setPost] = useState<Post | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);  // Ensure this is always an empty array
   const [newComment, setNewComment] = useState<string>('');
   const [replyContent, setReplyContent] = useState<{ [key: string]: string }>({});
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [users, setUsers] = useState<Map<string, User>>(new Map());
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -72,51 +60,27 @@ const PostDetail = () => {
         .catch((error) => console.error('Error fetching user data:', error));
     }
 
-    fetch('http://localhost:5000/api/user/all')
-      .then(response => response.json())
-      .then((data) => {
-        const userMap = new Map();
-        data.forEach((user: User) => {
-          userMap.set(user.user_id, user);
-        });
-        setUsers(userMap);
-      })
-      .catch((error) => console.error('Error fetching users:', error));
-  }, []);
-
-  const handleCreatePost = () => {
-    window.location.href = '/create-post';
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
-    window.location.href = '/';
-  };
-
-  const toggleDropdown = () => {
-    setDropdownOpen((prev) => !prev);
-  };
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  useEffect(() => {
-    const fetchPostAndComments = async () => {
-      try {
-        const postResponse = await fetchFromAPI(`/posts/${id}`);
-        setPost(postResponse);
-
-        const commentsResponse = await fetchFromAPI(`/posts/${id}/comments`);
-        setComments(commentsResponse.comments);
-      } catch (error) {
-        console.error('Error fetching post or comments', error);
-      }
-    };
-
     fetchPostAndComments();
   }, [id]);
+
+  const fetchPostAndComments = async () => {
+    try {
+      const postResponse = await fetchFromAPI(`/posts/${id}`);
+      setPost(postResponse);
+
+      const commentsResponse = await fetchFromAPI(`/posts/${id}/comments`);
+
+      const rawComments = commentsResponse;
+
+      const cleanedComments = rawComments.map((c: any) => c.comment ? c.comment : c);
+
+      const nested = nestComments(cleanedComments);
+      setComments(nested); // Clear and set the new state
+    } catch (error) {
+      console.error('Error fetching post or comments', error);
+      setComments([]); // Reset comments on error
+    }
+  };
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,16 +96,15 @@ const PostDetail = () => {
       const response = await fetch(`/api/posts/${id}/comments`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ content: newComment, parent_comment_id: null }),
       });
 
       if (response.ok) {
-        const newCommentResponse = await response.json();
-        setComments((prevComments) => [...prevComments, newCommentResponse.comment]);
         setNewComment('');
+        await fetchPostAndComments(); // ✅ Refetch to rebuild threaded structure
       } else {
         alert('Failed to add comment');
       }
@@ -166,17 +129,16 @@ const PostDetail = () => {
       const response = await fetch(`/api/posts/${id}/comments`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          content,
-          parent_comment_id: parentCommentId,
-        }),
+        body: JSON.stringify({ content, parent_comment_id: parentCommentId }),
       });
 
       if (response.ok) {
         const newReply = await response.json();
+        console.log("API Response for new reply:", newReply);
+
         const updatedComments = addReplyToComment(comments, parentCommentId, newReply.comment);
         setComments(updatedComments);
         setReplyContent({ ...replyContent, [parentCommentId]: '' });
@@ -189,96 +151,85 @@ const PostDetail = () => {
     }
   };
 
-  // Helper to add reply deeply inside the right parent
-  const addReplyToComment = (
-    commentsList: {
-      comment_id: string;
-      replies?: any[];
-      [key: string]: any;
-    }[],
-    parentId: string,
-    newReply: any
-  ): any[] => {
-    return commentsList.map(comment => {
-      if (comment.comment_id === parentId) {
-        return {
-          ...comment,
-          replies: [...(comment.replies || []), newReply],
+  function nestComments(flatComments: any[]): Comment[] {
+    const commentMap: { [key: string]: Comment } = {};
+    const rootComments: Comment[] = [];
+
+    flatComments.forEach((c) => {
+      if (!commentMap[c.comment_id]) {
+        commentMap[c.comment_id] = {
+          comment_id: c.comment_id,
+          content: c.content,
+          user: c.user,
+          replies: [],
         };
       }
+    });
+
+    flatComments.forEach((c) => {
+      if (c.parent_comment_id && commentMap[c.parent_comment_id]) {
+        const parent = commentMap[c.parent_comment_id];
+        const isDuplicate = parent.replies.some((reply) => reply.comment_id === c.comment_id);
+        if (!isDuplicate) {
+          parent.replies.push(commentMap[c.comment_id]);
+        }
+      } else {
+        rootComments.push(commentMap[c.comment_id]);
+      }
+    });
+
+    return rootComments;
+  }
+  
+  const addReplyToComment = (
+    commentsList: Comment[],
+    parentId: string,
+    newReply: Comment
+  ): Comment[] => {
+    console.log("Adding reply to comments:", commentsList);
+    console.log("Parent ID:", parentId);
+    console.log("New Reply:", newReply);
+
+    return commentsList.map((comment) => {
+      if (comment.comment_id === parentId) {
+        const isDuplicate = comment.replies.some(
+          (reply) => reply.comment_id === newReply.comment_id
+        );
+        if (!isDuplicate) {
+          console.log("Adding new reply to parent:", parentId);
+          return { ...comment, replies: [...(comment.replies || []), newReply] };
+        } else {
+          console.log("Duplicate reply detected, skipping.");
+        }
+      }
       if (comment.replies) {
-        return {
-          ...comment,
-          replies: addReplyToComment(comment.replies, parentId, newReply),
-        };
+        return { ...comment, replies: addReplyToComment(comment.replies, parentId, newReply) };
       }
       return comment;
     });
   };
-  
+
   return (
-    <div>
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="navbar-left">
-          <div className="logo">
-            <a className="app-title" href="/">MiniRed</a>
+    <div className="post-detail-container">
+      {post && (
+        <>
+          <h1 className="post-detail-header">{post.title}</h1>
+          <p className="post-detail-content">{post.content}</p>
+
+          <div className="add-comment-section">
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Add a comment..."
+              className="new-comment-input"
+            />
+            <button onClick={(e) => handleAddComment(e)}>Submit Comment</button>
           </div>
-        </div>
-        <div className="navbar-center">
-          <input className="search-input" type="text" placeholder="Search Reddit" />
-        </div>
-        <div className="navbar-right">
-          {isLoggedIn ? (
-            <>
-              <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-              <div className="profile-menu">
-                <img
-                  src={user?.profilePic || "/default-profile.png"}
-                  className="profile-pic"
-                  onClick={toggleDropdown}
-                  alt={user?.username}
-                />
-                {isDropdownOpen && (
-                  <div className="dropdown-menu">
-                    <a href="/profile">Profile</a>
-                    <a href="/edit">Edit</a>
-                    <a onClick={handleLogout}>Logout</a>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-              <a className="nav-link" href="/login">Login</a>
-              <a className="nav-link" href="/register">Register</a>
-            </>
-          )}
-        </div>
-      </nav>
 
-      {/* Post Detail */}
-      <div className="post-detail-container">
-        {post && (
-          <>
-            <h1 className="post-detail-header">{post.title}</h1>
-            <p className="post-detail-content">{post.content}</p>
-
-            {/* Add a new comment */}
-            <div className="add-comment-section">
-              <textarea
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Add a comment..."
-                className="new-comment-input"
-              ></textarea>
-              <button onClick={(e) => handleAddComment(e)}>Submit Comment</button>
-            </div>
-
-            <div className="comment-section">
-              <h2 className="comment-header">Comments</h2>
-              {comments.map((comment) => (
+          <div className="comment-section">
+            <h2 className="comment-header">Comments</h2>
+            {comments.length > 0 ? (
+              comments.map((comment) => (
                 <Comment
                   key={comment.comment_id}
                   comment={comment}
@@ -286,62 +237,58 @@ const PostDetail = () => {
                   setReplyContent={setReplyContent}
                   handleReply={handleReply}
                 />
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+              ))
+            ) : (
+              <p>No comments yet</p>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
 export default PostDetail;
 
-// --- Recursive Comment component ---
 const Comment = ({
   comment,
   replyContent,
   setReplyContent,
   handleReply,
 }: {
-  comment: any;
+  comment: Comment;
   replyContent: { [key: string]: string };
   setReplyContent: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
   handleReply: (e: React.FormEvent, parentCommentId: string) => void;
-}) => {
-  return (
-    <div className="comment-card">
-      <p className="comment-content">{comment.content}</p>
-      <p className="comment-author">By {comment.user.username}</p>
+}) => (
+  <div className="comment-card">
+    <p className="comment-content">{comment.content}</p>
+    <p className="comment-author">By {comment.user.username}</p>
 
-      <div className="reply-section">
-        <textarea
-          value={replyContent[comment.comment_id] || ''}
-          onChange={(e) =>
-            setReplyContent({
-              ...replyContent,
-              [comment.comment_id]: e.target.value,
-            })
-          }
-          placeholder="Reply to this comment..."
-          className="reply-input"
-        ></textarea>
-        <button onClick={(e) => handleReply(e, comment.comment_id)}>Reply</button>
-      </div>
-
-      {comment.replies && comment.replies.length > 0 && (
-        <div className="replies-section">
-          {comment.replies.map((reply: any) => (
-            <Comment
-              key={reply.comment_id}
-              comment={reply}
-              replyContent={replyContent}
-              setReplyContent={setReplyContent}
-              handleReply={handleReply}
-            />
-          ))}
-        </div>
-      )}
+    <div className="reply-section">
+      <textarea
+        value={replyContent[comment.comment_id] || ''}
+        onChange={(e) =>
+          setReplyContent({ ...replyContent, [comment.comment_id]: e.target.value })
+        }
+        placeholder="Reply to this comment..."
+        className="reply-input"
+      />
+      <button onClick={(e) => handleReply(e, comment.comment_id)}>Reply</button>
     </div>
-  );
-};
+
+    {comment.replies && comment.replies.length > 0 && (
+      <div className="replies-section">
+        {comment.replies.map((reply) => (
+          <Comment
+            key={reply.comment_id}
+            comment={reply}
+            replyContent={replyContent}
+            setReplyContent={setReplyContent}
+            handleReply={handleReply}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+);
