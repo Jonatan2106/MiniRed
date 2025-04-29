@@ -126,7 +126,7 @@ const Home = () => {
               <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
               <div className="profile-menu">
                 <img
-                  src={user?.profilePic || "/default-profile.png"}
+                  src={user?.profilePic ? user?.profilePic : "/default.png"}
                   className="profile-pic"
                   onClick={toggleDropdown}
                   alt={user?.username}
@@ -191,7 +191,7 @@ const Home = () => {
 };
 
 const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => {
-  const [voteCount, setVoteCount] = useState<{ upvotes: number; downvotes: number }>({ upvotes: 0, downvotes: 0 });
+  const [voteCount, setVoteCount] = useState<{ upvotes: number; downvotes: number, score: number }>({ upvotes: 0, downvotes: 0, score: 0 });
   const [commentCount, setCommentCount] = useState<number>(0);
   const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
   const [voteId, setVoteId] = useState<string | null>(null); // Store the voteId
@@ -210,11 +210,12 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
       })
         .then(response => response.json())
         .then(data => {
-          if (data.vote === 'upvote' || data.vote === 'downvote') {
-            setUserVote(data.vote);
-            setVoteId(data.vote.vote_id || null); // Store the voteId
+          if (Array.isArray(data) && data.length > 0) {
+            const vote = data[0]; // Assuming one vote per post per user
+            setUserVote(vote.vote_type ? 'upvote' : 'downvote');
+            setVoteId(vote.vote_id || null);
           }
-        })
+        })        
         .catch(error => {
           console.error('Error fetching user vote:', error);
         });
@@ -228,6 +229,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
         setVoteCount({
           upvotes: data.upvotes,
           downvotes: data.downvotes,
+          score: data.score
         });
       })
       .catch((error) => console.error('Error fetching vote count:', error));
@@ -345,7 +347,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
           </button>
 
           {/* Display total upvotes */}
-          <span className="vote-count">{voteCount.upvotes}</span>
+          <span className="vote-count">{voteCount.score > 0 ? voteCount.score : 0}</span>
 
           <button
             className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
@@ -358,7 +360,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
           </button>
 
           {/* Display total downvotes */}
-          <span className="vote-count">{voteCount.downvotes}</span>
+          {/* <span className="vote-count">{voteCount.downvotes}</span> */}
         </div>
 
         <div className="comment-count">
