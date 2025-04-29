@@ -126,7 +126,7 @@ const Home = () => {
               <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
               <div className="profile-menu">
                 <img
-                  src={user?.profilePic || "/default-profile.png"}
+                  src={user?.profilePic ? user?.profilePic : "/default.png"}
                   className="profile-pic"
                   onClick={toggleDropdown}
                   alt={user?.username}
