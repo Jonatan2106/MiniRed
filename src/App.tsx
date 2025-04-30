@@ -9,20 +9,22 @@ import Profile from './pages/pages/Profile';
 import NotFound from './pages/pages/NotFound';
 import EditProfile from './pages/pages/EditProfile';
 import CreateSubreddit from './pages/pages/CreateSubreddit';
+import SubredditPage from './pages/pages/Subreddit';
 
 const App = () => {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/r/:subredditName" element={<SubredditPage />} />
         <Route path="/post/:id" element={<PostDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/search" element={<Search />} />
         <Route path="/create-subreddit" element={<CreateSubreddit />} /> 
         <Route path="/profile" element={<Profile />} />
-        <Route path="/edit" element={<EditProfile />} /> {/* Assuming EditProfile is part of Profile */}
-        <Route path="*" element={<NotFound />} /> {/* For handling 404 */}
+        <Route path="/edit" element={<EditProfile />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

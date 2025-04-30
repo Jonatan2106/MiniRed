@@ -79,4 +79,9 @@ export class Post extends Model {
         foreignKey: 'user_id' 
     })
     declare user: User;
+
+    @BelongsTo(() => Subreddit, {
+        foreignKey: "subreddit_id",
+    })
+    declare subreddit: Subreddit;
 }
