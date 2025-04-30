@@ -70,7 +70,7 @@ export class Post extends Model {
     })
     declare votes: Vote[];
 
-    @HasMany(() => Comment, { // <--- Tambahkan ini
+    @HasMany(() => Comment, {
         foreignKey: 'post_id'
     })
     declare comments: Comment[];
