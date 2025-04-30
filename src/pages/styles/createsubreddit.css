@@ -1,49 +1,90 @@
-/* createsubreddit.css */
-.register-container {
+/* Container */
+.subreddit-container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     background-color: #1a1a1b;
     font-family: Arial, sans-serif;
+    position: relative;
 }
 
-.register-box {
+/* Back Button */
+.back-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #FF4500;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    z-index: 10;
+    transition: background-color 0.3s ease;
+}
+
+.back-button:hover {
+    background-color: #FF5700;
+}
+
+/* Subreddit Box */
+.subreddit-box {
     background-color: #FFFFFF;
     padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
+    text-align: center;
 }
 
 h2 {
-    text-align: center;
-    font-size: 24px;
+    font-size: 28px;
     margin-bottom: 20px;
     color: #333333;
 }
 
-.register-input {
+/* Form Group */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    font-size: 16px;
+    color: #333333;
+    margin-bottom: 8px;
+}
+
+.subreddit-input,
+.subreddit-textarea {
     width: 100%;
-    padding: 10px;
-    margin: 10px 0;
+    padding: 12px;
     border: 1px solid #D3D3D3;
-    border-radius: 5px;
+    border-radius: 6px;
     font-size: 16px;
     transition: border-color 0.3s;
 }
 
-.register-input:focus {
+.subreddit-input:focus,
+.subreddit-textarea:focus {
     border-color: #FF4500;
     outline: none;
 }
 
-/* Privacy options style (radio button area) */
+.subreddit-textarea {
+    resize: vertical;
+    height: 100px;
+}
+
+/* Privacy Options */
 .privacy-options {
-    margin: 15px 0;
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
+    margin-top: 15px;
 }
 
 .privacy-options label {
@@ -51,29 +92,30 @@ h2 {
     color: #333333;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
 }
 
-.register-button {
+/* Button */
+.subreddit-button {
     width: 100%;
     padding: 12px;
     background-color: #FF4500;
     color: white;
-    font-size: 16px;
+    font-size: 18px;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.3s;
-    margin-top: 10px;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
 }
 
-.register-button:hover {
+.subreddit-button:hover {
     background-color: #FF6A00;
 }
 
+/* Error Message */
 .error-message {
     color: #FF4500;
-    text-align: center;
-    margin-bottom: 15px;
     font-size: 14px;
+    margin-bottom: 15px;
 }

@@ -43,6 +43,16 @@ interface Vote {
   comment?: Comment; // Optional, included if the vote is for a comment
 }
 
+interface OverviewItem {
+  type: 'post' | 'comment' | 'upvoted' | 'downvoted';
+  created_at: string;
+  post_id?: string; // For posts and comments
+  title?: string; // For posts
+  content?: string; // For comments
+  post?: Post; // For comments, upvoted, and downvoted items
+  kategori_type?: 'POST' | 'COMMENT'; // For upvoted and downvoted items
+}
+
 const Profile = () => {
   const [users, setUsers] = useState<Map<string, User>>(new Map());
   const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
@@ -50,7 +60,7 @@ const Profile = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
-  const [activeTab, setActiveTab] = useState('Posts');
+  const [activeTab, setActiveTab] = useState('Overview');
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [Downvoted, setDownVotes] = useState<Vote[]>([]);
   const [upvoted, setUpVotes] = useState<Vote[]>([]);
@@ -141,6 +151,17 @@ const Profile = () => {
   const handleTabClick = (tab: 'Overview' | 'Posts' | 'Comments' | 'Upvoted' | 'Downvoted'): void => {
     setActiveTab(tab);
   };
+
+  const getOverviewData = (): OverviewItem[] => {
+  const combinedData: OverviewItem[] = [
+    ...posts.map((post) => ({ ...post, type: 'post' as 'post' })),
+    ...comments.map((comment) => ({ ...comment, type: 'comment' as 'comment' })),
+    ...upvoted.map((vote) => ({ ...vote, type: 'upvoted' as 'upvoted' })),
+    ...Downvoted.map((vote) => ({ ...vote, type: 'downvoted' as 'downvoted' })),
+  ];
+
+  return combinedData.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+};
 
   const handleCreatePost = () => {
     window.location.href = '/create-post';
@@ -272,8 +293,63 @@ const Profile = () => {
 
           {/* Profile Content */}
           <div className="profile-content">
-            {activeTab === 'Overview' && <p>Welcome to your profile overview!</p>}
-
+            {activeTab === 'Overview' && (
+              <div>
+                {getOverviewData().length > 0 ? (
+                  getOverviewData().map((item, index) => (
+                    <div
+                      key={index}
+                      className={`overview-item ${item.type}-item`}
+                      onClick={() => {
+                        if (item.type === 'post') {
+                          window.location.href = `/post/${item.post_id}`;
+                        } else if (item.type === 'comment') {
+                          window.location.href = `/post/${item.post_id}`;
+                        } else if (item.type === 'upvoted' && item.kategori_type === 'POST' && item.post) {
+                          window.location.href = `/post/${item.post.post_id}`;
+                        } else if (item.type === 'downvoted' && item.kategori_type === 'POST' && item.post) {
+                          window.location.href = `/post/${item.post.post_id}`;
+                        }
+                      }}
+                    >
+                      {item.type === 'post' && (
+                        <>
+                          <p>
+                            Post Title: <span className="font-semibold">{item.title}</span>
+                          </p>
+                          <p>{item.content}</p>
+                        </>
+                      )}
+                      {item.type === 'comment' && (
+                        <>
+                          <p>
+                            Commented: <span className="font-semibold">{item.content}</span>
+                          </p>
+                          <p>
+                            On Post: <span className="font-semibold">{item.post?.content}</span>
+                          </p>
+                        </>
+                      )}
+                      {item.type === 'upvoted' && item.kategori_type === 'POST' && item.post && (
+                        <p>
+                          Upvoted on Post: <span className="font-semibold">{item.post.title}</span>
+                        </p>
+                      )}
+                      {item.type === 'downvoted' && item.kategori_type === 'POST' && item.post && (
+                        <p>
+                          Downvoted on Post: <span className="font-semibold">{item.post.title}</span>
+                        </p>
+                      )}
+                      <p className="text-sm">
+                        {new Date(item.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No activity available.</p>
+                )}
+              </div>
+            )}
             {activeTab === 'Posts' && (
               <div>
                 {posts.length > 0 ? (

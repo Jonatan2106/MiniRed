@@ -7,57 +7,74 @@ const CreateSubreddit = () => {
     const [subredditName, setSubredditName] = useState('');
     const [subredditTitle, setTitle] = useState('');
     const [subredditDescription, setDescription] = useState('');
-    const [subredditPrivacy, setPrivated] = useState(false); // Default to not private (false)
+    const [subredditPrivacy, setPrivated] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleSubredditCreation = async () => {
         try {
-            const response = await fetchFromAPI('/register', 'POST', { 
-                subredditName, 
-                subredditTitle, 
+            const response = await fetchFromAPI('/subreddits', 'POST', {
+                subredditName,
+                subredditTitle,
                 subredditDescription,
-                subredditPrivacy // Include privacy in request
+                subredditPrivacy,
             });
             console.log(response);
             navigate('/');
         } catch (error) {
-            console.error('Registration failed', error);
-            setError('Registration failed. Please try again.');
+            console.error('Subreddit creation failed', error);
+            setError('Failed to create subreddit. Please try again.');
         }
     };
 
     return (
-        <div className="register-container">
-            <div className="register-box">
+        <div className="subreddit-container">
+            {/* Back Button */}
+            <button className="back-button" onClick={() => navigate(-1)}>
+                Back
+            </button>
+
+            <div className="subreddit-box">
                 <h2>Create a Subreddit</h2>
 
                 {error && <p className="error-message">{error}</p>}
 
-                <input
-                    type="text"
-                    placeholder="Subreddit Name"
-                    value={subredditName}
-                    onChange={(e) => setSubredditName(e.target.value)}
-                    className="register-input"
-                />
-                <input
-                    type="text"
-                    placeholder="Subreddit Title"
-                    value={subredditTitle}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="register-input"
-                />
-                <input
-                    type="text"
-                    placeholder="Description"
-                    value={subredditDescription}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="register-input"
-                />
+                <div className="form-group">
+                    <label htmlFor="subredditName">Subreddit Name</label>
+                    <input
+                        id="subredditName"
+                        type="text"
+                        placeholder="Enter subreddit name"
+                        value={subredditName}
+                        onChange={(e) => setSubredditName(e.target.value)}
+                        className="subreddit-input"
+                    />
+                </div>
 
-                {/* Radio Buttons for Privacy */}
-                <div className="privacy-options">
+                <div className="form-group">
+                    <label htmlFor="subredditTitle">Subreddit Title</label>
+                    <input
+                        id="subredditTitle"
+                        type="text"
+                        placeholder="Enter subreddit title"
+                        value={subredditTitle}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="subreddit-input"
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="subredditDescription">Description</label>
+                    <textarea
+                        id="subredditDescription"
+                        placeholder="Enter subreddit description"
+                        value={subredditDescription}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="subreddit-textarea"
+                    />
+                </div>
+
+                <div className="form-group privacy-options">
                     <label>
                         <input
                             type="radio"
@@ -80,7 +97,7 @@ const CreateSubreddit = () => {
                     </label>
                 </div>
 
-                <button onClick={handleSubredditCreation} className="register-button">
+                <button onClick={handleSubredditCreation} className="subreddit-button">
                     Create Subreddit
                 </button>
             </div>
