@@ -70,7 +70,7 @@ export class Post extends Model {
     })
     declare votes: Vote[];
 
-    @HasMany(() => Comment, { // <--- Tambahkan ini
+    @HasMany(() => Comment, {
         foreignKey: 'post_id'
     })
     declare comments: Comment[];
@@ -79,4 +79,9 @@ export class Post extends Model {
         foreignKey: 'user_id' 
     })
     declare user: User;
+
+    @BelongsTo(() => Subreddit, {
+        foreignKey: "subreddit_id",
+    })
+    declare subreddit: Subreddit;
 }

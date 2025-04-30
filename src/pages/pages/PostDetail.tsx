@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/api';
+import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import '../styles/postdetail.css';
 import '../styles/main.css';
 
@@ -28,8 +29,11 @@ interface User {
 interface Comment {
   comment_id: string;
   content: string;
+  created_at: string;
   user: {
+    user_id: string;
     username: string;
+    profilePic: string;
   };
   replies: Comment[]; // Recursive
 }
@@ -163,9 +167,11 @@ const PostDetail = () => {
         commentMap[c.comment_id] = {
           comment_id: c.comment_id,
           content: c.content,
+          created_at: c.created_at,
           user: c.user,
           replies: [],
         };
+        console.log("TIMESTAMP:", c.created_at);
       }
     });
 
@@ -242,6 +248,8 @@ const PostDetail = () => {
                   replyContent={replyContent}
                   setReplyContent={setReplyContent}
                   handleReply={handleReply}
+                  fetchPostAndComments={fetchPostAndComments}
+                  currentUser={user}
                 />
               ))
             ) : (
@@ -261,40 +269,307 @@ const Comment = ({
   replyContent,
   setReplyContent,
   handleReply,
+  fetchPostAndComments,
+  currentUser,
 }: {
   comment: Comment;
   replyContent: { [key: string]: string };
   setReplyContent: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
   handleReply: (e: React.FormEvent, parentCommentId: string) => void;
-}) => (
-  <div className="comment-card">
-    <p className="comment-content">{comment.content}</p>
-    <p className="comment-author">By {comment.user.username}</p>
+  fetchPostAndComments: () => Promise<void>;
+  currentUser: { username: string; profilePic: string } | null;
+}) => {
+  const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
+  const [voteCount, setVoteCount] = useState<number>(0);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showEditPopup, setShowEditPopup] = useState(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [editedContent, setEditedContent] = useState(comment.content);
+  const [voteId, setVoteId] = useState<string | null>(null);
 
-    <div className="reply-section">
-      <textarea
-        value={replyContent[comment.comment_id] || ''}
-        onChange={(e) =>
-          setReplyContent({ ...replyContent, [comment.comment_id]: e.target.value })
+  useEffect(() => {
+    fetchVoteCount();
+    fetchUserVote();
+  }, []);
+
+  const fetchVoteCount = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/comments/${comment.comment_id}/votes/count`);
+      const data = await response.json();
+      setVoteCount(data.score); // Update the vote count
+    } catch (error) {
+      console.error('Error fetching vote count:', error);
+    }
+  };
+
+  const fetchUserVote = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/comments/${comment.comment_id}/votes`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const vote = data[0]; // Assuming one vote per comment per user
+        setUserVote(vote.vote_type ? 'upvote' : 'downvote');
+        setVoteId(vote.vote_id || null);
+      }
+    } catch (error) {
+      console.error('Error fetching user vote:', error);
+    }
+  };
+
+  const handleVote = async (type: 'upvote' | 'downvote') => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in to vote.');
+      return;
+    }
+
+    try {
+      if (userVote === type) {
+        // Cancel the vote
+        await handleCancelVote();
+      } else {
+        // Cast a new vote
+        const voteType = type === 'upvote' ? true : false;
+
+        const response = await fetch(`http://localhost:5000/api/comments/${comment.comment_id}/votes`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ vote_type: voteType }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          fetchVoteCount(); // Refresh the vote count
+          setUserVote(type); // Update the user's vote locally
+          setVoteId(data.vote.vote_id || null); // Store the vote ID
+        } else {
+          alert(data.message || 'Failed to vote.');
         }
-        placeholder="Reply to this comment..."
-        className="reply-input"
-      />
-      <button onClick={(e) => handleReply(e, comment.comment_id)}>Reply</button>
-    </div>
+      }
+    } catch (error) {
+      console.error('Error voting:', error);
+    }
+  };
 
-    {comment.replies && comment.replies.length > 0 && (
-      <div className="replies-section">
-        {comment.replies.map((reply) => (
-          <Comment
-            key={reply.comment_id}
-            comment={reply}
-            replyContent={replyContent}
-            setReplyContent={setReplyContent}
-            handleReply={handleReply}
+  const handleEditComment = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in to edit your comment.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/comments/${comment.comment_id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ content: editedContent }), // Use the updated content
+      });
+
+      if (response.ok) {
+        alert('Comment updated successfully.');
+        setShowEditPopup(false);
+        fetchPostAndComments(); // Refresh comments
+      } else {
+        alert('Failed to update comment.');
+      }
+    } catch (error) {
+      console.error('Error editing comment:', error);
+    }
+  };
+
+  const handleDeleteComment = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in to delete your comment.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/comments/${comment.comment_id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        alert('Comment deleted successfully.');
+        setShowDeletePopup(false);
+        fetchPostAndComments(); // Refresh comments
+      } else {
+        alert('Failed to delete comment.');
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    }
+  };
+
+  const handleCancelVote = async () => {
+    if (!voteId) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in to cancel your vote.');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/votes/${voteId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        fetchVoteCount(); // Refresh the vote count
+        setUserVote(null); // Reset the user's vote
+        setVoteId(null); // Clear the vote ID
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || 'Failed to cancel vote.');
+      }
+    } catch (error) {
+      console.error('Error canceling vote:', error);
+    }
+  };
+
+  return (
+    <div className="comment-card">
+      <div className="comment-header">
+        <div className="comment-author-section">
+          {/* Author Profile Picture */}
+          <img
+            src={comment.user.profilePic || '/default.png'}
+            alt={`${comment.user.username}'s profile`}
+            className="comment-author-profile-pic"
           />
-        ))}
+          {/* Author Name (Clickable) */}
+          <a href={`/user/${comment.user.user_id}`} className="comment-author">
+            {comment.user.username}
+          </a>
+        </div>
+        <p className="comment-timestamp">{new Date(comment.created_at).toLocaleString()}</p>
       </div>
-    )}
-  </div>
-);
+      <p className="comment-content">{comment.content}</p>
+
+      {/* Kebab Menu */}
+      {currentUser?.username === comment.user.username && (
+        <div
+          className="kebab-menu"
+          onMouseEnter={() => setShowMenu(true)}
+          onMouseLeave={() => setShowMenu(false)}
+        >
+          <button>⋮</button>
+          {showMenu && (
+            <div className="menu-options">
+              <button onClick={() => setShowEditPopup(true)}>Edit</button>
+              <button onClick={() => setShowDeletePopup(true)}>Delete</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Reply and Vote Section */}
+      <div className="reply-vote-section">
+        <textarea
+          value={replyContent[comment.comment_id] || ''}
+          onChange={(e) =>
+            setReplyContent({ ...replyContent, [comment.comment_id]: e.target.value })
+          }
+          placeholder="Reply to this comment..."
+          className="reply-input"
+        />
+        <div className="reply-vote-buttons">
+          <button className="reply-button" onClick={(e) => handleReply(e, comment.comment_id)}>
+            Reply
+          </button>
+          <button
+            className={`vote-button ${userVote === 'upvote' ? 'upvoted' : ''} up`}
+            onClick={(e) => {
+              e.stopPropagation();  // Prevent redirect on button click
+              handleVote('upvote');
+            }}
+          >
+            <TiArrowUpOutline className={`arrow ${userVote === 'upvote' ? 'upvoted-arrow' : ''}`} />
+          </button>
+
+          {/* Display total upvotes */}
+          <span className="vote-count">{voteCount > 0 ? voteCount : 0}</span>
+
+          <button
+            className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
+            onClick={(e) => {
+              e.stopPropagation();  // Prevent redirect on button click
+              handleVote('downvote');
+            }}
+          >
+            <TiArrowDownOutline className={`arrow ${userVote === 'downvote' ? 'downvoted-arrow' : ''}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* Edit Popup */}
+      {showEditPopup && (
+        <div className="popup">
+          <div className="popup-content">
+            <h3>Edit Comment</h3>
+            <textarea
+              value={editedContent}
+              onChange={(e) => setEditedContent(e.target.value)}
+              className="edit-input"
+            />
+            <button onClick={() => {
+              setEditedContent(comment.content);
+              setShowEditPopup(false)
+            }
+            }>Cancel</button>
+            <button onClick={handleEditComment}>Edit</button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Popup */}
+      {showDeletePopup && (
+        <div className="popup">
+          <div className="popup-content">
+            <h3>Are you sure you want to delete this comment?</h3>
+            <button onClick={() => setShowDeletePopup(false)}>Cancel</button>
+            <button onClick={handleDeleteComment}>Delete</button>
+          </div>
+        </div>
+      )}
+
+      {/* Replies Section */}
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="replies-section">
+          {comment.replies.map((reply) => (
+            <Comment
+              key={reply.comment_id}
+              comment={reply}
+              replyContent={replyContent}
+              setReplyContent={setReplyContent}
+              handleReply={handleReply}
+              fetchPostAndComments={fetchPostAndComments}
+              currentUser={currentUser}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
