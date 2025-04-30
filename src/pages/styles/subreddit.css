@@ -162,7 +162,7 @@ html,
     margin-bottom: 15px;
 }
 
-.post-link:hover {
+.subreddit-wrapper .post-link:hover {
     color: #FF4500;
 }
 
