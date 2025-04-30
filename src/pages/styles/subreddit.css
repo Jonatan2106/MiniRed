@@ -207,10 +207,11 @@ html,
 .subreddit-header {
     background-color: #1a1a1b;
     border-radius: 8px;
-    margin-bottom: 1.5rem;
+    margin-bottom: .8rem;
     overflow: hidden;
     border: 1px solid #272729;
     width: 100%;
+    height: 250px;
 }
 
 .subreddit-banner {
