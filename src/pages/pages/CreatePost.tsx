@@ -126,6 +126,12 @@ const CreatePost = () => {
                             required
                             className="title-input"
                         />
+                        <div
+                            className="character-counter"
+                            style={{ color: title.length === 300 ? '#FF4500' : '#999' }}
+                        >
+                            {title.length}/300
+                        </div>
                     </div>
 
                     <div className="form-section">
@@ -133,9 +139,17 @@ const CreatePost = () => {
                             id="content"
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            placeholder="Body text"
+                            placeholder="Place your content here..."
+                            maxLength={10000}
+                            required
                             className="content-textarea"
                         ></textarea>
+                        <div
+                            className="character-counter"
+                            style={{ color: title.length === 10000 ? '#FF4500' : '#999' }}
+                        >
+                            {content.length}/10000
+                        </div>
                     </div>
 
                     <div className="form-section">
@@ -156,6 +170,7 @@ const CreatePost = () => {
                                     e.dataTransfer.clearData();
                                 }
                             }}
+                            onClick={() => document.getElementById('image')?.click()}
                         >
                             {!image ? (
                                 <p>Drag and drop an image here, or click to upload</p>

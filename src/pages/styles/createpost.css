@@ -72,6 +72,13 @@
     min-height: 150px;
 }
 
+.character-counter {
+    font-size: 0.9rem;
+    color: #999;
+    text-align: right;
+    margin-top: 0.2rem;
+}
+
 .image-label {
     display: block;
     font-size: 0.9rem;
