@@ -587,3 +587,20 @@ img {
         }
     }
 }
+
+.navbar-center .search-button {
+    background-color: #FF4500;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    font-weight: bold;
+  }
+  
+  .navbar-center .search-button:hover {
+    background-color: #FF5700;
+    transform: scale(1.05);
+    transition: 1s;
+  }

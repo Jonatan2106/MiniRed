@@ -43,6 +43,9 @@ const Home = () => {
   const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [users, setUsers] = useState<Map<string, User>>(new Map());
+  const [query, setQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Post[]>([]);
+
 
   // Inside the Home component
   useEffect(() => {
@@ -63,8 +66,11 @@ const Home = () => {
     }
 
     fetch('http://localhost:5000/api/posts')
-      .then(response => response.json())
-      .then(data => setPosts(data))
+      .then((response) => response.json())
+      .then((data) => {
+        setPosts(data);
+        setSearchResults(data); 
+      })
       .catch((error) => setError('Error fetching posts'));
 
     fetch('http://localhost:5000/api/users/subreddits', {
@@ -96,6 +102,19 @@ const Home = () => {
     window.location.href = '/create-post';
   };
 
+  const handleSearch = () => {
+    if (query.trim() === '') {
+      // If the query is empty, reset to show all posts
+      setSearchResults(posts);
+    } else {
+      // Filter posts based on the query matching the title
+      const filteredPosts = posts.filter((post) =>
+        post.title.toLowerCase().includes(query.toLowerCase())
+      );
+      setSearchResults(filteredPosts);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
@@ -120,7 +139,16 @@ const Home = () => {
           </div>
         </div>
         <div className="navbar-center">
-          <input className="search-input" type="text" placeholder="Search Reddit" />
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search Reddit"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button className="search-button" onClick={handleSearch}>
+            Search
+          </button>
         </div>
         <div className="navbar-right">
           {isLoggedIn ? (
@@ -175,9 +203,17 @@ const Home = () => {
 
         {/* Feed */}
         <div className="feed">
-          {posts.map((post) => (
-            <PostCard key={post.post_id} post={post} users={users} />
-          ))}
+          {searchResults.length > 0 ? (
+            searchResults.map((post) => (
+              <PostCard key={post.post_id} post={post} users={users} />
+            ))
+          ) : query ? (
+            <p className="text-gray-500">No results found for "{query}".</p>
+          ) : (
+            posts.map((post) => (
+              <PostCard key={post.post_id} post={post} users={users} />
+            ))
+          )}
         </div>
 
         {/* Right Sidebar */}

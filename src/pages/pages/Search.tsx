@@ -1,41 +1,64 @@
 import React, { useState } from 'react';
-import { fetchFromAPI } from '../../api/api';
+import { useNavigate } from 'react-router-dom';
 import '../styles/search.css';
 import '../styles/main.css';
 
 const Search = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleSearch = async () => {
     try {
-      const response = await fetchFromAPI(`/search?q=${query}`);
-      setResults(response);
+      const response = await fetch(`http://localhost:5000/api/search?q=${query}`);
+      const data = await response.json();
+      setResults(data);
+      setError(null); // Clear any previous errors
     } catch (error) {
       console.error('Search failed', error);
+      setError('Failed to fetch search results. Please try again.');
     }
   };
 
   return (
     <div className="search-container">
-      <input
-        type="text"
-        className="search-input"
-        placeholder="Search posts"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      <button className="search-button" onClick={handleSearch}>
-        Search
-      </button>
+      {/* Search Input */}
+      <div className="search-bar">
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Search posts, comments, or subreddits"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <button className="search-button" onClick={handleSearch}>
+          Search
+        </button>
+      </div>
 
-      <div className="results-container">
-        {results.map((result) => (
-          <div key={result.post_id} className="result-item">
-            <h2>{result.title}</h2>
-            <p>{result.content}</p>
-          </div>
-        ))}
+      {/* Error Message */}
+      {error && <p className="error-message">{error}</p>}
+
+      {/* Search Results */}
+      <div className="search-results">
+        {results.length > 0 ? (
+          results.map((result) => (
+            <div
+              key={result.id}
+              className="search-result-item"
+              onClick={() => navigate(`/post/${result.post_id}`)}
+            >
+              <h3>{result.title}</h3>
+              <p>{result.content}</p>
+              <p className="text-sm">
+                Posted on {new Date(result.created_at).toLocaleString()}
+              </p>
+            </div>
+          ))
+        ) : (
+          query && <p className="no-results">No results found for "{query}".</p>
+        )}
       </div>
     </div>
   );
