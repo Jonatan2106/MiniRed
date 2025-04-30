@@ -196,37 +196,37 @@ html,
     margin-right: 4rem;
 }
 
-/* Subreddit Header */
-.subreddit-header-container {
+/* Scope all styles under .subreddit-page-wrapper */
+.subreddit-page-wrapper .subreddit-page-header-container {
     display: flex;
     justify-content: center;
     width: 100%;
     margin-left: 2rem;
 }
 
-.subreddit-header {
+.subreddit-page-wrapper .subreddit-page-header {
     background-color: #1a1a1b;
     border-radius: 8px;
-    margin-bottom: .8rem;
+    margin-bottom: 0.8rem;
     overflow: hidden;
     border: 1px solid #272729;
     width: 100%;
     height: 250px;
 }
 
-.subreddit-banner {
+.subreddit-page-wrapper .subreddit-page-banner {
     height: 120px;
     background-color: #272729;
     position: relative;
 }
 
-.subreddit-banner-image {
+.subreddit-page-wrapper .subreddit-page-banner-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.subreddit-header-content {
+.subreddit-page-wrapper .subreddit-page-header-content {
     display: flex;
     align-items: center;
     padding: 1rem 2rem;
@@ -235,7 +235,7 @@ html,
     margin-top: -40px;
 }
 
-.subreddit-icon {
+.subreddit-page-wrapper .subreddit-page-icon {
     width: 80px;
     height: 80px;
     background-color: #FF4500;
@@ -251,30 +251,30 @@ html,
     margin-top: -3.6rem;
 }
 
-.subreddit-details {
+.subreddit-page-wrapper .subreddit-page-details {
     flex-grow: 1;
 }
 
-.subreddit-title {
+.subreddit-page-wrapper .subreddit-page-title {
     font-size: 1.8rem;
     font-weight: 700;
     color: #FF5700;
     margin-top: -1rem;
 }
 
-.subreddit-name {
+.subreddit-page-wrapper .subreddit-page-name {
     font-size: 1rem;
     color: #818384;
     margin-top: 1rem;
 }
 
-.subreddit-description {
+.subreddit-page-wrapper .subreddit-page-description {
     color: #D7DADC;
     font-size: 0.95rem;
     margin-top: 0.4rem;
 }
 
-.join-button {
+.subreddit-page-wrapper .subreddit-page-join-button {
     background-color: #FF4500;
     color: white;
     border: none;
@@ -286,7 +286,7 @@ html,
     transition: background-color 0.3s ease;
 }
 
-.join-button:hover {
+.subreddit-page-wrapper .subreddit-page-join-button:hover {
     background-color: #FF5700;
 }
 

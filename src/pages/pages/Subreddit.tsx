@@ -214,19 +214,25 @@ const SubredditPage = () => {
 
                 {/* Subreddit Header */}
                 <div className="main-feed">
-                    <div className="subreddit-header-container">
-                        <div className="subreddit-header">
-                            <div className="subreddit-banner">
-                                <img src={`/banner_${Math.floor(Math.random() * 3) + 1}.jpg`} alt="Subreddit Banner" className="subreddit-banner-image" />
-                            </div>
-                            <div className="subreddit-header-content">
-                                <div className="subreddit-icon">{subreddit.name[0].toUpperCase()}</div>
-                                <div className="subreddit-details">
-                                    <h1 className="subreddit-title">{subreddit.title}</h1>
-                                    <p className="subreddit-name">r/{subreddit.name}</p>
-                                    <p className="subreddit-description">{subreddit.description}</p>
+                    <div className="subreddit-page-wrapper">
+                        <div className="subreddit-page-header-container">
+                            <div className="subreddit-page-header">
+                                <div className="subreddit-page-banner">
+                                    <img
+                                        src={`/banner_${Math.floor(Math.random() * 3) + 1}.jpg`}
+                                        alt="Subreddit Banner"
+                                        className="subreddit-page-banner-image"
+                                    />
                                 </div>
-                                <button className="join-button">Join</button>
+                                <div className="subreddit-page-header-content">
+                                    <div className="subreddit-page-icon">{subreddit.name[0].toUpperCase()}</div>
+                                    <div className="subreddit-page-details">
+                                        <h1 className="subreddit-page-title">{subreddit.title}</h1>
+                                        <p className="subreddit-page-name">r/{subreddit.name}</p>
+                                        <p className="subreddit-page-description">{subreddit.description}</p>
+                                    </div>
+                                    <button className="subreddit-page-join-button">Join</button>
+                                </div>
                             </div>
                         </div>
                     </div>
