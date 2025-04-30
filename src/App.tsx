@@ -10,6 +10,7 @@ import NotFound from './pages/pages/NotFound';
 import EditProfile from './pages/pages/EditProfile';
 import CreateSubreddit from './pages/pages/CreateSubreddit';
 import SubredditPage from './pages/pages/Subreddit';
+import CreatePost from './pages/pages/CreatePost';
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/search" element={<Search />} />
         <Route path="/create-subreddit" element={<CreateSubreddit />} /> 
+        <Route path="/create-post" element={<CreatePost />} /> 
         <Route path="/profile" element={<Profile />} />
         <Route path="/edit" element={<EditProfile />} />
         <Route path="*" element={<NotFound />} />
