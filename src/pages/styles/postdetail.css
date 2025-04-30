@@ -15,7 +15,7 @@
     color: #FF4500;
 }
 
-.back-button {
+.post-detail-container .back-button {
     position: absolute;
     top: 60px;
     right: 60px;
