@@ -21,22 +21,24 @@
 }
 
 /* Back Button */
-.back-button {
-    background-color: transparent;
-    color: #FF4500;
+.post-page-back-button {
+    background-color: #FF4500;
+    color: white;
     border: none;
+    border-radius: 6px;
     font-size: 1rem;
     cursor: pointer;
     font-weight: bold;
     position: absolute;
     top: 5rem;
     right: 28rem;
+    padding: 0.8rem 2rem;
     max-width: fit-content;
 }
 
-.back-button:hover {
-    color: #D7DADC;
-    background-color: #FF4500;
+.post-page-back-button:hover {
+    background-color: #FF5700;
+    box-shadow: 0px 2px 6px 1px rgba(255, 255, 255, 0.5);
 }
 
 .create-post-form {

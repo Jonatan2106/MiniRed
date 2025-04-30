@@ -84,6 +84,14 @@ html,
     border-left: 4px solid #FF4500;
 }
 
+.left-sidebar .title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #D7DADC;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
 .left-sidebar h2 {
     font-size: 1.2rem;
     font-weight: bold;
@@ -91,7 +99,8 @@ html,
     text-transform: uppercase;
     margin-bottom: 1rem;
     padding-left: 0.5rem;
-
+    border-bottom: 2px solid #FF4500;
+    padding-bottom: .5rem;
 }
 
 .left-sidebar ul {
@@ -233,7 +242,7 @@ html,
     padding: 1.5rem;
     height: fit-content;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    /* Add subtle shadow */
+    border-left: 4px solid #FF4500;
 }
 
 .joined-communities h3 {
