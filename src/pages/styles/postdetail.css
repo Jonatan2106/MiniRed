@@ -5,6 +5,7 @@
     padding: 2rem;
     margin: 2rem auto;
     border-radius: 8px;
+    margin: 40px;
 }
 
 .post-detail-header {
@@ -16,8 +17,8 @@
 
 .back-button {
     position: absolute;
-    top: 50px;
-    right: 20px;
+    top: 60px;
+    right: 60px;
     background-color: #FF4500;
     color: white;
     padding: 0.8rem 2rem;
