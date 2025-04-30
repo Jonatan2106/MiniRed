@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/api';
+import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import '../styles/postdetail.css';
 import '../styles/main.css';
 
@@ -493,22 +494,33 @@ const Comment = ({
           placeholder="Reply to this comment..."
           className="reply-input"
         />
-        <button className="reply-button" onClick={(e) => handleReply(e, comment.comment_id)}>
-          Reply
-        </button>
-        <button
-          className={`vote-button up ${userVote === 'upvote' ? 'upvoted' : ''}`}
-          onClick={() => handleVote('upvote')}
-        >
-          ↑
-        </button>
-        <span className="vote-count">{voteCount > 0 ? voteCount : 0}</span>
-        <button
-          className={`vote-button down ${userVote === 'downvote' ? 'downvoted' : ''}`}
-          onClick={() => handleVote('downvote')}
-        >
-          ↓
-        </button>
+        <div className="reply-vote-buttons">
+          <button className="reply-button" onClick={(e) => handleReply(e, comment.comment_id)}>
+            Reply
+          </button>
+          <button
+            className={`vote-button ${userVote === 'upvote' ? 'upvoted' : ''} up`}
+            onClick={(e) => {
+              e.stopPropagation();  // Prevent redirect on button click
+              handleVote('upvote');
+            }}
+          >
+            <TiArrowUpOutline className={`arrow ${userVote === 'upvote' ? 'upvoted-arrow' : ''}`} />
+          </button>
+
+          {/* Display total upvotes */}
+          <span className="vote-count">{voteCount > 0 ? voteCount : 0}</span>
+
+          <button
+            className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
+            onClick={(e) => {
+              e.stopPropagation();  // Prevent redirect on button click
+              handleVote('downvote');
+            }}
+          >
+            <TiArrowDownOutline className={`arrow ${userVote === 'downvote' ? 'downvoted-arrow' : ''}`} />
+          </button>
+        </div>
       </div>
 
       {/* Edit Popup */}

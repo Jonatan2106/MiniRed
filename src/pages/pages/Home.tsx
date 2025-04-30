@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
+import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import '../styles/home.css';
 import '../styles/main.css';
 
@@ -154,10 +156,20 @@ const Home = () => {
       <div className="main-content">
         {/* Left Sidebar */}
         <div className="left-sidebar">
-          <h2 className='title'>Navigation</h2>
+          <h2 className="title">Menu</h2>
           <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/popular">Popular</a></li>
+            <li>
+              <FaHome className="icon" /> {/* Home icon */}
+              <a href="/">Home</a>
+            </li>
+            <li>
+              <FaCompass className="icon" /> {/* Explore icon */}
+              <a href="/explore">Explore</a>
+            </li>
+            <li>
+              <FaFire className="icon" /> {/* Popular icon */}
+              <a href="/popular">Popular</a>
+            </li>
           </ul>
         </div>
 
@@ -176,6 +188,7 @@ const Home = () => {
               {joinedSubreddits.length > 0 ? (
                 joinedSubreddits.map((subreddit) => (
                   <li key={subreddit.subreddit_id}>
+                    <div className="community-icon">{subreddit.name[0].toUpperCase()}</div>
                     <a href={`/r/${subreddit.name}`}>r/{subreddit.name}</a>
                   </li>
                 ))
@@ -215,7 +228,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
             setUserVote(vote.vote_type ? 'upvote' : 'downvote');
             setVoteId(vote.vote_id || null);
           }
-        })        
+        })
         .catch(error => {
           console.error('Error fetching user vote:', error);
         });
@@ -330,7 +343,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
           <h2>{post.title}</h2>
           <p>{post.content}</p>
         </div>
-        <hr className='hr'/>
+        <hr className='hr' />
       </a>
 
       {/* Bottom part: vote and comment section */}
@@ -343,7 +356,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
               handleVote('upvote');
             }}
           >
-            ↑
+            <TiArrowUpOutline className={`arrow ${userVote === 'upvote' ? 'upvoted-arrow' : ''}`} />
           </button>
 
           {/* Display total upvotes */}
@@ -356,11 +369,8 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
               handleVote('downvote');
             }}
           >
-            ↓
+            <TiArrowDownOutline className={`arrow ${userVote === 'downvote' ? 'downvoted-arrow' : ''}`} />
           </button>
-
-          {/* Display total downvotes */}
-          {/* <span className="vote-count">{voteCount.downvotes}</span> */}
         </div>
 
         <div className="comment-count">
