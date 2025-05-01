@@ -5,24 +5,19 @@
     align-items: center;
     height: 100vh;
     background-color: #030303;
-    /* Reddit-like light gray background */
     font-family: Arial, sans-serif;
 }
 
 /* Register Box */
 .register-container .register-box {
     background-color: #1a1a1b;
-    /* White background for the register box */
     padding: 30px;
     border-radius: 12px;
-    /* Rounded corners */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    /* Subtle shadow */
     width: 100%;
     max-width: 400px;
     text-align: center;
     animation: fadeIn 0.5s ease-in-out;
-    /* Smooth fade-in animation */
 }
 
 /* Header */
@@ -31,7 +26,6 @@
     font-size: 28px;
     margin-bottom: 20px;
     color: #dfdfdf;
-    /* Dark Reddit-like text color */
     font-weight: bold;
 }
 
@@ -42,8 +36,8 @@
     margin: 10px 0;
     border: 1px solid #989898;
     border-radius: 8px;
+    color: aliceblue;
     background-color: #4f4f4f;
-    /* Rounded input fields */
     font-size: 16px;
     transition: border-color 0.3s, box-shadow 0.3s;
     margin-bottom: 20px;
@@ -51,15 +45,13 @@
 
 .register-container .register-input:focus {
     border-color: #ff4500;
-    /* Reddit orange border on focus */
     box-shadow: 0 0 5px rgba(255, 69, 0, 0.5);
-    /* Subtle glow effect */
     outline: none;
 }
 
 .register-container .register-input::placeholder {
-    color: #a8a8a8; /* Lighter gray for placeholder text */
-    font-style: italic; /* Optional: make placeholder text italic */
+    color: #a8a8a8;
+    font-style: italic;
 }
 
 /* Register Button */
@@ -67,13 +59,11 @@
     width: 100%;
     padding: 12px;
     background-color: #ff4500;
-    /* Reddit orange */
     color: white;
     font-size: 16px;
     font-weight: bold;
     border: none;
     border-radius: 8px;
-    /* Rounded button */
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
     margin-bottom: 30px;
@@ -81,15 +71,12 @@
 
 .register-container .register-button:hover {
     background-color: #e03d00;
-    /* Darker orange on hover */
     transform: scale(1.05);
-    /* Slight zoom effect */
 }
 
 /* Error Message */
 .register-container .error-message {
     color: #ff4500;
-    /* Reddit orange for errors */
     text-align: center;
     margin-bottom: 15px;
     font-weight: bold;
@@ -100,12 +87,10 @@
     margin-top: 15px;
     font-size: 14px;
     color: #878a8c;
-    /* Subtle gray text */
 }
 
 .register-container .login-link a {
     color: #ff4500;
-    /* Reddit orange for links */
     text-decoration: none;
     font-weight: bold;
 }
@@ -118,23 +103,58 @@
 .register-container .back-button {
     background-color: transparent;
     color: #ff4500;
-    /* Reddit orange */
     border: 2px solid #ff4500;
     padding: 8px 16px;
     border-radius: 9999px;
-    /* Fully rounded button */
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s;
-    /* margin-bottom: 20px; */
     width: 100%;
 }
 
 .register-container .back-button:hover {
     background-color: #ff4500;
-    /* Orange background on hover */
     color: #ffffff;
-    /* White text on hover */
+}
+
+/* Password Container */
+.register-container .password-container {
+    position: relative;
+    width: 100%;
+}
+
+.register-container .password-container .login-input {
+    max-width: 94.5%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #989898;
+    border-radius: 8px;
+    background-color: #4f4f4f;
+    font-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    margin-bottom: 20px;
+}
+
+.register-container .eye-button {
+    position: absolute;
+    top: 45%;
+    right: 0;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    color: #ff4500;
+    transition: color 0.3s ease;
+}
+
+.register-container .eye-button .text-mode {
+    color: aliceblue;
+}
+
+
+.register-container .eye-button:hover {
+    color: #e03d00;
 }
 
 /* Fade-in Animation */
