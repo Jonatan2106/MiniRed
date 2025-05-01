@@ -355,6 +355,22 @@ html,
     background-color: #FF5700;
 }
 
+.subreddit-page-wrapper .subreddit-page-edit-button {
+    background-color: #ff4500;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 30px;
+}
+
+.subreddit-page-wrapper .subreddit-page-edit-button:hover {
+    background-color: #e03d00;
+}
+
 /* Post Title */
 .post-card h2 {
     font-size: 1.5rem;

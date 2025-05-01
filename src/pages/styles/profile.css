@@ -287,6 +287,19 @@ p {
     text-decoration: underline;
 }
 
+.community-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #FF4500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
 /* Dropdown Menu */
 .dropdown-menu {
     position: absolute;
