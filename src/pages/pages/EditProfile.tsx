@@ -124,7 +124,6 @@ const EditProfile = () => {
         <div className="navbar-right">
           {isLoggedIn ? (
             <>
-              <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
               <div className="profile-menu">
                 <img
                   src={user?.profilePic || "/default.png"}
