@@ -14,7 +14,7 @@ interface Post {
   created_at: string;
 }
 
-export interface Subreddit {
+interface Subreddit {
   subreddit_id: string;
   name: string;
   title: string;

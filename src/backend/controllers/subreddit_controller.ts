@@ -235,8 +235,7 @@ export const getUserJoinedSubreddits = async (req: Request, res: Response) => {
     const memberships = await SubredditMember.findAll({
       where: { user_id },
       include: {
-        model: Subreddit,
-        attributes: ['subreddit_id', 'name', 'title', 'description']
+        model: Subreddit
       }
     });
 

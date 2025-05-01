@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/createsubreddit.css';
 
-export interface Subreddit {
+interface Subreddit {
   subreddit_id: string;
   user_id: string;
   name: string;

@@ -52,7 +52,6 @@ const Home = () => {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Post[]>([]);
 
-
   // Inside the Home component
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -123,6 +122,7 @@ const Home = () => {
         subreddit.name.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredSubreddits(filteredCommunities);
+      console.log("Filtered communities:", filteredCommunities);
     }
   };
 
@@ -222,7 +222,7 @@ const Home = () => {
           {filteredSubreddits.length > 0 && (
             <>
               {filteredSubreddits.map((subreddit) => (
-                <SubredditCard key={subreddit.subreddit_id} subreddit={subreddit} user={users} />
+                <SubredditCard key={subreddit.subreddit_id} subreddit={subreddit} users={users} />
               ))}
             </>
           )}
@@ -273,35 +273,20 @@ const Home = () => {
 };
 
 const SubredditCard = ({ subreddit, users }: { subreddit: Subreddit; users: Map<string, User> }) => {
-  const [subreddits, setSubreddits] = useState(null);
+  console.log("Subreddit data:", subreddit);
+  const owner = users.get(subreddit.user_id)?.username;
+  const createdAt = new Date(subreddit.created_at).toLocaleString();
 
-  useEffect(() => {
-    fetchAllSubreddits();
-  }, [subreddit.subreddit_id]); // Fetch all subreddits when the component mounts
-
-  const fetchAllSubreddits = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/subreddits', {
-        method: 'GET',
-      });
-      const data = await response.json();
-      setSubreddits(data);
-    } catch (error) {
-      console.error('Error fetching subreddits:', error);
-    }
-  };
+  console.log("Subreddit created at:", createdAt);
+  console.log("Subreddit owner:", owner);
 
   return (
-    <div key={subreddit.subreddit_id} className="post-card">
+    <div className="post-card">
       <a href={`/r/${subreddit.name}`} className="post-link">
         <div className="post-content">
           <div className="post-header">
-            <span className="username">
-              Owner: {users.get(subreddit.user_id)?.username || "Unknown User"}
-            </span>
-            <span className="timestamp">
-              Created: {new Date(subreddit.created_at).toLocaleString()}
-            </span>
+            <span className="username">Owner: {owner}</span>
+            <span className="timestamp">Created: {createdAt}</span>
           </div>
           <h3>r/{subreddit.name}</h3>
           <p>{subreddit.description}</p>
