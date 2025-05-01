@@ -44,11 +44,12 @@ const SubredditPage = () => {
     const [posts, setPosts] = useState<Post[]>([]);
     const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
+    const [user, setUser] = useState<{ user_id: string; username: string; profilePic: string } | null>(null);
     const [isDropdownOpen, setDropdownOpen] = useState(false);
     const [users, setUsers] = useState<Map<string, User>>(new Map());
     const { subredditName } = useParams<{ subredditName: string }>();
     const [subreddit, setSubreddit] = useState<Subreddit | null>(null);
+    const [isMember, setIsMember] = useState<boolean>(false);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -62,7 +63,7 @@ const SubredditPage = () => {
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    setUser({ username: data.username, profilePic: data.profilePic });
+                    setUser({ user_id: data.user_id, username: data.username, profilePic: data.profilePic });
                 })
                 .catch((error) => console.error('Error fetching user data:', error));
         }
@@ -96,8 +97,17 @@ const SubredditPage = () => {
     useEffect(() => {
         if (subreddit?.subreddit_id) {
             fetchSubredditPost();
+            checkMembershipStatus();
         }
     }, [subreddit]);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            setIsLoggedIn(true);
+        }
+        fetchSubredditData();
+    }, [subredditName]);
 
     const fetchSubredditData = async () => {
         try {
@@ -109,6 +119,7 @@ const SubredditPage = () => {
             else {
                 setError('Subreddit not found');
             }
+            setSubreddit(data);
         } catch (error) {
             console.error('Error fetching Subreddit data :', error);
         }
@@ -125,6 +136,62 @@ const SubredditPage = () => {
             }
         } catch (error) {
             console.error('Error fetching subreddit posts:', error);
+        }
+    };
+
+    const checkMembershipStatus = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:5000/api/users/subreddits', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const joinedSubreddits = await response.json();
+            const isUserMember = joinedSubreddits.some(
+                (joinedSubreddit: Subreddit) => joinedSubreddit.subreddit_id === subreddit?.subreddit_id
+            );
+            setIsMember(isUserMember);
+        } catch (error) {
+            console.error('Error checking membership status:', error);
+        }
+    };
+
+    const handleJoinSubreddit = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/subreddits/${subreddit?.subreddit_id}/join`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (response.ok) {
+                setIsMember(true);
+            } else {
+                console.error('Failed to join subreddit');
+            }
+        } catch (error) {
+            console.error('Error joining subreddit:', error);
+        }
+    };
+
+    const handleLeaveSubreddit = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/subreddits/${subreddit?.subreddit_id}/leave`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (response.ok) {
+                setIsMember(false);
+            } else {
+                console.error('Failed to leave subreddit');
+            }
+        } catch (error) {
+            console.error('Error leaving subreddit:', error);
         }
     };
 
@@ -232,7 +299,25 @@ const SubredditPage = () => {
                                         <p className="subreddit-page-name">r/{subreddit.name}</p>
                                         <p className="subreddit-page-description">{subreddit.description}</p>
                                     </div>
-                                    <button className="subreddit-page-join-button">Join</button>
+                                    {isLoggedIn && (
+                                        <>
+                                            {user?.user_id === subreddit.user_id ? (
+                                                <button
+                                                    className="subreddit-page-edit-button"
+                                                    onClick={() => window.location.href = `/edit-subreddit/${subreddit.subreddit_id}`}
+                                                >
+                                                    Edit Subreddit
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    className="subreddit-page-join-button"
+                                                    onClick={isMember ? handleLeaveSubreddit : handleJoinSubreddit}
+                                                >
+                                                    {isMember ? 'Leave' : 'Join'}
+                                                </button>
+                                            )}
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -403,7 +488,9 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
             <a href={`/post/${post.post_id}`} className="post-link">
                 <div className="post-content">
                     <div className="post-header">
-                        <a href={"http://localhost:5173/u/" + users.get(post.user_id)?.username} className="username">u/{users.get(post.user_id)?.username || "Unknown User"}</a>
+                        <a href={`/u/${users.get(post.user_id)?.username || "unknown"}`} className="username">
+                            u/{users.get(post.user_id)?.username || "Unknown User"}
+                        </a>
                         <span className="timestamp">{new Date(post.created_at).toLocaleString()}</span>
                     </div>
                     <h2>{post.title}</h2>

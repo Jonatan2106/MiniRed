@@ -28,6 +28,7 @@
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.2",
     "sequelize-typescript": "^2.1.6",
+    "tsx": "^4.19.4",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
@@ -52,5 +53,13 @@
   "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
   "main": "eslint.config.js",
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jonatan2106/MiniRed.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Jonatan2106/MiniRed/issues"
+  },
+  "homepage": "https://github.com/Jonatan2106/MiniRed#readme"
 }
