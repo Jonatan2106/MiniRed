@@ -102,10 +102,10 @@ const CreatePost = () => {
     return (
         <div className="create-post-wrapper">
             <div className="create-post-header">
+                <h1>Create Post</h1>
                 <button className="post-page-back-button" onClick={() => navigate(-1)}>
                     Back
                 </button>
-                <h1>Create Post</h1>
             </div>
 
             {error && <div className="error-message">{error}</div>}

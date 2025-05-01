@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
+import { AiOutlinePlusCircle } from 'react-icons/ai';
 import { useParams } from 'react-router-dom';
 import '../styles/subreddit.css';
 import '../styles/main.css';
-import e from 'express';
 
 interface Post {
     post_id: string;
@@ -164,7 +164,7 @@ const SubredditPage = () => {
                 <div className="navbar-right">
                     {isLoggedIn ? (
                         <>
-                            <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
+                            <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
                             <div className="profile-menu">
                                 <img
                                     src={user?.profilePic ? user?.profilePic : "/default.png"}

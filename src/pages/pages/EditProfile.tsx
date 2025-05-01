@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { AiOutlinePlusCircle } from "react-icons/ai";
 import "../styles/editprofile.css";
+import "../styles/main.css"; 
 
 interface Post {
   post_id: string;
@@ -113,6 +115,7 @@ const EditProfile = () => {
         <div className="navbar-right">
           {isLoggedIn ? (
             <>
+              <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
               <div className="profile-menu">
                 <img
                   src={user?.profilePic || "/default-profile.png"}
