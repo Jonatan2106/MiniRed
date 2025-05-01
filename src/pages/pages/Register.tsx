@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { fetchFromAPI } from '../../api/api';
 import { useNavigate } from 'react-router-dom';
+import { IoEyeOffSharp, IoEyeSharp  } from "react-icons/io5";
 import '../styles/register.css';
 
 const Register = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
@@ -30,7 +33,7 @@ const Register = () => {
   return (
     <div className="register-container">
       <div className="register-box">
-        <h2>Join Reddit</h2>
+        <h2 className="register-header">Join Reddit</h2>
 
         {error && <p className="error-message">{error}</p>}
 
@@ -48,25 +51,44 @@ const Register = () => {
           onChange={(e) => setEmail(e.target.value)}
           className="register-input"
         />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="register-input"
-        />
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="register-input"
-        />
+        <div className="password-container">
+          <input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="register-input"
+          />
+          <button
+            type="button"
+            className="eye-button"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <IoEyeSharp  className='text-mode' /> : <IoEyeOffSharp />}
+          </button>
+        </div>
+        <div className="password-container">
+          <input
+            type={showConfirmPassword ? 'text' : 'password'}
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="register-input"
+          />
+          <button
+            type="button"
+            className="eye-button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+          >
+            {showConfirmPassword ? <IoEyeSharp className='text-mode' /> : <IoEyeOffSharp />}
+          </button>
+        </div>
         <button onClick={handleRegister} className="register-button">Register</button>
-        
+
         <p className="login-link">
           Already have an account? <a href="/login">Login</a>
         </p>
+        <button className="back-button" onClick={() => navigate('/')}>Back to Home</button>
       </div>
     </div>
   );

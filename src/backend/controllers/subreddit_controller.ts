@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Subreddit } from '../../../models/subreddit';
-import { SubredditMember } from '../../../models/subreddit_member'; // Import this
+import { SubredditMember } from '../../../models/subreddit_member';
+import { Post } from '../../../models/post'; // Assuming you have a Post model defined
 import { v4 } from 'uuid';
 
 // POST /subreddits - Create a new subreddit/community
@@ -10,24 +11,29 @@ export const createSubreddit = async (req: Request, res: Response) => {
     const { name, title, description, is_privated } = req.body;
     const user_id = req.body.userId;
 
-    const newSubreddit = await Subreddit.create({
-      subreddit_id,
-      user_id,
-      name,
-      title,
-      description,
-      is_privated
-    });
-
-    await SubredditMember.create({
-      subreddit_id,
-      user_id,  // Creator's user_id
-      joined_at: new Date(),
-      is_moderator: true
-    });
-
-    // Step 3: Respond with the created subreddit
-    res.status(201).json(newSubreddit);
+    const alreadyExists = await Subreddit.findOne({ where: { name } });
+    if (alreadyExists) {  
+      res.status(400).json({ message: 'Subreddit name already exists' });
+    }
+    else {
+      const newSubreddit = await Subreddit.create({
+        subreddit_id,
+        user_id,
+        name,
+        title,
+        description,
+        is_privated
+      });
+  
+      await SubredditMember.create({
+        subreddit_id,
+        user_id,
+        joined_at: new Date(),
+        is_moderator: true
+      });
+  
+      res.status(201).json(newSubreddit);
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to create subreddit' });
@@ -110,7 +116,7 @@ export const getSubredditByName = async (req: Request, res: Response) => {
       res.status(404).json({ message: 'Subreddit not found' });
     }
     else {
-      res.json(subreddit);
+      res.status(200).json(subreddit);
     }
   } catch (error) {
     console.error(error);
@@ -236,10 +242,48 @@ export const getUserJoinedSubreddits = async (req: Request, res: Response) => {
 
     // Extract subreddit details from memberships
     const subredditList = memberships.map(membership => membership.subreddit);
-    console.log(subredditList)
     res.json(subredditList);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to fetch joined subreddits' });
+  }
+};
+
+export const getUserJoinedSubredditsById = async (req: Request, res: Response) => {
+  try {
+    const user_id = req.params.id;
+
+    const memberships = await SubredditMember.findAll({
+      where: { user_id },
+      include: {
+        model: Subreddit,
+        attributes: ['subreddit_id', 'name', 'title', 'description']
+      }
+    });
+
+    // Extract subreddit details from memberships
+    const subredditList = memberships.map(membership => membership.subreddit);
+    res.json(subredditList);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch joined subreddits' });
+  }
+};
+
+export const getPostBySubredditId = async (req: Request, res: Response) => {
+  try {
+    const { id: subreddit_id } = req.params;
+
+    if (!subreddit_id) {
+      res.status(400).json({ message: 'Subreddit ID is required' });
+    }
+
+    // Fetch posts where subreddit_id matches
+    const posts = await Post.findAll({ where: { subreddit_id } });
+
+    res.json(posts);
+  } catch (err) {
+    console.error('Error fetching posts by subreddit ID:', err);
+    res.status(500).json({ message: 'Error fetching posts', error: err });
   }
 };

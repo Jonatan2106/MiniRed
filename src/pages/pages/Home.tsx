@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
+import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
+import { AiOutlinePlusCircle } from "react-icons/ai";
 import '../styles/home.css';
 import '../styles/main.css';
+import { text } from 'stream/consumers';
 
 interface Post {
   post_id: string;
   user_id: string;
   title: string;
   content: string;
+  image: string | null;
   created_at: string;
 }
 
 export interface Subreddit {
   subreddit_id: string;
+  user_id: string;
   name: string;
   title: string;
   description: string;
+  created_at: string;
 }
 
 interface User {
@@ -37,10 +44,14 @@ const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
+  const [filteredSubreddits, setFilteredSubreddits] = useState<Subreddit[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [users, setUsers] = useState<Map<string, User>>(new Map());
+  const [query, setQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Post[]>([]);
+
 
   // Inside the Home component
   useEffect(() => {
@@ -61,8 +72,11 @@ const Home = () => {
     }
 
     fetch('http://localhost:5000/api/posts')
-      .then(response => response.json())
-      .then(data => setPosts(data))
+      .then((response) => response.json())
+      .then((data) => {
+        setPosts(data);
+        setSearchResults(data);
+      })
       .catch((error) => setError('Error fetching posts'));
 
     fetch('http://localhost:5000/api/users/subreddits', {
@@ -78,7 +92,7 @@ const Home = () => {
       .catch((error) => console.error('Error fetching joined communities:', error));
 
     fetch('http://localhost:5000/api/user/all')
-      .then(response => response.json())
+      .then((response) => response.json())
       .then((data) => {
         const userMap = new Map();
         data.forEach((user: User) => {
@@ -92,6 +106,24 @@ const Home = () => {
 
   const handleCreatePost = () => {
     window.location.href = '/create-post';
+  };
+
+  const handleSearch = () => {
+    if (query.trim() === '') {
+      window.location.reload();
+    } else {
+      // Filter posts based on the query matching the title
+      const filteredPosts = posts.filter((post) =>
+        post.title.toLowerCase().includes(query.toLowerCase())
+      );
+      setSearchResults(filteredPosts);
+
+      // Filter communities based on the query matching the name
+      const filteredCommunities = joinedSubreddits.filter((subreddit) =>
+        subreddit.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredSubreddits(filteredCommunities);
+    }
   };
 
   const handleLogout = () => {
@@ -118,12 +150,21 @@ const Home = () => {
           </div>
         </div>
         <div className="navbar-center">
-          <input className="search-input" type="text" placeholder="Search Reddit" />
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search Reddit"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button className="search-button" onClick={handleSearch}>
+            Search
+          </button>
         </div>
         <div className="navbar-right">
           {isLoggedIn ? (
             <>
-              <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
+              <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
               <div className="profile-menu">
                 <img
                   src={user?.profilePic ? user?.profilePic : "/default.png"}
@@ -132,19 +173,21 @@ const Home = () => {
                   alt={user?.username}
                 />
                 {isDropdownOpen && (
-                  <div className="dropdown-menu">
-                    <a href="/profile">Profile</a>
-                    <a href="/edit">Edit</a>
-                    <a onClick={handleLogout}>Logout</a>
+                  <div className="dropdown-menu enhanced-dropdown">
+                    <a href="/profile" className="dropdown-item">Profile</a>
+                    <a href="/edit" className="dropdown-item">Edit</a>
+                    <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
                   </div>
                 )}
               </div>
             </>
           ) : (
             <>
-              <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-              <a className="nav-link" href="/login">Login</a>
-              <a className="nav-link" href="/register">Register</a>
+              <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
+              <div className="auth-buttons">
+                <a className="nav-link login-button" href="/login">Login</a>
+                <a className="nav-link register-button" href="/register">Register</a>
+              </div>
             </>
           )}
         </div>
@@ -154,18 +197,74 @@ const Home = () => {
       <div className="main-content">
         {/* Left Sidebar */}
         <div className="left-sidebar">
-          <h2 className='title'>Navigation</h2>
+          <h2 className="title">Menu</h2>
           <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/popular">Popular</a></li>
+            <li>
+              <FaHome className="icon" /> {/* Home icon */}
+              <a href="/">Home</a>
+            </li>
+            <li>
+              <FaCompass className="icon" /> {/* Explore icon */}
+              <a href="/explore">Explore</a>
+            </li>
+            <li>
+              <FaFire className="icon" /> {/* Popular icon */}
+              <a href="/popular">Popular</a>
+            </li>
           </ul>
         </div>
 
         {/* Feed */}
         <div className="feed">
-          {posts.map((post) => (
-            <PostCard key={post.post_id} post={post} users={users} />
-          ))}
+          {/* Display matching communities */}
+          {filteredSubreddits.length > 0 && (
+            <>
+              <h2 className="feed-section-title">Communities</h2>
+              {filteredSubreddits.map((subreddit) => {
+                const owner = users.get(subreddit.user_id); // Get the owner from the users map
+                return (
+                  <div key={subreddit.subreddit_id} className="post-card">
+                    <a href={`/r/${subreddit.name}`} className="post-link">
+                      <div className="post-content">
+                        <div className="post-header">
+                          <span className="username">
+                            {owner ? owner.username : "Unknown"}
+                          </span>
+                          <span className="timestamp">
+                            Created: {new Date(subreddit.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        <h3>r/{subreddit.name}</h3>
+                        <p>{subreddit.description}</p>
+                      </div>
+                    </a>
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {/* Display matching posts */}
+          {searchResults.length > 0 && (
+            <>
+              <h2 className="feed-section-title">Posts</h2>
+              {searchResults.map((post) => (
+                <PostCard key={post.post_id} post={post} users={users} />
+              ))}
+            </>
+          )}
+
+          {/* No results message */}
+          {query && filteredSubreddits.length === 0 && searchResults.length === 0 && (
+            <p className="text-gray-500">No results found for "{query}".</p>
+          )}
+
+          {/* Default posts when no query */}
+          {!query && searchResults.length === 0 && (
+            posts.map((post) => (
+              <PostCard key={post.post_id} post={post} users={users} />
+            ))
+          )}
         </div>
 
         {/* Right Sidebar */}
@@ -176,6 +275,7 @@ const Home = () => {
               {joinedSubreddits.length > 0 ? (
                 joinedSubreddits.map((subreddit) => (
                   <li key={subreddit.subreddit_id}>
+                    <div className="community-icon">{subreddit.name[0].toUpperCase()}</div>
                     <a href={`/r/${subreddit.name}`}>r/{subreddit.name}</a>
                   </li>
                 ))
@@ -215,7 +315,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
             setUserVote(vote.vote_type ? 'upvote' : 'downvote');
             setVoteId(vote.vote_id || null);
           }
-        })        
+        })
         .catch(error => {
           console.error('Error fetching user vote:', error);
         });
@@ -324,13 +424,23 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
       <a href={`/post/${post.post_id}`} className="post-link">
         <div className="post-content">
           <div className="post-header">
-            <span className="username">{users.get(post.user_id)?.username || "Unknown User"}</span>
+            <a href={"http://localhost:5173/u/" + users.get(post.user_id)?.username} className="username">u/{users.get(post.user_id)?.username || "Unknown User"}</a>
             <span className="timestamp">{new Date(post.created_at).toLocaleString()}</span>
           </div>
           <h2>{post.title}</h2>
-          <p>{post.content}</p>
+          <p>
+            {post.content.length > 100
+              ? `${post.content.slice(0, 100)}...`
+              : post.content
+            }
+          </p>
+          {post.image &&
+            <div className="post-image-container">
+              {post.image && <img src={post.image} alt={post.title} className="post-image" />}
+            </div>
+          }
         </div>
-        <hr className='hr'/>
+        <hr className='hr' />
       </a>
 
       {/* Bottom part: vote and comment section */}
@@ -343,7 +453,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
               handleVote('upvote');
             }}
           >
-            ↑
+            <TiArrowUpOutline className={`arrow ${userVote === 'upvote' ? 'upvoted-arrow' : ''}`} />
           </button>
 
           {/* Display total upvotes */}
@@ -356,11 +466,8 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
               handleVote('downvote');
             }}
           >
-            ↓
+            <TiArrowDownOutline className={`arrow ${userVote === 'downvote' ? 'downvoted-arrow' : ''}`} />
           </button>
-
-          {/* Display total downvotes */}
-          {/* <span className="vote-count">{voteCount.downvotes}</span> */}
         </div>
 
         <div className="comment-count">

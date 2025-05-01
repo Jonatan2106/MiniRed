@@ -37,3 +37,22 @@ a:hover {
   object-fit: cover;
   cursor: pointer;
 }
+
+.create-post-btn {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #FF4500;
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.create-post-btn .icon {
+  font-size: 1.5rem;
+  color: #D7DADC;
+  flex-shrink: 0;
+}

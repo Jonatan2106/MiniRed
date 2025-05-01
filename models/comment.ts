@@ -31,7 +31,8 @@ export class Comment extends Model {
     @ForeignKey(() => Comment)
     @Column({ 
         type: DataType.UUID,
-        allowNull: true
+        allowNull: true,
+        onDelete: 'CASCADE'
     })
     declare parent_comment_id: string;
 
@@ -57,7 +58,8 @@ export class Comment extends Model {
 
     @HasMany(() => Comment, { 
         foreignKey: 'parent_comment_id',
-        as: 'replies'
+        as: 'replies',
+        onDelete: 'CASCADE'
       })
       declare replies: Comment[];      
 

@@ -1,0 +1,141 @@
+/* Container */
+.create-subreddit-wrapper {
+    max-width: 800px;
+    margin: 4rem auto;
+    padding: 2rem;
+    background-color: #1a1a1b;
+    border-radius: 12px;
+    color: #D7DADC;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Header */
+.create-subreddit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.create-subreddit-header h1 {
+    font-size: 1.8rem;
+    color: #FF4500;
+}
+
+/* Back Button */
+.subreddit-page-back-button {
+    background-color: #FF4500;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0.8rem 1.5rem;
+    transition: background-color 0.3s ease;
+}
+
+.subreddit-page-back-button:hover {
+    background-color: #FF5700;
+    box-shadow: 0px 2px 6px 1px rgba(255, 255, 255, 0.5);
+}
+
+/* Form Layout */
+.form-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.create-subreddit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.subreddit-input,
+.subreddit-textarea {
+    padding: 0.8rem;
+    border: 1px solid #444;
+    border-radius: 6px;
+    background-color: #272729;
+    color: #D7DADC;
+    font-size: 1rem;
+}
+
+.subreddit-input:focus,
+.subreddit-textarea:focus {
+    border-color: #FF4500;
+    outline: none;
+}
+
+.subreddit-textarea {
+    resize: vertical;
+    min-height: 150px;
+}
+
+/* Character Counter */
+.character-counter {
+    font-size: 0.9rem;
+    color: #999;
+    text-align: right;
+    margin-top: 0.2rem;
+}
+
+/* Privacy Options */
+.privacy-options {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+}
+
+.privacy-options label {
+    font-size: 1rem;
+    color: #D7DADC;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Submit Button */
+.submit-button {
+    padding: 0.8rem 1.5rem;
+    background-color: #FF4500;
+    color: white;
+    border: none;
+    border-radius: 9999px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+}
+
+.submit-button:hover {
+    background-color: #D7DADC;
+    color: #FF5700;
+}
+
+/* Error Message */
+.error-message {
+    color: #FF4500;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+/* Preview Pane */
+.preview-pane {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #1a1a1b;
+    border-radius: 12px;
+    border: 1px solid #343536;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { AiOutlinePlusCircle } from "react-icons/ai";
 import "../styles/editprofile.css";
+import "../styles/main.css"; 
 
 interface User {
   user_id: string;
@@ -122,6 +124,7 @@ const EditProfile = () => {
         <div className="navbar-right">
           {isLoggedIn ? (
             <>
+              <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
               <div className="profile-menu">
                 <img
                   src={user?.profilePic || "/default.png"}
@@ -129,9 +132,10 @@ const EditProfile = () => {
                   onClick={toggleDropdown}
                 />
                 {isDropdownOpen && (
-                  <div className="dropdown-menu">
-                    <a href="/profile">{user?.username}</a>
-                    <a onClick={handleLogout}>Logout</a>
+                  <div className="dropdown-menu enhanced-dropdown">
+                    <a href="/profile" className="dropdown-item">Profile</a>
+                    <a href="/edit" className="dropdown-item">Edit</a>
+                    <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
                   </div>
                 )}
               </div>

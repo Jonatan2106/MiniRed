@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import e, { Request, Response } from 'express';
 import { Comment } from '../../../models/comment';
 import { Post } from '../../../models/post';
 import { User } from '../../../models/user';
@@ -188,3 +188,6 @@ export const deleteComment = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Failed to delete comment' });
     }
 };
+
+
+

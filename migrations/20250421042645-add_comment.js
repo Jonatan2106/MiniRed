@@ -31,7 +31,13 @@ export default {
       },
       parent_comment_id: {
         type: Sequelize.UUID,
-        allowNull: true
+        allowNull: true,
+        references: {
+          model: 'comment', 
+          key: 'comment_id'    
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
       },
       content: {
         type: Sequelize.TEXT,

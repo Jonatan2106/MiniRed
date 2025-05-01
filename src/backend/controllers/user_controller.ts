@@ -2,7 +2,11 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { Request, Response } from 'express';
 import { User } from '../../../models/user';
+import { Comment } from '../../../models/comment';
+import { Post } from '../../../models/post';
 import { generateToken } from '../utils/jwt_helper';
+import { Vote } from '../../../models/vote'; // Assuming you have a Vote model defined
+import { Subreddit } from '../../../models/subreddit';
 
 // POST /register - Register a new user
 export const registerUser = async (req: Request, res: Response) => {
@@ -58,12 +62,12 @@ export const getCurrentUser = async (req: Request, res: Response) => {
 };
 
 export const getAllUsers = async (req: Request, res: Response) => {
-  try {
-    const posts = await User.findAll();
-    res.json(posts);
-  } catch (err) {
-    res.status(500).json({ message: 'Error fetching posts', error: err });
-  }
+    try {
+        const posts = await User.findAll();
+        res.json(posts);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching posts', error: err });
+    }
 };
 
 // GET /user/:id - get detail user
@@ -84,12 +88,20 @@ export const getUserById = async (req: Request, res: Response) => {
 // GET /user/:id/posts - get user posts
 export const getUserPosts = async (req: Request, res: Response) => {
     try {
-        const user = await User.findByPk(req.params.id, { include: ['post'] });
-        if (user) {
-            res.json(user.posts);
-        } else {
-            res.status(404).json({ message: 'User not found' });
-        }
+        const userId = req.params.id;
+
+        const posts = await Post.findAll({
+            where: { user_id: userId },
+            include: [
+                {
+                    model: User,
+                    attributes: ['user_id', 'username'],
+                },
+            ],
+            order: [['created_at', 'DESC']],
+        });
+
+        res.status(200).json(posts);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to fetch user posts' });
@@ -99,12 +111,20 @@ export const getUserPosts = async (req: Request, res: Response) => {
 // GET /user/:id/comments - get user comments
 export const getUserComments = async (req: Request, res: Response) => {
     try {
-        const user = await User.findByPk(req.params.id, { include: ['comment'] });
-        if (user) {
-            res.json(user.comments);
-        } else {
-            res.status(404).json({ message: 'User not found' });
-        }
+        const userId = req.params.id;
+
+        const comments = await Comment.findAll({
+            where: { user_id: userId },
+            include: [
+                {
+                    model: User,
+                    attributes: ['user_id', 'username'],
+                },
+            ],
+            order: [['created_at', 'DESC']],
+        });
+
+        res.status(200).json(comments);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to fetch user comments' });
@@ -134,3 +154,106 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Failed to update user profile' });
     }
 }
+
+// Get all posts from the logged-in user
+export const getAllPosts = async (req: Request, res: Response) => {
+    try {
+        const userId = req.body.userId; // Get user_id from the request (token payload)
+
+        const posts = await Post.findAll({
+            where: { user_id: userId },
+            include: [
+                {
+                    model: User,
+                    attributes: ['user_id', 'username'],
+                },
+            ],
+            order: [['created_at', 'DESC']],
+        });
+
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to get user posts' });
+    }
+};
+
+// Get all comments from the logged-in user
+export const getAllComments = async (req: Request, res: Response) => {
+    try {
+        const userId = req.body.userId; // Get user_id from the request (token payload)
+
+        const comments = await Comment.findAll({
+            where: { user_id: userId },
+            include: [
+                {
+                    model: User,
+                    attributes: ['user_id', 'username'],
+                },
+            ],
+            order: [['created_at', 'DESC']],
+        });
+
+        res.status(200).json(comments);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to get user comments' });
+    }
+};
+// Get all downvotes from the logged-in user
+export const getAllDownVotes = async (req: Request, res: Response) => {
+    try {
+        const userId = req.body.userId; // Get user_id from the request (token payload)
+
+        const downVotes = await Vote.findAll({
+            where: { user_id: userId, vote_type: false }, // false = downvote
+            include: [
+                {
+                    model: Post,
+                    required: false, // Include only if the vote is related to a post
+                    attributes: ['post_id', 'title', 'content', 'created_at'],
+                },
+                {
+                    model: Comment,
+                    required: false, // Include only if the vote is related to a comment
+                    attributes: ['comment_id', 'content', 'created_at'],
+                },
+            ],
+            order: [['created_at', 'DESC']],
+        });
+
+        res.status(200).json(downVotes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to get user downvotes' });
+    }
+};
+
+// Get all upvotes from the logged-in user
+export const getAllUpVotes = async (req: Request, res: Response) => {
+    try {
+        const userId = req.body.userId; // Get user_id from the request (token payload)
+
+        const upVotes = await Vote.findAll({
+            where: { user_id: userId, vote_type: true }, // true = upvote
+            include: [
+                {
+                    model: Post,
+                    required: false, // Include only if the vote is related to a post
+                    attributes: ['post_id', 'title', 'content', 'created_at'],
+                },
+                {
+                    model: Comment,
+                    required: false, // Include only if the vote is related to a comment
+                    attributes: ['comment_id', 'content', 'created_at'],
+                },
+            ],
+            order: [['created_at', 'DESC']],
+        });
+
+        res.status(200).json(upVotes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to get user upvotes' });
+    }
+};

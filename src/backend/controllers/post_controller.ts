@@ -2,6 +2,12 @@ import { Request, Response } from 'express';
 import { Post } from '../../../models/post';
 import { Comment } from '../../../models/comment';
 import { v4 } from 'uuid';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // 1. List all posts
 export const getPosts = async (req: Request, res: Response) => {
@@ -30,18 +36,49 @@ export const getPostById = async (req: Request, res: Response) => {
 // 3. Create a new post
 export const createPost = async (req: Request, res: Response) => {
   try {
-    // const newPost = await Post.create(req.body);
-
-    const { subreddit_id, title, content, image } = req.body
+    const { subreddit_id, title, content, image } = req.body;
     const post_id = v4();
     const user_id = req.body.userId;
 
-    const newPost = await Post.create({post_id, user_id, subreddit_id, title, content, image});
+    let imagePath: string | null = null;
+
+    if (image) {
+      const matches = image.match(/^data:(.+);base64,(.+)$/);
+      if (!matches || matches.length !== 3) {
+        res.status(400).json({ message: 'Invalid image format' });
+      }
+
+      const mimeType = matches[1];
+      const base64Data = matches[2];
+      const extension = mimeType.split('/')[1];
+      const fileName = `${post_id}.${extension}`;
+      const savePath = path.join(__dirname, '../../../public/uploads', fileName);
+
+      const uploadDir = path.join(__dirname, '../../../public/uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+
+      fs.writeFileSync(savePath, Buffer.from(base64Data, 'base64'));
+      imagePath = `/uploads/${fileName}`;
+    }
+
+    const newPost = await Post.create({
+      post_id,
+      user_id,
+      subreddit_id,
+      title,
+      content,
+      image: imagePath, // Save path instead of raw binary
+    });
+
     res.status(201).json(newPost);
   } catch (err) {
+    console.error('Error creating post:', err);
     res.status(500).json({ message: 'Error creating post', error: err });
   }
 };
+
 
 // 4. Update a post by ID
 export const updatePost = async (req: Request, res: Response) => {
