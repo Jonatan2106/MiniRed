@@ -737,3 +737,25 @@ img {
     color: #B1B1B1;
     font-size: 0.9rem;
 }
+
+.post-card .post-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 1rem;
+    max-width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #1a1a1b;
+    margin-top: 1rem;
+    padding: 20px;
+}
+
+.post-card .post-image-container .post-image {
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    background-color: transparent;
+}

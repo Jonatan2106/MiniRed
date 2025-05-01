@@ -4,12 +4,14 @@ import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import { AiOutlinePlusCircle } from "react-icons/ai";
 import '../styles/home.css';
 import '../styles/main.css';
+import { text } from 'stream/consumers';
 
 interface Post {
   post_id: string;
   user_id: string;
   title: string;
   content: string;
+  image: string | null;
   created_at: string;
 }
 
@@ -426,7 +428,17 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
             <span className="timestamp">{new Date(post.created_at).toLocaleString()}</span>
           </div>
           <h2>{post.title}</h2>
-          <p>{post.content}</p>
+          <p>
+            {post.content.length > 100
+              ? `${post.content.slice(0, 100)}...`
+              : post.content
+            }
+          </p>
+          {post.image &&
+            <div className="post-image-container">
+              {post.image && <img src={post.image} alt={post.title} className="post-image" />}
+            </div>
+          }
         </div>
         <hr className='hr' />
       </a>
