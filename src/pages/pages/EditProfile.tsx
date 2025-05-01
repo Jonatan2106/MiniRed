@@ -1,31 +1,22 @@
 import React, { useState, useEffect } from "react";
 import "../styles/editprofile.css";
 
-interface Post {
-  post_id: string;
-  user_id: string;
-  title: string;
-  content: string;
-  created_at: string;
-}
-
 interface User {
   user_id: string;
   username: string;
   profilePic: string;
 }
 
-export interface Subreddit {
-  subreddit_id: string;
-  name: string;
-  title: string;
-  description: string;
-}
-
 const EditProfile = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    profilePic: null,
+  });
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<{
     username: string;
@@ -33,6 +24,26 @@ const EditProfile = () => {
   } | null>(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [users, setUsers] = useState<Map<string, User>>(new Map());
+  const [popupType, setPopupType] = useState<'username' | 'email' | 'password' | 'propic' | null>(null);
+  const [inputValue, setInputValue] = useState('');
+  const closePopup = () => {
+    setPopupType(null);
+    setInputValue('');
+  };
+
+  const titles = {
+    username: 'Username',
+    email: 'Email',
+    password: 'Password',
+    propic: 'Profile Picture',
+  };
+
+  const descriptions = {
+    username: 'Changing your username will affect your login.',
+    email: 'Update your email address.',
+    password: 'Changing your password will affect how you log in.',
+    propic: 'Upload or change your profile picture.',
+  };
 
   // Inside the Home component
   useEffect(() => {
@@ -52,25 +63,6 @@ const EditProfile = () => {
         .catch((error) => console.error("Error fetching user data:", error));
     }
 
-    fetch("http://localhost:5000/api/posts")
-      .then((response) => response.json())
-      .then((data) => setPosts(data))
-      .catch((error) => setError("Error fetching posts"));
-
-    fetch("http://localhost:5000/api/users/subreddits", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setJoinedSubreddits(data);
-      })
-      .catch((error) =>
-        console.error("Error fetching joined communities:", error)
-      );
-
     fetch("http://localhost:5000/api/user/all")
       .then((response) => response.json())
       .then((data) => {
@@ -83,10 +75,6 @@ const EditProfile = () => {
       .catch((error) => console.error("Error fetching users:", error));
   }, []);
 
-  const handleCreatePost = () => {
-    window.location.href = "/create-post";
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
@@ -95,6 +83,27 @@ const EditProfile = () => {
 
   const toggleDropdown = () => {
     setDropdownOpen((prev) => !prev);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalType(null);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // if (e.target.files) {
+    //   setFormData({ ...formData, profilePic: e.target.files[0] });
+    // }
+  };
+
+  const handleSubmit = () => {
+    console.log("Form Data Submitted:", formData);
+    closeModal();
   };
 
   if (error) {
@@ -115,14 +124,13 @@ const EditProfile = () => {
             <>
               <div className="profile-menu">
                 <img
-                  src={user?.profilePic || "/default-profile.png"}
+                  src={user?.profilePic || "/default.png"}
                   className="profile-pic"
                   onClick={toggleDropdown}
-                  alt={user?.username.toUpperCase()}
                 />
                 {isDropdownOpen && (
                   <div className="dropdown-menu">
-                    <a href="/profile">Profile</a>
+                    <a href="/profile">{user?.username}</a>
                     <a onClick={handleLogout}>Logout</a>
                   </div>
                 )}
@@ -160,7 +168,7 @@ const EditProfile = () => {
         <div className="edit-profile-wrapper">
           <h3>Edit Profile</h3>
           <div className="profile-form">
-            <div className="user">
+            <div className="user" onClick={() => setPopupType('username')}>
               <div className="form-group">
                 <h4>Username</h4>
                 <p>If you change username, you will Login with new Username</p>
@@ -169,7 +177,8 @@ const EditProfile = () => {
                 <p>&gt;</p>
               </div>
             </div>
-            <div className="email">
+
+            <div className="email" onClick={() => setPopupType('email')}>
               <div className="form-group">
                 <h4>Email</h4>
                 <p>You can change your email here</p>
@@ -178,7 +187,8 @@ const EditProfile = () => {
                 <p>&gt;</p>
               </div>
             </div>
-            <div className="password">
+
+            <div className="password" onClick={() => setPopupType('password')}>
               <div className="form-group">
                 <h4>Password</h4>
                 <p>If you change Password, you will Login with new Password</p>
@@ -187,7 +197,8 @@ const EditProfile = () => {
                 <p>&gt;</p>
               </div>
             </div>
-            <div className="propic">
+
+            <div className="propic" onClick={() => setPopupType('propic')}>
               <div className="form-group">
                 <h4>Profile Picture</h4>
                 <p>You can add or edit your Profile Picture in here</p>
@@ -196,8 +207,97 @@ const EditProfile = () => {
                 <p>&gt;</p>
               </div>
             </div>
+
+            {popupType && (
+              <div className="overlay" onClick={closePopup}>
+                <div className="modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <h3>{titles[popupType]}</h3>
+                  </div>
+                  <p className="modal-subtext">{descriptions[popupType]}</p>
+
+                  {popupType === 'propic' ? (
+                    <input
+                      type="file"
+                      className="modal-input"
+                    // onChange={(e) => alert(`Selected file: ${e.target.files[0].name}`)}
+                    />
+                  ) : (
+                    <>
+                      <input
+                        className="modal-input"
+                        type={popupType === 'password' ? 'password' : 'text'}
+                        placeholder={modalType === 'email' ? 'Enter new email' : `Enter new ${titles[popupType]}`}
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                      />
+                    </>
+                  )}
+
+                  <div className="modal-actions">
+                    <button className="cancel-btn" onClick={closePopup}>Cancel</button>
+                    <button
+                      className="save-btn"
+                      onClick={() => {
+                        alert(`Saved ${popupType}: ${inputValue}`);
+                        closePopup();
+                      }}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
+        {/* Modal */}
+        {isModalOpen && (
+          <div className="modal-overlay">
+            <div className="modal">
+              <h3>Edit {modalType}</h3>
+              {modalType === "username" && (
+                <input
+                  type="text"
+                  name="username"
+                  placeholder="Enter new username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                />
+              )}
+              {modalType === "email" && (
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Enter new email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                />
+              )}
+              {modalType === "password" && (
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Enter new password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                />
+              )}
+              {modalType === "profilePic" && (
+                <input
+                  type="file"
+                  name="profilePic"
+                  onChange={handleFileChange}
+                />
+              )}
+              <div className="modal-actions">
+                <button onClick={handleSubmit}>Save</button>
+                <button onClick={closeModal}>Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
