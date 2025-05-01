@@ -1,5 +1,5 @@
 import express from 'express';
-import { createSubreddit, getAllSubreddits, getSubredditById, updateSubreddit, deleteSubreddit, getSubredditByName, joinSubreddit, leaveSubreddit, changeMemberModeratorStatus, listSubredditMembers, getUserJoinedSubreddits, getPostBySubredditId } from '../controllers/subreddit_controller';
+import { createSubreddit, getAllSubreddits, getSubredditById, updateSubreddit, deleteSubreddit, getSubredditByName, joinSubreddit, leaveSubreddit, changeMemberModeratorStatus, listSubredditMembers, getUserJoinedSubreddits, getPostBySubredditId, getUserJoinedSubredditsById } from '../controllers/subreddit_controller';
 import { authenticateJWT } from '../middleware/auth_middleware';
 
 const SubredditRouter = express.Router();
@@ -19,6 +19,7 @@ SubredditRouter.post('/subreddits/:id/leave', authenticateJWT, leaveSubreddit);
 SubredditRouter.get('/subreddits/:id/members', authenticateJWT, listSubredditMembers);
 SubredditRouter.put('/subreddits/:id/members/:userId/moderator', authenticateJWT, changeMemberModeratorStatus);
 SubredditRouter.get('/users/subreddits', authenticateJWT, getUserJoinedSubreddits);
+SubredditRouter.get('/users/:id/subreddits', authenticateJWT, getUserJoinedSubredditsById);
 
 export default SubredditRouter;
 

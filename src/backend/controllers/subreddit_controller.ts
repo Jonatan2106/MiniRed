@@ -249,6 +249,27 @@ export const getUserJoinedSubreddits = async (req: Request, res: Response) => {
   }
 };
 
+export const getUserJoinedSubredditsById = async (req: Request, res: Response) => {
+  try {
+    const user_id = req.params.id;
+
+    const memberships = await SubredditMember.findAll({
+      where: { user_id },
+      include: {
+        model: Subreddit,
+        attributes: ['subreddit_id', 'name', 'title', 'description']
+      }
+    });
+
+    // Extract subreddit details from memberships
+    const subredditList = memberships.map(membership => membership.subreddit);
+    res.json(subredditList);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Failed to fetch joined subreddits' });
+  }
+};
+
 export const getPostBySubredditId = async (req: Request, res: Response) => {
   try {
     const { id: subreddit_id } = req.params;

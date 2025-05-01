@@ -759,3 +759,12 @@ img {
     border-radius: 8px;
     background-color: transparent;
 }
+
+.post-card .post-header .username {
+    font-weight: bold;
+    color: #FF4500;
+}
+
+.post-card .post-header .username:hover {
+    text-decoration: underline;
+}

@@ -11,6 +11,7 @@ interface Post {
     user_id: string;
     title: string;
     content: string;
+    image: string | null;
     created_at: string;
 }
 
@@ -402,11 +403,21 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
             <a href={`/post/${post.post_id}`} className="post-link">
                 <div className="post-content">
                     <div className="post-header">
-                        <span className="username">{users.get(post.user_id)?.username || "Unknown User"}</span>
+                        <a href={"http://localhost:5173/u/" + users.get(post.user_id)?.username} className="username">u/{users.get(post.user_id)?.username || "Unknown User"}</a>
                         <span className="timestamp">{new Date(post.created_at).toLocaleString()}</span>
                     </div>
                     <h2>{post.title}</h2>
-                    <p>{post.content}</p>
+                    <p>
+                        {post.content.length > 100
+                            ? `${post.content.slice(0, 100)}...`
+                            : post.content
+                        }
+                    </p>
+                    {post.image &&
+                        <div className="post-image-container">
+                            {post.image && <img src={post.image} alt={post.title} className="post-image" />}
+                        </div>
+                    }
                 </div>
                 <hr className='hr' />
             </a>

@@ -239,6 +239,15 @@ html,
     color: #FF4500;
 }
 
+.post-card .post-header .username {
+    font-weight: bold;
+    color: #FF4500;
+}
+
+.post-card .post-header .username:hover {
+    text-decoration: underline;
+}
+
 .timestamp {
     color: #B1B1B1;
     font-size: 0.9rem;

@@ -424,7 +424,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
       <a href={`/post/${post.post_id}`} className="post-link">
         <div className="post-content">
           <div className="post-header">
-            <span className="username">{users.get(post.user_id)?.username || "Unknown User"}</span>
+            <a href={"http://localhost:5173/u/" + users.get(post.user_id)?.username} className="username">u/{users.get(post.user_id)?.username || "Unknown User"}</a>
             <span className="timestamp">{new Date(post.created_at).toLocaleString()}</span>
           </div>
           <h2>{post.title}</h2>

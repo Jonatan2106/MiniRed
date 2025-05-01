@@ -6,6 +6,7 @@ import { Comment } from '../../../models/comment';
 import { Post } from '../../../models/post';
 import { generateToken } from '../utils/jwt_helper';
 import { Vote } from '../../../models/vote'; // Assuming you have a Vote model defined
+import { Subreddit } from '../../../models/subreddit';
 
 // POST /register - Register a new user
 export const registerUser = async (req: Request, res: Response) => {
@@ -87,12 +88,20 @@ export const getUserById = async (req: Request, res: Response) => {
 // GET /user/:id/posts - get user posts
 export const getUserPosts = async (req: Request, res: Response) => {
     try {
-        const user = await User.findByPk(req.params.id, { include: ['post'] });
-        if (user) {
-            res.json(user.posts);
-        } else {
-            res.status(404).json({ message: 'User not found' });
-        }
+        const userId = req.params.id;
+
+        const posts = await Post.findAll({
+            where: { user_id: userId },
+            include: [
+                {
+                    model: User,
+                    attributes: ['user_id', 'username'],
+                },
+            ],
+            order: [['created_at', 'DESC']],
+        });
+
+        res.status(200).json(posts);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to fetch user posts' });
@@ -102,12 +111,20 @@ export const getUserPosts = async (req: Request, res: Response) => {
 // GET /user/:id/comments - get user comments
 export const getUserComments = async (req: Request, res: Response) => {
     try {
-        const user = await User.findByPk(req.params.id, { include: ['comment'] });
-        if (user) {
-            res.json(user.comments);
-        } else {
-            res.status(404).json({ message: 'User not found' });
-        }
+        const userId = req.params.id;
+
+        const comments = await Comment.findAll({
+            where: { user_id: userId },
+            include: [
+                {
+                    model: User,
+                    attributes: ['user_id', 'username'],
+                },
+            ],
+            order: [['created_at', 'DESC']],
+        });
+
+        res.status(200).json(comments);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to fetch user comments' });

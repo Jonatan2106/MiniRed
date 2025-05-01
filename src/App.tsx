@@ -11,6 +11,7 @@ import EditProfile from './pages/pages/EditProfile';
 import CreateSubreddit from './pages/pages/CreateSubreddit';
 import SubredditPage from './pages/pages/Subreddit';
 import CreatePost from './pages/pages/CreatePost';
+import ViewProfile from './pages/pages/ViewProfile';
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/r/:subredditName" element={<SubredditPage />} />
+        <Route path="/u/:username" element={<ViewProfile />} />
         <Route path="/post/:id" element={<PostDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
