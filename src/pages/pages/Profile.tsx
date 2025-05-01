@@ -192,7 +192,7 @@ const Profile = () => {
             <a className="app-title" href="/">MiniRed</a>
           </div>
         </div>
-        
+
         <div className="navbar-right">
           {isLoggedIn ? (
             <>
@@ -205,10 +205,10 @@ const Profile = () => {
                   alt={user?.username}
                 />
                 {isDropdownOpen && (
-                  <div className="dropdown-menu">
-                    <a href="/profile">Profile</a>
-                    <a href="/edit">Edit</a>
-                    <a onClick={handleLogout}>Logout</a>
+                  <div className="dropdown-menu enhanced-dropdown">
+                    <a href="/profile" className="dropdown-item">Profile</a>
+                    <a href="/edit" className="dropdown-item">Edit</a>
+                    <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
                   </div>
                 )}
               </div>
@@ -245,9 +245,9 @@ const Profile = () => {
           <h2 className="title">Communities</h2>
           <ul>
             <li>
-            <AiOutlinePlusCircle  className="icon" />
+              <AiOutlinePlusCircle className="icon" />
               <a href="/create-subreddit">Create a subreddit</a>
-              </li>
+            </li>
             {joinedSubreddits.length > 0 ? (
               joinedSubreddits.map((subreddit) => (
                 <li key={subreddit.subreddit_id}>

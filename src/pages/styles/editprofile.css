@@ -1,4 +1,56 @@
-/* Ensure the body covers the entire screen and uses flexbox */
+/* Dropdown Menu */
+.edit-profile-wrapper .edit-profile-wrapper.dropdown-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background-color: #1a1a1b;
+  color: #D7DADC;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: dropdownFadeIn 0.3s forwards;
+  z-index: 1000;
+}
+
+.edit-profile-wrapper .dropdown-item {
+  text-decoration: none;
+  color: #D7DADC;
+  padding: 10px 15px;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-weight: bold;
+}
+
+.edit-profile-wrapper .dropdown-item:hover {
+  background-color: #FF4500;
+  color: #FFFFFF;
+}
+
+.edit-profile-wrapper .dropdown-item.logout {
+  color: #FF4500;
+}
+
+.edit-profile-wrapper .dropdown-item.logout:hover {
+  background-color: #FF4500;
+  color: #FFFFFF;
+}
+
+/* Animation for Dropdown */
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 .edit-profile-wrapper {
   width: 100%;
@@ -45,7 +97,7 @@ h3 {
   left: 0;
 }
 
-p{
+p {
   font-size: 12px;
 }
 

@@ -311,31 +311,60 @@ html,
     gap: 10px;
 }
 
-.dropdown-menu {
+/* Dropdown Menu */
+.home-wrapper .dropdown-menu {
     position: absolute;
     top: 50px;
     right: 0;
-    background-color: #fff;
-    color: #000;
+    background-color: #1a1a1b;
+    color: #D7DADC;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     padding: 10px;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: dropdownFadeIn 0.3s forwards;
+    z-index: 1000;
 }
 
-.dropdown-menu a {
+.home-wrapper .dropdown-item {
     text-decoration: none;
-    background-color: transparent;
-    border: none;
-    color: #000;
-    cursor: pointer;
+    color: #D7DADC;
+    padding: 10px 15px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, color 0.3s ease;
     font-weight: bold;
 }
 
-.dropdown-menu a:hover {
-    text-decoration: underline;
+.home-wrapper .dropdown-item:hover {
+    text-decoration: none;
+    background-color: #FF4500;
+    color: #FFFFFF;
+}
+
+.home-wrapper .dropdown-item.logout {
+    color: #FF4500;
+}
+
+.home-wrapper .dropdown-item.logout:hover {
+    background-color: #FF4500;
+    color: #FFFFFF;
+}
+
+/* Animation for Dropdown */
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 img {
@@ -388,7 +417,7 @@ img {
 }
 
 .home-wrapper .vote-button.down:hover .arrow {
-    color: #D7DADC; 
+    color: #D7DADC;
 }
 
 .home-wrapper .upvoted-arrow {
@@ -597,13 +626,13 @@ img {
     cursor: pointer;
     margin-left: 0.5rem;
     font-weight: bold;
-  }
-  
-  .navbar-center .search-button:hover {
+}
+
+.navbar-center .search-button:hover {
     background-color: #FF5700;
     transform: scale(1.05);
     transition: 1s;
-  }
+}
 
 /* Community Card */
 .post-card {
@@ -615,37 +644,37 @@ img {
     display: flex;
     flex-direction: column;
     cursor: pointer;
-  }
-  
-  .post-card:hover {
+}
+
+.post-card:hover {
     background-color: #272729;
     transform: scale(1.02);
-  }
-  
-  .post-card h3 {
+}
+
+.post-card h3 {
     font-size: 1.2rem;
     font-weight: bold;
     color: #FF4500;
     margin-bottom: 0.5rem;
-  }
-  
-  .post-card p {
+}
+
+.post-card p {
     font-size: 1rem;
     color: #D7DADC;
-  }
-  
-  .post-header {
+}
+
+.post-header {
     display: flex;
     justify-content: space-between;
     margin-bottom: 1rem;
-  }
-  
-  .post-header .username {
+}
+
+.post-header .username {
     font-weight: bold;
     color: #FF4500;
-  }
-  
-  .post-header .timestamp {
+}
+
+.post-header .timestamp {
     color: #B1B1B1;
     font-size: 0.9rem;
-  }
+}

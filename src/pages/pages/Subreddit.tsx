@@ -173,10 +173,10 @@ const SubredditPage = () => {
                                     alt={user?.username}
                                 />
                                 {isDropdownOpen && (
-                                    <div className="dropdown-menu">
-                                        <a href="/profile">Profile</a>
-                                        <a href="/edit">Edit</a>
-                                        <a onClick={handleLogout}>Logout</a>
+                                    <div className="dropdown-menu enhanced-dropdown">
+                                        <a href="/profile" className="dropdown-item">Profile</a>
+                                        <a href="/edit" className="dropdown-item">Edit</a>
+                                        <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
                                     </div>
                                 )}
                             </div>
