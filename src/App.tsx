@@ -29,7 +29,7 @@ const App = () => {
         <Route path="/create-post" element={<CreatePost />} /> 
         <Route path="/profile" element={<Profile />} />
         <Route path="/edit" element={<EditProfile />} />
-        <Route path="/edit-subreddit/:id" element={<EditSubreddit />} />
+        <Route path="/edit-subreddit/:subredditId" element={<EditSubreddit />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

@@ -28,7 +28,7 @@ const EditSubreddit = () => {
             .catch((error) => console.error('Error fetching subreddit:', error));
     }, [subredditId]);
 
-    const handleUpdate = () => {
+    const handleUpdate = (updatedName: string, updatedTitle: string, updatedDescription: string) => {
         const token = localStorage.getItem('token');
         fetch(`http://localhost:5000/api/subreddits/${subredditId}`, {
             method: 'PUT',
@@ -36,7 +36,11 @@ const EditSubreddit = () => {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ name, title, description }),
+            body: JSON.stringify({
+                name: updatedName,
+                title: updatedTitle,
+                description: updatedDescription,
+            }),
         })
             .then((response) => {
                 if (response.ok) {
@@ -54,16 +58,26 @@ const EditSubreddit = () => {
         setIsModalOpen(true);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        let updatedName = name;
+        let updatedTitle = title;
+        let updatedDescription = description;
+
         if (modalField === 'Subreddit Name') {
+            updatedName = modalValue;
             setName(modalValue);
         } else if (modalField === 'Subreddit Title') {
+            updatedTitle = modalValue;
             setTitle(modalValue);
         } else if (modalField === 'About Description') {
+            updatedDescription = modalValue;
             setDescription(modalValue);
         }
+
         console.log(`Saving ${modalField}: ${modalValue}`);
-        handleUpdate();
+        console.log(`Updated values: Name: ${updatedName}, Title: ${updatedTitle}, Description: ${updatedDescription}`);
+
+        handleUpdate(updatedName, updatedTitle, updatedDescription);
         setIsModalOpen(false);
     };
 
@@ -80,7 +94,7 @@ const EditSubreddit = () => {
             <div className="edit-subreddit-container">
                 <div className="edit-subreddit-header">
                     <h1 className="edit-subreddit-title">Edit Subreddit</h1>
-                    <button className="post-page-back-button" onClick={() => navigate(-1)}>
+                    <button className="post-page-back-button" onClick={() => navigate('/r/' + name)}>
                         Back
                     </button>
                 </div>
