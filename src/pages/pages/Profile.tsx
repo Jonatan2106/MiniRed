@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
+import { AiOutlinePlusCircle } from "react-icons/ai";
 import '../styles/profile.css';
 import '../styles/main.css';
 
@@ -153,15 +155,15 @@ const Profile = () => {
   };
 
   const getOverviewData = (): OverviewItem[] => {
-  const combinedData: OverviewItem[] = [
-    ...posts.map((post) => ({ ...post, type: 'post' as 'post' })),
-    ...comments.map((comment) => ({ ...comment, type: 'comment' as 'comment' })),
-    ...upvoted.map((vote) => ({ ...vote, type: 'upvoted' as 'upvoted' })),
-    ...Downvoted.map((vote) => ({ ...vote, type: 'downvoted' as 'downvoted' })),
-  ];
+    const combinedData: OverviewItem[] = [
+      ...posts.map((post) => ({ ...post, type: 'post' as 'post' })),
+      ...comments.map((comment) => ({ ...comment, type: 'comment' as 'comment' })),
+      ...upvoted.map((vote) => ({ ...vote, type: 'upvoted' as 'upvoted' })),
+      ...Downvoted.map((vote) => ({ ...vote, type: 'downvoted' as 'downvoted' })),
+    ];
 
-  return combinedData.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-};
+    return combinedData.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  };
 
   const handleCreatePost = () => {
     window.location.href = '/create-post';
@@ -190,9 +192,7 @@ const Profile = () => {
             <a className="app-title" href="/">MiniRed</a>
           </div>
         </div>
-        <div className="navbar-center">
-          <input className="search-input" type="text" placeholder="Search Reddit" />
-        </div>
+        
         <div className="navbar-right">
           {isLoggedIn ? (
             <>
@@ -229,12 +229,25 @@ const Profile = () => {
         <div className="left-sidebar">
           <h2 className="title">Navigation</h2>
           <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/popular">Popular</a></li>
+            <li>
+              <FaHome className="icon" /> {/* Home icon */}
+              <a href="/">Home</a>
+            </li>
+            <li>
+              <FaCompass className="icon" /> {/* Explore icon */}
+              <a href="/explore">Explore</a>
+            </li>
+            <li>
+              <FaFire className="icon" /> {/* Popular icon */}
+              <a href="/popular">Popular</a>
+            </li>
           </ul>
           <h2 className="title">Communities</h2>
           <ul>
-            <li><a href="/create-subreddit">Create a subreddit</a></li>
+            <li>
+            <AiOutlinePlusCircle  className="icon" />
+              <a href="/create-subreddit">Create a subreddit</a>
+              </li>
             {joinedSubreddits.length > 0 ? (
               joinedSubreddits.map((subreddit) => (
                 <li key={subreddit.subreddit_id}>

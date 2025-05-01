@@ -14,9 +14,11 @@ interface Post {
 
 export interface Subreddit {
   subreddit_id: string;
+  user_id: string;
   name: string;
   title: string;
   description: string;
+  created_at: string;
 }
 
 interface User {
@@ -39,10 +41,14 @@ const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
+  const [filteredSubreddits, setFilteredSubreddits] = useState<Subreddit[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [users, setUsers] = useState<Map<string, User>>(new Map());
+  const [query, setQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Post[]>([]);
+
 
   // Inside the Home component
   useEffect(() => {
@@ -63,8 +69,11 @@ const Home = () => {
     }
 
     fetch('http://localhost:5000/api/posts')
-      .then(response => response.json())
-      .then(data => setPosts(data))
+      .then((response) => response.json())
+      .then((data) => {
+        setPosts(data);
+        setSearchResults(data);
+      })
       .catch((error) => setError('Error fetching posts'));
 
     fetch('http://localhost:5000/api/users/subreddits', {
@@ -80,7 +89,7 @@ const Home = () => {
       .catch((error) => console.error('Error fetching joined communities:', error));
 
     fetch('http://localhost:5000/api/user/all')
-      .then(response => response.json())
+      .then((response) => response.json())
       .then((data) => {
         const userMap = new Map();
         data.forEach((user: User) => {
@@ -94,6 +103,24 @@ const Home = () => {
 
   const handleCreatePost = () => {
     window.location.href = '/create-post';
+  };
+
+  const handleSearch = () => {
+    if (query.trim() === '') {
+      window.location.reload();
+    } else {
+      // Filter posts based on the query matching the title
+      const filteredPosts = posts.filter((post) =>
+        post.title.toLowerCase().includes(query.toLowerCase())
+      );
+      setSearchResults(filteredPosts);
+
+      // Filter communities based on the query matching the name
+      const filteredCommunities = joinedSubreddits.filter((subreddit) =>
+        subreddit.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredSubreddits(filteredCommunities);
+    }
   };
 
   const handleLogout = () => {
@@ -120,7 +147,16 @@ const Home = () => {
           </div>
         </div>
         <div className="navbar-center">
-          <input className="search-input" type="text" placeholder="Search Reddit" />
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search Reddit"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button className="search-button" onClick={handleSearch}>
+            Search
+          </button>
         </div>
         <div className="navbar-right">
           {isLoggedIn ? (
@@ -175,9 +211,55 @@ const Home = () => {
 
         {/* Feed */}
         <div className="feed">
-          {posts.map((post) => (
-            <PostCard key={post.post_id} post={post} users={users} />
-          ))}
+          {/* Display matching communities */}
+          {filteredSubreddits.length > 0 && (
+            <>
+              <h2 className="feed-section-title">Communities</h2>
+              {filteredSubreddits.map((subreddit) => {
+                const owner = users.get(subreddit.user_id); // Get the owner from the users map
+                return (
+                  <div key={subreddit.subreddit_id} className="post-card">
+                    <a href={`/r/${subreddit.name}`} className="post-link">
+                      <div className="post-content">
+                        <div className="post-header">
+                          <span className="username">
+                            {owner ? owner.username : "Unknown"}
+                          </span>
+                          <span className="timestamp">
+                            Created: {new Date(subreddit.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        <h3>r/{subreddit.name}</h3>
+                        <p>{subreddit.description}</p>
+                      </div>
+                    </a>
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {/* Display matching posts */}
+          {searchResults.length > 0 && (
+            <>
+              <h2 className="feed-section-title">Posts</h2>
+              {searchResults.map((post) => (
+                <PostCard key={post.post_id} post={post} users={users} />
+              ))}
+            </>
+          )}
+
+          {/* No results message */}
+          {query && filteredSubreddits.length === 0 && searchResults.length === 0 && (
+            <p className="text-gray-500">No results found for "{query}".</p>
+          )}
+
+          {/* Default posts when no query */}
+          {!query && searchResults.length === 0 && (
+            posts.map((post) => (
+              <PostCard key={post.post_id} post={post} users={users} />
+            ))
+          )}
         </div>
 
         {/* Right Sidebar */}

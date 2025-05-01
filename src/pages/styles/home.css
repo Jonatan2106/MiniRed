@@ -587,3 +587,65 @@ img {
         }
     }
 }
+
+.navbar-center .search-button {
+    background-color: #FF4500;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    font-weight: bold;
+  }
+  
+  .navbar-center .search-button:hover {
+    background-color: #FF5700;
+    transform: scale(1.05);
+    transition: 1s;
+  }
+
+/* Community Card */
+.post-card {
+    background-color: #1a1a1b;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+  }
+  
+  .post-card:hover {
+    background-color: #272729;
+    transform: scale(1.02);
+  }
+  
+  .post-card h3 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #FF4500;
+    margin-bottom: 0.5rem;
+  }
+  
+  .post-card p {
+    font-size: 1rem;
+    color: #D7DADC;
+  }
+  
+  .post-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  
+  .post-header .username {
+    font-weight: bold;
+    color: #FF4500;
+  }
+  
+  .post-header .timestamp {
+    color: #B1B1B1;
+    font-size: 0.9rem;
+  }
