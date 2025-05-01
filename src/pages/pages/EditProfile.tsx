@@ -122,7 +122,7 @@ const EditProfile = () => {
           </div>
         </div>
         <div className="navbar-right">
-          {isLoggedIn ? (
+          {isLoggedIn && (
             <>
               <div className="profile-menu">
                 <img
@@ -131,22 +131,13 @@ const EditProfile = () => {
                   onClick={toggleDropdown}
                 />
                 {isDropdownOpen && (
-                  <div className="dropdown-menu enhanced-dropdown">
-                    <a href="/profile" className="dropdown-item">Profile</a>
+                  <div className="dropdown-menu">
+                    <a href="/profile" className="dropdown-item">{user?.username}</a>
                     <a href="/edit" className="dropdown-item">Edit</a>
                     <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
                   </div>
                 )}
               </div>
-            </>
-          ) : (
-            <>
-              <a className="nav-link" href="/login">
-                Login
-              </a>
-              <a className="nav-link" href="/register">
-                Register
-              </a>
             </>
           )}
         </div>
@@ -242,7 +233,7 @@ const EditProfile = () => {
                     <button
                       className="save-btn"
                       onClick={() => {
-                        alert(`Saved ${popupType}: ${inputValue}`);
+                        handleSubmit();
                         closePopup();
                       }}
                     >
@@ -254,53 +245,6 @@ const EditProfile = () => {
             )}
           </div>
         </div>
-        {/* Modal */}
-        {isModalOpen && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <h3>Edit {modalType}</h3>
-              {modalType === "username" && (
-                <input
-                  type="text"
-                  name="username"
-                  placeholder="Enter new username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                />
-              )}
-              {modalType === "email" && (
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Enter new email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                />
-              )}
-              {modalType === "password" && (
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Enter new password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                />
-              )}
-              {modalType === "profilePic" && (
-                <input
-                  type="file"
-                  name="profilePic"
-                  onChange={handleFileChange}
-                />
-              )}
-              <div className="modal-actions">
-                <button onClick={handleSubmit}>Save</button>
-                <button onClick={closeModal}>Cancel</button>
-              </div>
-            </div>
-          </div>
-        )}
-
       </div>
     </div>
   );
