@@ -1,0 +1,204 @@
+/* Wrapper */
+.edit-subreddit-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    background-color: #1a1a1b;
+}
+
+/* Container */
+.edit-subreddit-container {
+    background-color: #272729;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+/* Title */
+.edit-subreddit-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #ff4500;
+    font-weight: bold;
+}
+
+/* List */
+.edit-subreddit-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.edit-subreddit-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #343536;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 8px;
+}
+
+.edit-subreddit-item:hover {
+    background-color: #343536;
+}
+
+/* Item Content */
+.edit-subreddit-item-content {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.edit-subreddit-item-title {
+    font-size: 1.2rem;
+    margin: 0;
+    color: #d7dadc;
+    font-weight: bold;
+    text-align: left;
+}
+
+.edit-subreddit-item-description {
+    font-size: 0.9rem;
+    color: #818384;
+    margin: 0.2rem 0 0;
+}
+
+/* Arrow */
+.edit-subreddit-item-arrow {
+    margin-top: 10px;
+    font-size: 1.5rem;
+    color: #818384;
+    transition: color 0.3s ease;
+}
+
+.edit-subreddit-item:hover .edit-subreddit-item-arrow {
+    color: #d7dadc;
+}
+
+.edit-subreddit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Modal */
+.modal {
+    background-color: #272729;
+    border-radius: 8px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    color: #d7dadc;
+    text-align: center;
+}
+
+/* Modal Header */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+    color: #ff4500;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #818384;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.modal-close:hover {
+    color: #d7dadc;
+}
+
+/* Modal Description */
+.modal-description {
+    font-size: 0.9rem;
+    color: #818384;
+    margin-bottom: 1rem;
+}
+
+/* Modal Input */
+.modal-input {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 5px;
+    border: 1px solid #343536;
+    background-color: #1a1a1b;
+    color: #d7dadc;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.modal-input:focus {
+    border-color: #ff4500;
+}
+
+/* Modal Actions */
+.modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.modal-cancel,
+.modal-save {
+    flex: 1;
+    padding: 0.8rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border: none;
+}
+
+.modal-cancel {
+    background-color: #343536;
+    color: #d7dadc;
+}
+
+.modal-cancel:hover {
+    background-color: #454547;
+}
+
+.modal-save {
+    background-color: #0079d3;
+    color: white;
+}
+
+.modal-save:hover {
+    background-color: #0064b1;
+}
