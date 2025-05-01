@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { fetchFromAPI } from '../../api/api';
 import { useNavigate } from 'react-router-dom';
 import '../styles/login.css';
-import '../styles/main.css';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -46,6 +45,7 @@ const Login = () => {
         <p className="register-link">
           Don't have an account? <a href="/register">Register</a>
         </p>
+        <button className="back-button" onClick={() => navigate('/')}>Back to Home</button>
       </div>
     </div>
   );

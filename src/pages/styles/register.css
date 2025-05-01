@@ -1,78 +1,151 @@
-/* register.css */
+/* Register Container */
 .register-container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #1a1a1b;
+    background-color: #030303;
+    /* Reddit-like light gray background */
     font-family: Arial, sans-serif;
 }
 
-.register-box {
-    background-color: #FFFFFF;
+/* Register Box */
+.register-container .register-box {
+    background-color: #1a1a1b;
+    /* White background for the register box */
     padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    /* Rounded corners */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    /* Subtle shadow */
     width: 100%;
     max-width: 400px;
-}
-
-h2 {
     text-align: center;
-    font-size: 24px;
+    animation: fadeIn 0.5s ease-in-out;
+    /* Smooth fade-in animation */
+}
+
+/* Header */
+.register-container .register-box .register-header {
+    text-align: center;
+    font-size: 28px;
     margin-bottom: 20px;
-    color: #333333;
+    color: #dfdfdf;
+    /* Dark Reddit-like text color */
+    font-weight: bold;
 }
 
-.register-input {
-    width: 100%;
-    padding: 10px;
+/* Input Fields */
+.register-container .register-input {
+    max-width: 94.5%;
+    padding: 12px;
     margin: 10px 0;
-    border: 1px solid #D3D3D3;
-    border-radius: 5px;
+    border: 1px solid #989898;
+    border-radius: 8px;
+    background-color: #4f4f4f;
+    /* Rounded input fields */
     font-size: 16px;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    margin-bottom: 20px;
 }
 
-.register-input:focus {
-    border-color: #FF4500;
+.register-container .register-input:focus {
+    border-color: #ff4500;
+    /* Reddit orange border on focus */
+    box-shadow: 0 0 5px rgba(255, 69, 0, 0.5);
+    /* Subtle glow effect */
     outline: none;
 }
 
-.register-button {
+.register-container .register-input::placeholder {
+    color: #a8a8a8; /* Lighter gray for placeholder text */
+    font-style: italic; /* Optional: make placeholder text italic */
+}
+
+/* Register Button */
+.register-container .register-button {
     width: 100%;
     padding: 12px;
-    background-color: #FF4500;
+    background-color: #ff4500;
+    /* Reddit orange */
     color: white;
     font-size: 16px;
+    font-weight: bold;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
+    /* Rounded button */
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.2s;
+    margin-bottom: 30px;
 }
 
-.register-button:hover {
-    background-color: #FF6A00;
+.register-container .register-button:hover {
+    background-color: #e03d00;
+    /* Darker orange on hover */
+    transform: scale(1.05);
+    /* Slight zoom effect */
 }
 
-.error-message {
-    color: #FF4500;
+/* Error Message */
+.register-container .error-message {
+    color: #ff4500;
+    /* Reddit orange for errors */
     text-align: center;
     margin-bottom: 15px;
+    font-weight: bold;
 }
 
-.login-link {
-    color: #1a1a1b;
-    text-align: center;
+/* Login Link */
+.register-container .login-link {
     margin-top: 15px;
     font-size: 14px;
+    color: #878a8c;
+    /* Subtle gray text */
 }
 
-.login-link a {
-    color: #FF4500;
+.register-container .login-link a {
+    color: #ff4500;
+    /* Reddit orange for links */
     text-decoration: none;
+    font-weight: bold;
 }
 
-.login-link a:hover {
+.register-container .login-link a:hover {
     text-decoration: underline;
+}
+
+/* Back Button */
+.register-container .back-button {
+    background-color: transparent;
+    color: #ff4500;
+    /* Reddit orange */
+    border: 2px solid #ff4500;
+    padding: 8px 16px;
+    border-radius: 9999px;
+    /* Fully rounded button */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    /* margin-bottom: 20px; */
+    width: 100%;
+}
+
+.register-container .back-button:hover {
+    background-color: #ff4500;
+    /* Orange background on hover */
+    color: #ffffff;
+    /* White text on hover */
+}
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

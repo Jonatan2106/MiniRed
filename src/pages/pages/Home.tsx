@@ -162,7 +162,7 @@ const Home = () => {
         <div className="navbar-right">
           {isLoggedIn ? (
             <>
-              <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon"/>Create Post</button>
+              <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
               <div className="profile-menu">
                 <img
                   src={user?.profilePic ? user?.profilePic : "/default.png"}
@@ -181,9 +181,11 @@ const Home = () => {
             </>
           ) : (
             <>
-              <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-              <a className="nav-link" href="/login">Login</a>
-              <a className="nav-link" href="/register">Register</a>
+              <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
+              <div className="auth-buttons">
+                <a className="nav-link login-button" href="/login">Login</a>
+                <a className="nav-link register-button" href="/register">Register</a>
+              </div>
             </>
           )}
         </div>

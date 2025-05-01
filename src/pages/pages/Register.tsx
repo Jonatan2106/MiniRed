@@ -30,7 +30,7 @@ const Register = () => {
   return (
     <div className="register-container">
       <div className="register-box">
-        <h2>Join Reddit</h2>
+        <h2 className='register-header'>Join Reddit</h2>
 
         {error && <p className="error-message">{error}</p>}
 
@@ -67,6 +67,7 @@ const Register = () => {
         <p className="login-link">
           Already have an account? <a href="/login">Login</a>
         </p>
+        <button className="back-button" onClick={() => navigate('/')}>Back to Home</button>
       </div>
     </div>
   );

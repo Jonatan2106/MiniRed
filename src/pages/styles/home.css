@@ -65,6 +65,46 @@ html,
     text-decoration: underline;
 }
 
+.auth-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.auth-buttons .login-button {
+    background-color: transparent;
+    color: #FF4500;
+    border: 2px solid #FF4500;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.auth-buttons .login-button:hover {
+    background-color: #FF4500;
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+.auth-buttons .register-button {
+    background-color: #FF4500;
+    color: #FFFFFF;
+    border: 2px solid #FF4500;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.auth-buttons .register-button:hover {
+    background-color: transparent;
+    border-color: #E03D00;
+    color: #FF4500;
+    text-decoration: none;
+}
+
 .create-post-btn {
     justify-content: center;
     align-items: center;
