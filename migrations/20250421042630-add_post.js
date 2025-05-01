@@ -38,7 +38,7 @@ export default {
         allowNull: true
       },
       image: {
-        type: Sequelize.BLOB,
+        type: Sequelize.STRING,
         allowNull: true
       },
       created_at: {

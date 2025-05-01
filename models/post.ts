@@ -42,10 +42,10 @@ export class Post extends Model {
     declare content: string;
     
     @Column({
-        type: DataType.BLOB,
+        type: DataType.STRING,
         allowNull: true
     })
-    declare image: Blob;
+    declare image: string;
 
     @Column({
         type: DataType.DATE,

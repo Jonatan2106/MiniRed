@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import { IoChevronBack } from "react-icons/io5";
+import imageCompression from 'browser-image-compression';
 import '../styles/createpost.css';
 
 interface Subreddit {
@@ -47,41 +47,55 @@ const CreatePost = () => {
             return;
         }
 
-        const formData = new FormData();
-        formData.append('title', title);
-        formData.append('content', content);
-        if (selectedSubreddit !== 'none') {
-            formData.append('subreddit_id', selectedSubreddit);
-        }
+        let imageBase64 = null;
         if (image) {
-            formData.append('image', image);
+            imageBase64 = await toBase64(image);
         }
 
+        const token = localStorage.getItem('token');
+
+        const postData = {
+            title,
+            content,
+            subreddit_id: selectedSubreddit !== 'none' ? selectedSubreddit : null,
+            image: imageBase64,
+        };
+
         try {
-            const token = localStorage.getItem('token');
             const response = await fetch('http://localhost:5000/api/posts', {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
-                body: formData,
+                body: JSON.stringify(postData),
             });
 
             if (response.ok) {
-                if (selectedSubreddit !== 'none') {
-                    navigate(`/r/${subreddits.find((sub) => sub.subreddit_id === selectedSubreddit)?.name}`);
-                } else {
-                    navigate('/');
-                }
-            } else {
                 const data = await response.json();
-                setError(data.message || 'Failed to create post.');
+                navigate(
+                    selectedSubreddit !== 'none'
+                        ? `/r/${subreddits.find((sub) => sub.subreddit_id === selectedSubreddit)?.name}`
+                        : '/'
+                );
+            } else {
+                const errorData = await response.json();
+                setError(errorData.message || 'Failed to create post.');
             }
         } catch (error) {
             console.error('Error creating post:', error);
             setError('An error occurred while creating the post.');
         }
     };
+
+    const toBase64 = (file: File): Promise<string> =>
+        new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = (error) => reject(error);
+        });
+
 
     const selected = subreddits.find((sub) => sub.subreddit_id === selectedSubreddit);
 
@@ -224,7 +238,7 @@ const CreatePost = () => {
                 </div>
 
                 <div className="form-actions">
-                    <button type="submit" className="submit-button">
+                    <button type="submit" className="submit-button" onClick={handleSubmit}>
                         Post
                     </button>
                 </div>

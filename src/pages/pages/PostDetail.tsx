@@ -10,6 +10,7 @@ interface Post {
   user_id: string;
   title: string;
   content: string;
+  image?: string;
   created_at: string;
 }
 
@@ -72,6 +73,7 @@ const PostDetail = () => {
   const fetchPostAndComments = async () => {
     try {
       const postResponse = await fetchFromAPI(`/posts/${id}`);
+      console.log(postResponse.image)
       setPost(postResponse);
 
       const commentsResponse = await fetchFromAPI(`/posts/${id}/comments`);
@@ -226,6 +228,18 @@ const PostDetail = () => {
       {post && (
         <>
           <h1 className="post-detail-header">{post.title}</h1>
+
+          {/* Display the image if it exists */}
+          {post.image && (
+            <div className="post-image-container">
+              <img
+                src={`http://localhost:5173${post.image}`}
+                alt="Post"
+                className="post-image"
+              />
+            </div>
+          )}
+
           <p className="post-detail-content">{post.content}</p>
 
           <div className="add-comment-section">
