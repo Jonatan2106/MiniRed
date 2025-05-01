@@ -251,6 +251,7 @@ const Profile = () => {
             {joinedSubreddits.length > 0 ? (
               joinedSubreddits.map((subreddit) => (
                 <li key={subreddit.subreddit_id}>
+                  <div className="community-icon">{subreddit.name[0].toUpperCase()}</div>
                   <a href={`/r/${subreddit.name}`}>r/{subreddit.name}</a>
                 </li>
               ))
