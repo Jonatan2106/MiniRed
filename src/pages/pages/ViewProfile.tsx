@@ -310,7 +310,7 @@ const ViewProfile = () => {
                                 />
                                 {isDropdownOpen && ( // Show dropdown only if `isDropdownOpen` is true
                                     <div className="dropdown-menu">
-                                        <a href="/profile" className="dropdown-item">Profile</a>
+                                        <a href="/profile" className="dropdown-item">{user?.username}</a>
                                         <a href="/edit" className="dropdown-item">Edit</a>
                                         <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
                                     </div>

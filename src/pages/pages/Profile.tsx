@@ -206,7 +206,7 @@ const Profile = () => {
                 />
                 {isDropdownOpen && (
                   <div className="dropdown-menu enhanced-dropdown">
-                    <a href="/profile" className="dropdown-item">Profile</a>
+                    <a href="/profile" className="dropdown-item">{user?.username}</a>
                     <a href="/edit" className="dropdown-item">Edit</a>
                     <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
                   </div>
