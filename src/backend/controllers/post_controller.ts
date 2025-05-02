@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Post } from '../../../models/post';
 import { Comment } from '../../../models/comment';
+import { Vote } from '../../../models/vote';
 import { v4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
@@ -100,6 +101,11 @@ export const deletePost = async (req: Request, res: Response) => {
   try {
     const post = await Post.findByPk(req.params.id);
     if (post) {
+      await Vote.destroy({
+        where: {
+          kategori_id: req.params.id,
+        },
+      });
       await post.destroy();
       res.status(204).send();
     } else {
