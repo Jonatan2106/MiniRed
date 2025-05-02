@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { AiOutlinePlusCircle } from "react-icons/ai";
+import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import "../styles/editprofile.css";
-import "../styles/main.css"; 
+import "../styles/main.css";
 
 interface User {
   user_id: string;
@@ -147,59 +148,57 @@ const EditProfile = () => {
       <div className="main-content">
         {/* Left Sidebar */}
         <div className="left-sidebar">
-          <h2 className="title">Navigation</h2>
+          <h2 className="title">Menu</h2>
           <ul>
             <li>
+              <FaHome className="icon" />
               <a href="/">Home</a>
             </li>
             <li>
+              <FaCompass className="icon" />
+              <a href="/explore">Explore</a>
+            </li>
+            <li>
+              <FaFire className="icon" />
               <a href="/popular">Popular</a>
             </li>
           </ul>
         </div>
 
-        {/* Main Sidebar */}
+        {/* Edit Profile Section */}
         <div className="edit-profile-wrapper">
           <h3>Edit Profile</h3>
           <div className="profile-form">
             <div className="user" onClick={() => setPopupType('username')}>
               <div className="form-group">
                 <h4>Username</h4>
-                <p>If you change username, you will Login with new Username</p>
+                <p>Change your username. This will affect your login.</p>
               </div>
-              <div className="panah">
-                <p>&gt;</p>
-              </div>
+              <div className="panah">&gt;</div>
             </div>
 
             <div className="email" onClick={() => setPopupType('email')}>
               <div className="form-group">
                 <h4>Email</h4>
-                <p>You can change your email here</p>
+                <p>Update your email address.</p>
               </div>
-              <div className="panah">
-                <p>&gt;</p>
-              </div>
+              <div className="panah">&gt;</div>
             </div>
 
             <div className="password" onClick={() => setPopupType('password')}>
               <div className="form-group">
                 <h4>Password</h4>
-                <p>If you change Password, you will Login with new Password</p>
+                <p>Change your password. This will affect your login.</p>
               </div>
-              <div className="panah">
-                <p>&gt;</p>
-              </div>
+              <div className="panah">&gt;</div>
             </div>
 
             <div className="propic" onClick={() => setPopupType('propic')}>
               <div className="form-group">
                 <h4>Profile Picture</h4>
-                <p>You can add or edit your Profile Picture in here</p>
+                <p>Upload or change your profile picture.</p>
               </div>
-              <div className="panah">
-                <p>&gt;</p>
-              </div>
+              <div className="panah">&gt;</div>
             </div>
 
             {popupType && (
@@ -211,21 +210,15 @@ const EditProfile = () => {
                   <p className="modal-subtext">{descriptions[popupType]}</p>
 
                   {popupType === 'propic' ? (
-                    <input
-                      type="file"
-                      className="modal-input"
-                    // onChange={(e) => alert(`Selected file: ${e.target.files[0].name}`)}
-                    />
+                    <input type="file" className="modal-input" />
                   ) : (
-                    <>
-                      <input
-                        className="modal-input"
-                        type={popupType === 'password' ? 'password' : 'text'}
-                        placeholder={modalType === 'email' ? 'Enter new email' : `Enter new ${titles[popupType]}`}
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                      />
-                    </>
+                    <input
+                      className="modal-input"
+                      type={popupType === 'password' ? 'password' : 'text'}
+                      placeholder={`Enter new ${titles[popupType]}`}
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                    />
                   )}
 
                   <div className="modal-actions">
