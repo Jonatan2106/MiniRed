@@ -262,7 +262,7 @@ const SubredditPage = () => {
             {/* Main content */}
             <div className="main-content">
                 {/* Left Sidebar */}
-                <div className="left-sidebar">
+                <div className="left-sidebar subreddit">
                     <h2 className="title">Menu</h2>
                     <ul>
                         <li>
@@ -332,7 +332,7 @@ const SubredditPage = () => {
                 </div>
 
                 {/* Right Sidebar */}
-                <div className="right-sidebar">
+                <div className="right-sidebar subreddit">
                     <div className="joined-communities">
                         <h3>Joined Communities</h3>
                         <ul>
