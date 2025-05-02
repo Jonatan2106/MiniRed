@@ -419,3 +419,23 @@ p {
         font-size: 1.25rem;
     }
 }
+
+/* Profile Avatar */
+.profile-avatar {
+    width: 100px; /* Set a fixed width for the avatar container */
+    height: 100px; /* Set a fixed height for the avatar container */
+    border-radius: 50%; /* Make it circular */
+    overflow: hidden; /* Ensure the image doesn't overflow the container */
+    display: flex; /* Center the image */
+    
+    background-color: #555; /* Fallback background color */
+    border: 2px solid #FF4500; /* Add a border for better visibility */
+    margin: 0 auto; /* Center the avatar in its parent container */
+}
+
+.profile-avatar .avatar {
+    width: 100%; /* Make the image fill the container */
+    height: 100%; /* Maintain the aspect ratio */
+    object-fit: cover; /* Ensure the image scales properly */
+    border-radius: 50%; /* Ensure the image is circular */
+}

@@ -11,6 +11,7 @@ interface User {
 }
 
 const EditProfile = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -49,20 +50,27 @@ const EditProfile = () => {
 
   // Inside the Home component
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsLoggedIn(true);
-      fetch("http://localhost:5000/api/me", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          setUser({ username: data.username, profilePic: data.profilePic });
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        setIsLoggedIn(true);
+        fetch("http://localhost:5000/api/me", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         })
-        .catch((error) => console.error("Error fetching user data:", error));
+          .then((response) => response.json())
+          .then((data) => {
+            setUser({ username: data.username, profilePic: data.profilePic });
+          })
+          .catch((error) => console.error("Error fetching user data:", error));
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+    finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -118,6 +126,10 @@ const EditProfile = () => {
 
   if (error) {
     return <div>Error: {error}</div>;
+  }
+
+  if (isLoading) {
+    return <Loading />;
   }
 
   return (
