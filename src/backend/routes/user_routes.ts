@@ -11,7 +11,7 @@ UserRouter.get('/user/all', getAllUsers);
 UserRouter.get('/user/:id', authenticateJWT, getUserById);
 UserRouter.get('/user/:id/post', authenticateJWT, getUserPosts); 
 UserRouter.get('/user/:id/comment', authenticateJWT, getUserComments);
-UserRouter.put('/user/me', authenticateJWT, updateUserProfile);
+UserRouter.put('/me', authenticateJWT, updateUserProfile);
 UserRouter.get('/user/me/comments', authenticateJWT, getAllComments);
 UserRouter.get('/user/me/posts', authenticateJWT, getAllPosts);
 UserRouter.get('/user/me/upvoted', authenticateJWT, getAllUpVotes);

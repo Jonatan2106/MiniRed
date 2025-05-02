@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { AiOutlinePlusCircle } from "react-icons/ai";
 import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import "../styles/editprofile.css";
 import "../styles/main.css";
@@ -11,8 +10,6 @@ interface User {
 }
 
 const EditProfile = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -26,7 +23,6 @@ const EditProfile = () => {
     profilePic: string;
   } | null>(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [users, setUsers] = useState<Map<string, User>>(new Map());
   const [popupType, setPopupType] = useState<'username' | 'email' | 'password' | 'propic' | null>(null);
   const [inputValue, setInputValue] = useState('');
   const closePopup = () => {
@@ -42,7 +38,7 @@ const EditProfile = () => {
   };
 
   const descriptions = {
-    username: 'Changing your username will affect your login.',
+    username: 'Changing your username will affect your log in.',
     email: 'Update your email address.',
     password: 'Changing your password will affect how you log in.',
     propic: 'Upload or change your profile picture.',
@@ -65,17 +61,6 @@ const EditProfile = () => {
         })
         .catch((error) => console.error("Error fetching user data:", error));
     }
-
-    fetch("http://localhost:5000/api/user/all")
-      .then((response) => response.json())
-      .then((data) => {
-        const userMap = new Map();
-        data.forEach((user: User) => {
-          userMap.set(user.user_id, user);
-        });
-        setUsers(userMap);
-      })
-      .catch((error) => console.error("Error fetching users:", error));
   }, []);
 
   const handleLogout = () => {
@@ -88,25 +73,44 @@ const EditProfile = () => {
     setDropdownOpen((prev) => !prev);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setModalType(null);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // if (e.target.files) {
-    //   setFormData({ ...formData, profilePic: e.target.files[0] });
-    // }
-  };
-
-  const handleSubmit = () => {
-    console.log("Form Data Submitted:", formData);
-    closeModal();
+  const handleSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("You must be logged in to update your profile.");
+        return;
+      }
+  
+      const payload = new FormData();
+      payload.append("username", formData.username);
+      payload.append("email", formData.email);
+      payload.append("password", formData.password);
+      if (formData.profilePic) {
+        payload.append("profilePic", formData.profilePic); // Assuming profilePic is a File object
+      }
+  
+      const response = await fetch("http://localhost:5000/api/user/me", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: payload,
+      });
+  
+      if (response.ok) {
+        const updatedUser = await response.json();
+        console.log("User profile updated successfully:", updatedUser);
+        setUser(updatedUser.user);
+        closePopup();
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to update user profile:", errorData.message);
+        setError(errorData.message);
+      }
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      setError("An unexpected error occurred.");
+    }
   };
 
   if (error) {
@@ -172,7 +176,7 @@ const EditProfile = () => {
             <div className="user" onClick={() => setPopupType('username')}>
               <div className="form-group">
                 <h4>Username</h4>
-                <p>Change your username. This will affect your login.</p>
+                <p>Change your username. This will affect your log in.</p>
               </div>
               <div className="panah">&gt;</div>
             </div>
@@ -188,7 +192,7 @@ const EditProfile = () => {
             <div className="password" onClick={() => setPopupType('password')}>
               <div className="form-group">
                 <h4>Password</h4>
-                <p>Change your password. This will affect your login.</p>
+                <p>Change your password. This will affect your log in.</p>
               </div>
               <div className="panah">&gt;</div>
             </div>

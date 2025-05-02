@@ -131,19 +131,28 @@ export const getUserComments = async (req: Request, res: Response) => {
     }
 }
 
-// PUT /user/me - update user profile
+// PUT /me - update user profile
 export const updateUserProfile = async (req: Request, res: Response) => {
     try {
-        const user = await User.findByPk(req.body.user.id); // Assuming user ID is in req.body.user
+        const user = await User.findByPk(req.body.userId);
         if (user) {
-            const { username, email, password } = req.body;
+            const { username, email, password, profilePic } = req.body;
+
+            // Update password if provided
             if (password) {
-                // Hash the new password before saving to the database
                 const hashedPassword = await bcrypt.hash(password, 10);
                 user.password = hashedPassword;
             }
+
+            // Update username and email if provided
             user.username = username || user.username;
             user.email = email || user.email;
+
+            // Update profile picture if provided
+            if (profilePic) {
+                user.profile_pic = profilePic;
+            }
+
             await user.save();
             res.json({ message: 'User profile updated successfully!', user });
         } else {
@@ -153,7 +162,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         console.error(error);
         res.status(500).json({ message: 'Failed to update user profile' });
     }
-}
+};
 
 // Get all posts from the logged-in user
 export const getAllPosts = async (req: Request, res: Response) => {
