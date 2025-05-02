@@ -100,7 +100,7 @@ const EditProfile = () => {
         payload.append("profilePic", formData.profilePic); // Assuming profilePic is a File object
       }
   
-      const response = await fetch("http://localhost:5000/api/user/me", {
+      const response = await fetch("http://localhost:5000/api/me", {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

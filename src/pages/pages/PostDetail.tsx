@@ -47,7 +47,7 @@ const PostDetail = () => {
   const [newComment, setNewComment] = useState<string>('');
   const [replyContent, setReplyContent] = useState<{ [key: string]: string }>({});
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
+  const [user, setUser] = useState<{ user_id: string; username: string; profilePic: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -64,7 +64,7 @@ const PostDetail = () => {
         })
           .then((response) => response.json())
           .then((data) => {
-            setUser({ username: data.username, profilePic: data.profilePic });
+            setUser({ user_id: data.user_id, username: data.username, profilePic: data.profilePic });
           })
           .catch((error) => console.error('Error fetching user data:', error));
       }
@@ -304,7 +304,7 @@ const Comment = ({
   setReplyContent: React.Dispatch<React.SetStateAction<{ [key: string]: string }>>;
   handleReply: (e: React.FormEvent, parentCommentId: string) => void;
   fetchPostAndComments: () => Promise<void>;
-  currentUser: { username: string; profilePic: string } | null;
+  currentUser: { user_id: string; username: string; profilePic: string } | null;
 }) => {
   const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
   const [voteCount, setVoteCount] = useState<number>(0);
@@ -313,7 +313,6 @@ const Comment = ({
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   const [voteId, setVoteId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     try {
@@ -321,9 +320,6 @@ const Comment = ({
       fetchUserVote();
     } catch (error) {
       console.error('Error fetching vote data:', error);
-    }
-    finally {
-      setIsLoading(false);
     }
   }, []);
 
@@ -350,9 +346,15 @@ const Comment = ({
       });
       const data = await response.json();
       if (Array.isArray(data) && data.length > 0) {
-        const vote = data[0]; // Assuming one vote per comment per user
-        setUserVote(vote.vote_type ? 'upvote' : 'downvote');
-        setVoteId(vote.vote_id || null);
+        let voteUser = null;
+            for (const vote of data) {
+              if (vote.user_id == currentUser?.user_id) {
+                voteUser = vote;
+                break;
+              }
+            }
+        setUserVote(voteUser.vote_type ? 'upvote' : 'downvote');
+        setVoteId(voteUser.vote_id || null);
       }
     } catch (error) {
       console.error('Error fetching user vote:', error);
@@ -482,10 +484,6 @@ const Comment = ({
       console.error('Error canceling vote:', error);
     }
   };
-
-  if (isLoading) {
-    return <Loading />;
-  }
 
   return (
     <div className="comment-card">

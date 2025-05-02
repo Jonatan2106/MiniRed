@@ -31,16 +31,9 @@ export class User extends Model {
         allowNull: true
     })
     declare password: string;
-    
-    @Column({
-        type: DataType.ENUM("ADMIN", "USER"),
-        allowNull: false,
-        defaultValue: "USER"
-    })
-    declare user_type: string;
 
     @Column({
-        type: DataType.BLOB,
+        type: DataType.STRING,
         allowNull: true
     })
     declare profile_pic: string;

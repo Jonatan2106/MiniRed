@@ -134,33 +134,24 @@ export const getUserComments = async (req: Request, res: Response) => {
 // PUT /me - update user profile
 export const updateUserProfile = async (req: Request, res: Response) => {
     try {
-        const user = await User.findByPk(req.body.userId);
-        if (user) {
-            const { username, email, password, profilePic } = req.body;
-
-            // Update password if provided
-            if (password) {
-                const hashedPassword = await bcrypt.hash(password, 10);
-                user.password = hashedPassword;
-            }
-
-            // Update username and email if provided
-            user.username = username || user.username;
-            user.email = email || user.email;
-
-            // Update profile picture if provided
-            if (profilePic) {
-                user.profile_pic = profilePic;
-            }
-
-            await user.save();
-            res.json({ message: 'User profile updated successfully!', user });
-        } else {
-            res.status(404).json({ message: 'User not found' });
+        const { userId, username, email, password, profilePic } = req.body;
+        if (!userId) {
+            return;
         }
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return;
+        }
+        if (username !== undefined || email !== undefined || (password !== undefined && password.trim() !== "") || profilePic !== undefined) {
+            user.username = username;
+            user.email = email;
+            const hashedPassword = await bcrypt.hash(password, 10);
+            user.password = hashedPassword;
+            user.profile_pic = profilePic;
+        }
+        await user.save();
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to update user profile' });
     }
 };
 
