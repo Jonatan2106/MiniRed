@@ -5,7 +5,7 @@ const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key'; // Make sure to 
 
 // Generate a JWT token
 export const generateToken = (userId: UUIDTypes): string => {
-  return jwt.sign({ userId }, SECRET_KEY, { expiresIn: '24h' }); // Token expires in 1 hour
+  return jwt.sign({ userId }, SECRET_KEY, { expiresIn: '30d' }); // Token expires in 1 hour
 };
 
 // Verify a JWT token
