@@ -363,11 +363,11 @@ const ViewProfile = () => {
                         {/* Profile Stats */}
                         <div className="view-profile-stats">
                             <div className='view-profile-stat-item'>
-                                <h3>{postKarma}</h3>
+                                <h3>{postKarma > 0 ? postKarma : 0}</h3>
                                 <p>Post Karma</p>
                             </div>
                             <div className='view-profile-stat-item'>
-                                <h3>{commentKarma}</h3>
+                                <h3>{commentKarma > 0 ? commentKarma : 0}</h3>
                                 <p>Comment Karma</p>
                             </div>
                         </div>

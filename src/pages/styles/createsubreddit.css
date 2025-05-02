@@ -1,7 +1,7 @@
 /* Container */
 .create-subreddit-wrapper {
     max-width: 800px;
-    margin: 4rem auto;
+    margin: .5rem auto;
     padding: 2rem;
     background-color: #1a1a1b;
     border-radius: 12px;
@@ -45,6 +45,13 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    overflow: hidden;
+}
+
+.label {
+    font-size: 1rem;
+    color: #999;
+    font-weight: bold;
 }
 
 .create-subreddit-form {
@@ -61,6 +68,7 @@
 
 .subreddit-input,
 .subreddit-textarea {
+    max-width: 97%;
     padding: 0.8rem;
     border: 1px solid #444;
     border-radius: 6px;
@@ -89,18 +97,43 @@
 }
 
 /* Privacy Options */
-.privacy-options {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1rem;
-}
-
-.privacy-options label {
-    font-size: 1rem;
-    color: #D7DADC;
+.toggle-label {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: space-between;
+    font-size: 1rem;
+    color: #D7DADC;
+    gap: 1rem;
+}
+
+.toggle-switch {
+    width: 50px;
+    height: 25px;
+    background-color: #444;
+    border-radius: 9999px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-switch.active {
+    background-color: #FF4500;
+}
+
+.toggle-knob {
+    width: 20px;
+    height: 20px;
+    background-color: #D7DADC;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    transform: translate(0, -50%);
+    transition: left 0.3s ease;
+}
+
+.toggle-switch.active .toggle-knob {
+    left: 55%;
 }
 
 /* Submit Button */

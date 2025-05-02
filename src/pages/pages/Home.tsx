@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import { AiOutlinePlusCircle } from "react-icons/ai";
@@ -15,7 +15,7 @@ interface Post {
   created_at: string;
 }
 
-export interface Subreddit {
+interface Subreddit {
   subreddit_id: string;
   user_id: string;
   name: string;
@@ -51,7 +51,6 @@ const Home = () => {
   const [users, setUsers] = useState<Map<string, User>>(new Map());
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Post[]>([]);
-
 
   // Inside the Home component
   useEffect(() => {
@@ -96,7 +95,7 @@ const Home = () => {
       .then((data) => {
         const userMap = new Map();
         data.forEach((user: User) => {
-          userMap.set(user.user_id, user);
+          userMap.set(user.user_id, user); // Ensure user_id is the key
         });
         setUsers(userMap);
       })
@@ -123,6 +122,7 @@ const Home = () => {
         subreddit.name.toLowerCase().includes(query.toLowerCase())
       );
       setFilteredSubreddits(filteredCommunities);
+      console.log("Filtered communities:", filteredCommunities);
     }
   };
 
@@ -135,6 +135,8 @@ const Home = () => {
   const toggleDropdown = () => {
     setDropdownOpen((prev) => !prev);
   };
+
+  // const subredditCreatedAt = subreddit.created_at ? new Date(subreddit.created_at).toLocaleString() : "Unknown Date";
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -219,35 +221,15 @@ const Home = () => {
           {/* Display matching communities */}
           {filteredSubreddits.length > 0 && (
             <>
-              <h2 className="feed-section-title">Communities</h2>
-              {filteredSubreddits.map((subreddit) => {
-                const owner = users.get(subreddit.user_id); // Get the owner from the users map
-                return (
-                  <div key={subreddit.subreddit_id} className="post-card">
-                    <a href={`/r/${subreddit.name}`} className="post-link">
-                      <div className="post-content">
-                        <div className="post-header">
-                          <span className="username">
-                            {owner ? owner.username : "Unknown"}
-                          </span>
-                          <span className="timestamp">
-                            Created: {new Date(subreddit.created_at).toLocaleString()}
-                          </span>
-                        </div>
-                        <h3>r/{subreddit.name}</h3>
-                        <p>{subreddit.description}</p>
-                      </div>
-                    </a>
-                  </div>
-                );
-              })}
+              {filteredSubreddits.map((subreddit) => (
+                <SubredditCard key={subreddit.subreddit_id} subreddit={subreddit} users={users} />
+              ))}
             </>
           )}
 
           {/* Display matching posts */}
           {searchResults.length > 0 && (
             <>
-              <h2 className="feed-section-title">Posts</h2>
               {searchResults.map((post) => (
                 <PostCard key={post.post_id} post={post} users={users} />
               ))}
@@ -289,6 +271,31 @@ const Home = () => {
     </div>
   );
 };
+
+const SubredditCard = ({ subreddit, users }: { subreddit: Subreddit; users: Map<string, User> }) => {
+  console.log("Subreddit data:", subreddit);
+  const owner = users.get(subreddit.user_id)?.username;
+  const createdAt = new Date(subreddit.created_at).toLocaleString();
+
+  console.log("Subreddit created at:", createdAt);
+  console.log("Subreddit owner:", owner);
+
+  return (
+    <div className="post-card">
+      <a href={`/r/${subreddit.name}`} className="post-link">
+        <div className="post-content">
+          <div className="post-header">
+            <span className="username">Owner: {owner}</span>
+            <span className="timestamp">Created: {createdAt}</span>
+          </div>
+          <h3>r/{subreddit.name}</h3>
+          <p>{subreddit.description}</p>
+        </div>
+      </a>
+    </div>
+  );
+};
+
 
 const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => {
   const [voteCount, setVoteCount] = useState<{ upvotes: number; downvotes: number, score: number }>({ upvotes: 0, downvotes: 0, score: 0 });

@@ -14,7 +14,7 @@ interface Post {
   created_at: string;
 }
 
-export interface Subreddit {
+interface Subreddit {
   subreddit_id: string;
   name: string;
   title: string;
@@ -473,7 +473,7 @@ const Comment = ({
             className="comment-author-profile-pic"
           />
           {/* Author Name (Clickable) */}
-          <a href={`/user/${comment.user.user_id}`} className="comment-author">
+          <a href={"http://localhost:5173/u/"+(comment.user)?.username} className="comment-author">
             {comment.user.username}
           </a>
         </div>

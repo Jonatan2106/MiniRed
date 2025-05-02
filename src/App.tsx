@@ -12,6 +12,7 @@ import CreateSubreddit from './pages/pages/CreateSubreddit';
 import SubredditPage from './pages/pages/Subreddit';
 import CreatePost from './pages/pages/CreatePost';
 import ViewProfile from './pages/pages/ViewProfile';
+import EditSubreddit from './pages/pages/EditSubreddit';
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
         <Route path="/create-post" element={<CreatePost />} /> 
         <Route path="/profile" element={<Profile />} />
         <Route path="/edit" element={<EditProfile />} />
+        <Route path="/edit-subreddit/:subredditId" element={<EditSubreddit />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
