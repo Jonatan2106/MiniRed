@@ -88,10 +88,10 @@ const CreateSubreddit = () => {
     <div className="create-subreddit-wrapper">
       {/* Back Button */}
       <div className="create-subreddit-header">
+        <h1>Create Subreddit</h1>
         <button className="subreddit-page-back-button" onClick={() => navigate(-1)}>
           Back
         </button>
-        <h1>Create Subreddit</h1>
       </div>
 
       {/* Error Message */}
@@ -102,7 +102,7 @@ const CreateSubreddit = () => {
         <form className="create-subreddit-form" onSubmit={handleSubmit}>
           {/* Subreddit Name */}
           <div className="form-section">
-            <label htmlFor="subredditName">Subreddit Name</label>
+            <label htmlFor="subredditName" className='label'>Subreddit Name</label>
             <input
               id="subredditName"
               type="text"
@@ -123,7 +123,7 @@ const CreateSubreddit = () => {
 
           {/* Subreddit Title */}
           <div className="form-section">
-            <label htmlFor="subredditTitle">Subreddit Title</label>
+            <label htmlFor="subredditTitle" className='label'>Subreddit Title</label>
             <input
               id="subredditTitle"
               type="text"
@@ -144,7 +144,7 @@ const CreateSubreddit = () => {
 
           {/* Subreddit Description */}
           <div className="form-section">
-            <label htmlFor="subredditDescription">Description</label>
+            <label htmlFor="subredditDescription" className='label'>Description</label>
             <textarea
               id="subredditDescription"
               placeholder="Enter subreddit description"
@@ -164,25 +164,15 @@ const CreateSubreddit = () => {
 
           {/* Privacy Options */}
           <div className="form-section privacy-options">
-            <label>
-              <input
-                type="radio"
-                name="privacy"
-                value="false"
-                checked={!subredditPrivacy}
-                onChange={() => setSubredditPrivacy(false)}
-              />
-              Public
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="privacy"
-                value="true"
-                checked={subredditPrivacy}
-                onChange={() => setSubredditPrivacy(true)}
-              />
-              Private
+            <p className='label'>Set subreddit visibility</p>
+            <label className="toggle-label">
+              <span>{subredditPrivacy ? 'Private' : 'Public'}</span>
+              <div
+                className={`toggle-switch ${subredditPrivacy ? 'active' : ''}`}
+                onClick={() => setSubredditPrivacy(!subredditPrivacy)}
+              >
+                <div className="toggle-knob"></div>
+              </div>
             </label>
           </div>
 
