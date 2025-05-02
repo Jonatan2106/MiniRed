@@ -226,7 +226,7 @@ const Profile = () => {
       {/* Main content */}
       <div className="main-content">
         {/* Left Sidebar */}
-        <div className="left-sidebar">
+        <div className="left-sidebar home">
           <h2 className="title">Navigation</h2>
           <ul>
             <li>
