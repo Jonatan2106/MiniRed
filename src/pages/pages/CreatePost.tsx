@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import imageCompression from 'browser-image-compression';
+import Loading from './Loading';
 import '../styles/createpost.css';
 
 interface Subreddit {
@@ -18,6 +18,7 @@ const CreatePost = () => {
     const [subreddits, setSubreddits] = useState<Subreddit[]>([]);
     const [selectedSubreddit, setSelectedSubreddit] = useState<string>('none');
     const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -33,6 +34,9 @@ const CreatePost = () => {
                 setSubreddits(data);
             } catch (error) {
                 console.error('Error fetching joined subreddits:', error);
+            }
+            finally {
+                setIsLoading(false);
             }
         };
 
@@ -98,6 +102,10 @@ const CreatePost = () => {
 
 
     const selected = subreddits.find((sub) => sub.subreddit_id === selectedSubreddit);
+
+    if (isLoading) {
+        return <Loading />; // Show loading screen
+    }
 
     return (
         <div className="create-post-wrapper">

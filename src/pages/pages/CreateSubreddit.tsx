@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Loading from './Loading';
 import '../styles/createsubreddit.css';
 
 interface Subreddit {
@@ -19,7 +20,7 @@ const CreateSubreddit = () => {
   const [subredditDescription, setSubredditDescription] = useState('');
   const [subredditPrivacy, setSubredditPrivacy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   // Fetch user data when the component mounts
@@ -37,7 +38,8 @@ const CreateSubreddit = () => {
         .then((data) => {
           setUser({ userId: data.user_id, username: data.username, profilePic: data.profilePic });
         })
-        .catch((error) => console.error('Error fetching user data:', error));
+        .catch((error) => console.error('Error fetching user data:', error))
+        .finally(() => setIsLoading(false));
     }
   }, []); // Empty dependency array ensures this runs only once
 
@@ -83,6 +85,10 @@ const CreateSubreddit = () => {
       setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <div className="create-subreddit-wrapper">

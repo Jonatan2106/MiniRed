@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import '../styles/viewprofile.css';
-import '../styles/home.css'; // Import styles for navbar and sidebars
 import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import { AiOutlinePlusCircle } from 'react-icons/ai';
+import Loading from './Loading';
+import '../styles/viewprofile.css';
+import '../styles/home.css';
 
 interface User {
     user_id: string;
@@ -21,7 +22,7 @@ interface Post {
     image: string | null;
     created_at: string;
     subreddit_id: string;
-    subreddit_name?: string; // Add this to store the fetched subreddit name
+    subreddit_name?: string;
 }
 
 interface Comment {
@@ -51,211 +52,116 @@ const ViewProfile = () => {
     const [postKarma, setPostKarma] = useState<number>(0);
     const [commentKarma, setCommentKarma] = useState<number>(0);
     const [joinedCommunities, setJoinedCommunities] = useState<Subreddit[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        fetchUserProfile();
-        checkLoginStatus();
+        const fetchData = async () => {
+            try {
+                setIsLoading(true);
+
+                const token = localStorage.getItem('token');
+                if (token) {
+                    await fetchCurrentUser(token);
+                }
+
+                const userData = await fetchUserProfile(username ?? '', token);
+                setUser(userData);
+
+                const [postsData, commentsData, communitiesData] = await Promise.all([
+                    fetchUserPosts(userData.user_id, token),
+                    fetchUserComments(userData.user_id, token),
+                    fetchJoinedCommunities(userData.user_id, token),
+                ]);
+
+                setPosts(postsData);
+                setComments(commentsData);
+                setJoinedCommunities(communitiesData.filter((community) => !community.is_private));
+
+                const postKarma = await calculatePostKarma(postsData.map((post) => post.post_id), token);
+                const commentKarma = await calculateCommentKarma(commentsData.map((comment) => comment.comment_id), token);
+
+                setPostKarma(postKarma);
+                setCommentKarma(commentKarma);
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                setError('Failed to load user profile.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
     }, [username]);
 
-    const checkLoginStatus = () => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            setIsLoggedIn(true);
-            fetch('http://localhost:5000/api/me', {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    setCurrentUser({ username: data.username, profilePic: data.profilePic });
-                })
-                .catch((error) => console.error('Error fetching current user:', error));
-        }
+    const fetchCurrentUser = async (token: string) => {
+        const response = await fetch('http://localhost:5000/api/me', {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        setCurrentUser({ username: data.username, profilePic: data.profilePic });
+        setIsLoggedIn(true);
     };
 
-    const fetchUserProfile = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/user/all`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            if (!response.ok) throw new Error('Failed to fetch user data');
-            const users = await response.json();
-
-            const userData = users.find((u: User) => u.username === username);
-            if (!userData) throw new Error('User not found');
-
-            setUser(userData);
-
-            await fetchUserPosts(userData.user_id);
-            await fetchUserComments(userData.user_id);
-            await fetchJoinedCommunities(userData.user_id);
-        } catch (error) {
-            console.error(error);
-            setError('Failed to load user profile.');
-        }
+    const fetchUserProfile = async (username: string, token: string | null): Promise<User> => {
+        const response = await fetch('http://localhost:5000/api/user/all', {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error('Failed to fetch user data');
+        const users = await response.json();
+        const user = users.find((u: User) => u.username === username);
+        if (!user) throw new Error('User not found');
+        return user;
     };
 
-    const fetchUserPosts = async (user_id: string) => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/user/${user_id}/post`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            if (!response.ok) throw new Error('Failed to fetch user posts');
-            const data: Post[] = await response.json();
-            setPosts(data);
-
-            // Calculate post karma
-            const karma = await calculatePostKarma(data.map((post) => post.post_id));
-            setPostKarma(karma);
-
-            const subredditPromises = data.map((post) => fetchSubredditName(post.subreddit_id));
-            const subredditNames = await Promise.all(subredditPromises);
-            const postsWithSubredditNames = data.map((post, index) => ({
-                ...post,
-                subreddit_name: subredditNames[index],
-            }));
-            setPosts(postsWithSubredditNames);
-        } catch (error) {
-            console.error(error);
-            setPosts([]);
-        }
+    const fetchUserPosts = async (userId: string, token: string | null): Promise<Post[]> => {
+        const response = await fetch(`http://localhost:5000/api/user/${userId}/post`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error('Failed to fetch user posts');
+        return response.json();
     };
 
-    const fetchSubredditName = async (subreddit_id: string): Promise<string> => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/subreddits/${subreddit_id}`, {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            if (!response.ok) throw new Error('Failed to fetch subreddit name');
-            const subreddit: Subreddit = await response.json();
-            return subreddit.name;
-        } catch (error) {
-            console.error(error);
-            return 'Unknown Subreddit';
-        }
+    const fetchUserComments = async (userId: string, token: string | null): Promise<Comment[]> => {
+        const response = await fetch(`http://localhost:5000/api/user/${userId}/comment`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error('Failed to fetch user comments');
+        return response.json();
     };
 
-    const fetchUserComments = async (user_id: string) => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/user/${user_id}/comment`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            if (!response.ok) throw new Error('Failed to fetch user comments');
-            const data = await response.json();
-
-            // Fetch post details for each comment's post_id
-            const enrichedComments: Comment[] = await Promise.all(
-                data.map(async (comment: any) => {
-                    const postResponse = await fetch(`http://localhost:5000/api/posts/${comment.post_id}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    });
-                    const post = postResponse.ok ? await postResponse.json() : { title: 'Unknown Post' };
-
-                    return {
-                        comment_id: comment.comment_id,
-                        content: comment.content,
-                        created_at: comment.created_at,
-                        post: {
-                            post_id: comment.post_id,
-                            title: post.title || 'Unknown Post',
-                            content: post.content || '',
-                            image: post.image || null,
-                            created_at: post.created_at || '',
-                            subreddit_id: post.subreddit_id || '',
-                            subreddit_name: post.subreddit_name || 'Unknown Subreddit',
-                        },
-                    };
-                })
-            );
-
-            setComments(enrichedComments);
-
-            // Calculate comment karma
-            const karma = await calculateCommentKarma(enrichedComments.map((comment) => comment.comment_id));
-            setCommentKarma(karma);
-        } catch (error) {
-            console.error(error);
-            setComments([]);
-        }
+    const fetchJoinedCommunities = async (userId: string, token: string | null): Promise<Subreddit[]> => {
+        const response = await fetch(`http://localhost:5000/api/users/${userId}/subreddits`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error('Failed to fetch joined communities');
+        return response.json();
     };
 
-    const calculatePostKarma = async (postIds: string[]): Promise<number> => {
-        try {
-            const token = localStorage.getItem('token');
-            const karmaPromises = postIds.map(async (postId) => {
-                const response = await fetch(`http://localhost:5000/api/posts/${postId}/votes/count`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                if (!response.ok) throw new Error('Failed to fetch post votes');
-                const { score } = await response.json();
-                return score;
+    const calculatePostKarma = async (postIds: string[], token: string | null): Promise<number> => {
+        const karmaPromises = postIds.map(async (postId) => {
+            const response = await fetch(`http://localhost:5000/api/posts/${postId}/votes/count`, {
+                headers: { Authorization: `Bearer ${token}` },
             });
-            const karmaValues = await Promise.all(karmaPromises);
-            return karmaValues.reduce((total, score) => total + score, 0);
-        } catch (error) {
-            console.error(error);
-            return 0;
-        }
+            if (!response.ok) throw new Error('Failed to fetch post votes');
+            const { score } = await response.json();
+            return score;
+        });
+        const karmaValues = await Promise.all(karmaPromises);
+        return karmaValues.reduce((total, score) => total + score, 0);
     };
 
-    const calculateCommentKarma = async (commentIds: string[]): Promise<number> => {
-        try {
-            const token = localStorage.getItem('token');
-            const karmaPromises = commentIds.map(async (commentId) => {
-                const response = await fetch(`http://localhost:5000/api/comments/${commentId}/votes/count`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                if (!response.ok) throw new Error('Failed to fetch comment votes');
-                const { score } = await response.json();
-                return score;
+    const calculateCommentKarma = async (commentIds: string[], token: string | null): Promise<number> => {
+        const karmaPromises = commentIds.map(async (commentId) => {
+            const response = await fetch(`http://localhost:5000/api/comments/${commentId}/votes/count`, {
+                headers: { Authorization: `Bearer ${token}` },
             });
-            const karmaValues = await Promise.all(karmaPromises);
-            return karmaValues.reduce((total, score) => total + score, 0);
-        } catch (error) {
-            console.error(error);
-            return 0;
-        }
-    };
-
-    const fetchJoinedCommunities = async (user_id: string) => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/users/${user_id}/subreddits`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            if (!response.ok) throw new Error('Failed to fetch joined communities');
-            const data: Subreddit[] = await response.json();
-
-            // Filter out private communities
-            const publicCommunities = data.filter((community) => !community.is_private);
-            setJoinedCommunities(publicCommunities);
-        } catch (error) {
-            console.error(error);
-            setJoinedCommunities([]);
-        }
+            if (!response.ok) throw new Error('Failed to fetch comment votes');
+            const { score } = await response.json();
+            return score;
+        });
+        const karmaValues = await Promise.all(karmaPromises);
+        return karmaValues.reduce((total, score) => total + score, 0);
     };
 
     const handleTabClick = (tab: 'Overview' | 'Posts' | 'Comments') => {
@@ -278,6 +184,10 @@ const ViewProfile = () => {
 
     if (!user) {
         return <div>Loading...</div>;
+    }
+
+    if (isLoading) {
+        return <Loading />;
     }
 
     return (

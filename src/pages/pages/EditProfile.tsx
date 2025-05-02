@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { AiOutlinePlusCircle } from "react-icons/ai";
 import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
+import Loading from './Loading';
 import "../styles/editprofile.css";
 import "../styles/main.css";
 
@@ -11,6 +11,7 @@ interface User {
 }
 
 const EditProfile = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -50,32 +51,39 @@ const EditProfile = () => {
 
   // Inside the Home component
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsLoggedIn(true);
-      fetch("http://localhost:5000/api/me", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+    try {
+      const token = localStorage.getItem("token");
+      if (token) {
+        setIsLoggedIn(true);
+        fetch("http://localhost:5000/api/me", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setUser({ username: data.username, profilePic: data.profilePic });
+          })
+          .catch((error) => console.error("Error fetching user data:", error));
+      }
+  
+      fetch("http://localhost:5000/api/user/all")
         .then((response) => response.json())
         .then((data) => {
-          setUser({ username: data.username, profilePic: data.profilePic });
+          const userMap = new Map();
+          data.forEach((user: User) => {
+            userMap.set(user.user_id, user);
+          });
+          setUsers(userMap);
         })
-        .catch((error) => console.error("Error fetching user data:", error));
+        .catch((error) => console.error("Error fetching users:", error));
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('Failed to load data. Please try again later.');
+    } finally {
+      setIsLoading(false);
     }
-
-    fetch("http://localhost:5000/api/user/all")
-      .then((response) => response.json())
-      .then((data) => {
-        const userMap = new Map();
-        data.forEach((user: User) => {
-          userMap.set(user.user_id, user);
-        });
-        setUsers(userMap);
-      })
-      .catch((error) => console.error("Error fetching users:", error));
   }, []);
 
   const handleLogout = () => {
@@ -111,6 +119,10 @@ const EditProfile = () => {
 
   if (error) {
     return <div>Error: {error}</div>;
+  }
+
+  if (isLoading) {
+    return <Loading />;
   }
 
   return (
