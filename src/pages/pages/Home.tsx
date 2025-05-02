@@ -46,7 +46,7 @@ const Home = () => {
   const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
   const [filteredSubreddits, setFilteredSubreddits] = useState<Subreddit[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
+  const [user, setUser] = useState<User>();
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [users, setUsers] = useState<Map<string, User>>(new Map());
   const [query, setQuery] = useState('');
@@ -67,7 +67,7 @@ const Home = () => {
             },
           });
           const userData = await userResponse.json();
-          setUser({ username: userData.username, profilePic: userData.profilePic });
+          setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profilePic });
         }
 
         const postsResponse = await fetch('http://localhost:5000/api/posts');
@@ -233,7 +233,7 @@ const Home = () => {
           {searchResults.length > 0 && (
             <>
               {searchResults.map((post) => (
-                <PostCard key={post.post_id} post={post} users={users} />
+                <PostCard key={post.post_id} post={post} users={users} current_user={user ?? { user_id: '', username: '', profilePic: '' }} />
               ))}
             </>
           )}
@@ -246,7 +246,7 @@ const Home = () => {
           {/* Default posts when no query */}
           {!query && searchResults.length === 0 && (
             posts.map((post) => (
-              <PostCard key={post.post_id} post={post} users={users} />
+              <PostCard key={post.post_id} post={post} users={users} current_user={user ?? { user_id: '', username: '', profilePic: '' }} />
             ))
           )}
         </div>
@@ -299,7 +299,7 @@ const SubredditCard = ({ subreddit, users }: { subreddit: Subreddit; users: Map<
 };
 
 
-const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => {
+const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string, User>; current_user: User }) => {
   const [voteCount, setVoteCount] = useState<{ upvotes: number; downvotes: number, score: number }>({ upvotes: 0, downvotes: 0, score: 0 });
   const [commentCount, setCommentCount] = useState<number>(0);
   const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
@@ -321,9 +321,15 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
         .then(response => response.json())
         .then(data => {
           if (Array.isArray(data) && data.length > 0) {
-            const vote = data[0]; // Assuming one vote per post per user
-            setUserVote(vote.vote_type ? 'upvote' : 'downvote');
-            setVoteId(vote.vote_id || null);
+            let voteUser = null;
+            for (const vote of data) {
+              if (vote.user_id == current_user.user_id) {
+                voteUser = vote;
+                break;
+              }
+            }
+            setUserVote(voteUser.vote_type ? 'upvote' : 'downvote');
+            setVoteId(voteUser.vote_id || null);
           }
         })
         .catch(error => {
@@ -460,7 +466,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
           <button
             className={`vote-button ${userVote === 'upvote' ? 'upvoted' : ''} up`}
             onClick={(e) => {
-              e.stopPropagation();  // Prevent redirect on button click
+              e.stopPropagation();
               handleVote('upvote');
             }}
           >
@@ -473,7 +479,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
           <button
             className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
             onClick={(e) => {
-              e.stopPropagation();  // Prevent redirect on button click
+              e.stopPropagation();
               handleVote('downvote');
             }}
           >
