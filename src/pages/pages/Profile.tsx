@@ -277,7 +277,13 @@ const Profile = () => {
         {/* Feed */}
         <div className="feed">
           <div className="profile-header">
-            <div className="profile-avatar"></div>
+            <div className="profile-avatar">
+              <img
+                src={user?.profilePic || "/default.png"}
+                alt={user?.username}
+                className="avatar"
+              />
+            </div>
             <div className="profile-info">
               <h1 className="username">{user?.username || "Loading..."}</h1>
               <p className="user-handle">u/{user?.username}</p>
