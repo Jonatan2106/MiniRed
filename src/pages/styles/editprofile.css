@@ -60,9 +60,9 @@
   background-color: #1a1a1b;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: absolute;
-  top: 47.1%;
-  left: 61%;
+  position: relative;
+  margin-top: 15.6%;
+  left: 36%;
   transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
@@ -118,8 +118,8 @@ h4 {
 }
 
 .form-group {
-  margin-bottom: 20px;
-  margin-left: 15px;
+  margin-bottom: 0%;
+  margin-left: 1.8%;
 }
 
 p {
@@ -281,42 +281,12 @@ button.save-btn:focus {
   color: white;
 }
 
-
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
   .edit-profile-wrapper {
-    padding: 15px;
-    margin-top: 60%;
-  }
-
-  h2 {
-    font-size: 20px;
-  }
-
-  .form-group {
-    margin-bottom: 15px;
-  }
-
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="file"] {
-    padding: 8px;
-    font-size: 14px;
-  }
-
-  button.save-btn {
-    font-size: 14px;
-    padding: 10px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .edit-profile-wrapper {
-    max-width: 92%;
+    max-width: 94%;
     left: 50%;
-    top: 136%;
+    top: 135%;
     transform: translate(-50%, -50%);
-    padding: 2.5%;
   }
 
   .modal {
@@ -336,25 +306,6 @@ button.save-btn:focus {
   .panah {
     right: 40px;
     font-size: 12px;
-  }
-}
-
-/* For mobile devices */
-@media (max-width: 600px) {
-  .edit-profile-wrapper {
-    max-width: 100%;
-    padding: 5%;
-    border-radius: 5px;
-  }
-
-  h2, h3 {
-    font-size: 20px;
-    text-align: center;
-    margin-left: 0;
-  }
-
-  .form-group {
-    margin-left: 0;
   }
 
   input[type="text"],
