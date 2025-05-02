@@ -186,8 +186,8 @@ const Home = () => {
               </div>
             </>
           ) : (
+
             <>
-              <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
               <div className="auth-buttons">
                 <a className="nav-link login-button" href="/login">Login</a>
                 <a className="nav-link register-button" href="/register">Register</a>
