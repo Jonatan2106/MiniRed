@@ -29,7 +29,7 @@ const Login = () => {
         {error && <p className="error-message">{error}</p>}
 
         <input
-          className="login-input"
+          className="login-input-box"
           type="text"
           placeholder="Username"
           value={username}
@@ -37,7 +37,7 @@ const Login = () => {
         />
         <div className="password-container">
           <input
-            className="login-input"
+            className="login-input-box"
             type={showPassword ? 'text' : 'password'}
             placeholder="Password"
             value={password}

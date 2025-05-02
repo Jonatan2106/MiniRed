@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import { AiOutlinePlusCircle } from "react-icons/ai";
+import Loading from './Loading';
 import '../styles/profile.css';
 import '../styles/main.css';
 
@@ -66,88 +67,96 @@ const Profile = () => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [Downvoted, setDownVotes] = useState<Vote[]>([]);
   const [upvoted, setUpVotes] = useState<Vote[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-      fetch('http://localhost:5000/api/me', {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        setIsLoggedIn(true);
+        fetch('http://localhost:5000/api/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setUser({ username: data.username, profilePic: data.profilePic });
+          })
+          .catch((error) => console.error('Error fetching user data:', error));
+      }
+  
+      fetch('http://localhost:5000/api/user/me/posts', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      })
+        .then(response => response.json())
+        .then(data => setPosts(data))
+        .catch(() => console.error('Error fetching posts'));
+  
+      fetch('http://localhost:5000/api/user/me/comments', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
         .then((response) => response.json())
-        .then((data) => {
-          setUser({ username: data.username, profilePic: data.profilePic });
+        .then(async (commentsData) => {
+          // Fetch posts for each comment
+          const commentsWithPosts = await Promise.all(
+            commentsData.map(async (comment: Comment) => {
+              const postResponse = await fetch(`http://localhost:5000/api/posts/${comment.post_id}`, {
+                method: 'GET',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+              const post = await postResponse.json();
+              return { ...comment, post }; // Merge post into comment
+            })
+          );
+          setComments(commentsWithPosts);
         })
-        .catch((error) => console.error('Error fetching user data:', error));
-    }
-
-    fetch('http://localhost:5000/api/user/me/posts', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      }
-    })
-      .then(response => response.json())
-      .then(data => setPosts(data))
-      .catch(() => console.error('Error fetching posts'));
-
-    fetch('http://localhost:5000/api/user/me/comments', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then(async (commentsData) => {
-        // Fetch posts for each comment
-        const commentsWithPosts = await Promise.all(
-          commentsData.map(async (comment: Comment) => {
-            const postResponse = await fetch(`http://localhost:5000/api/posts/${comment.post_id}`, {
-              method: 'GET',
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-            const post = await postResponse.json();
-            return { ...comment, post }; // Merge post into comment
-          })
-        );
-        setComments(commentsWithPosts);
+        .catch(() => console.error('Error fetching comments'));
+  
+      fetch('http://localhost:5000/api/user/me/downvoted', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
       })
-      .catch(() => console.error('Error fetching comments'));
-
-    fetch('http://localhost:5000/api/user/me/downvoted', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      }
-    })
-      .then(response => response.json())
-      .then(data => setDownVotes(data))
-      .catch(() => console.error('Error fetching downvoted posts'));
-
-    fetch('http://localhost:5000/api/user/me/upvoted', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      }
-    })
-      .then(response => response.json())
-      .then(data => setUpVotes(data))
-      .catch(() => console.error('Error fetching upvoted posts'));
-
-    fetch('http://localhost:5000/api/users/subreddits', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      }
-    })
-      .then(response => response.json())
-      .then(data => setJoinedSubreddits(data))
-      .catch(() => console.error('Error fetching joined communities'));
+        .then(response => response.json())
+        .then(data => setDownVotes(data))
+        .catch(() => console.error('Error fetching downvoted posts'));
+  
+      fetch('http://localhost:5000/api/user/me/upvoted', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      })
+        .then(response => response.json())
+        .then(data => setUpVotes(data))
+        .catch(() => console.error('Error fetching upvoted posts'));
+  
+      fetch('http://localhost:5000/api/users/subreddits', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      })
+        .then(response => response.json())
+        .then(data => setJoinedSubreddits(data))
+        .catch(() => console.error('Error fetching joined communities'));
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+    finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const handleTabClick = (tab: 'Overview' | 'Posts' | 'Comments' | 'Upvoted' | 'Downvoted'): void => {
@@ -183,6 +192,10 @@ const Profile = () => {
     setDropdownOpen((prev) => !prev);
   };
 
+  if (isLoading) {
+    return <Loading />;
+  }
+
   return (
     <div className="home-wrapper">
       {/* Navbar */}
@@ -206,7 +219,7 @@ const Profile = () => {
                 />
                 {isDropdownOpen && (
                   <div className="dropdown-menu enhanced-dropdown">
-                    <a href="/profile" className="dropdown-item">Profile</a>
+                    <a href="/profile" className="dropdown-item">{user?.username}</a>
                     <a href="/edit" className="dropdown-item">Edit</a>
                     <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
                   </div>
@@ -226,7 +239,7 @@ const Profile = () => {
       {/* Main content */}
       <div className="main-content">
         {/* Left Sidebar */}
-        <div className="left-sidebar">
+        <div className="left-sidebar home">
           <h2 className="title">Navigation</h2>
           <ul>
             <li>

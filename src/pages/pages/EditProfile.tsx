@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
+import Loading from './Loading';
 import "../styles/editprofile.css";
 import "../styles/main.css";
 
@@ -10,6 +11,8 @@ interface User {
 }
 
 const EditProfile = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -61,6 +64,17 @@ const EditProfile = () => {
         })
         .catch((error) => console.error("Error fetching user data:", error));
     }
+
+    fetch("http://localhost:5000/api/user/all")
+      .then((response) => response.json())
+      .then((data) => {
+        const userMap = new Map();
+        data.forEach((user: User) => {
+          userMap.set(user.user_id, user);
+        });
+        setUsers(userMap);
+      })
+      .catch((error) => console.error("Error fetching users:", error));
   }, []);
 
   const handleLogout = () => {
@@ -115,6 +129,10 @@ const EditProfile = () => {
 
   if (error) {
     return <div>Error: {error}</div>;
+  }
+
+  if (isLoading) {
+    return <Loading />;
   }
 
   return (

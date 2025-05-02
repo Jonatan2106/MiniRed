@@ -3,6 +3,7 @@ import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import { AiOutlinePlusCircle } from 'react-icons/ai';
 import { useParams } from 'react-router-dom';
+import Loading from './Loading';
 import '../styles/subreddit.css';
 import '../styles/main.css';
 
@@ -50,112 +51,82 @@ const SubredditPage = () => {
     const { subredditName } = useParams<{ subredditName: string }>();
     const [subreddit, setSubreddit] = useState<Subreddit | null>(null);
     const [isMember, setIsMember] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            setIsLoggedIn(true);
-            fetch('http://localhost:5000/api/me', {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            })
-                .then((response) => response.json())
-                .then((data) => {
-                    setUser({ user_id: data.user_id, username: data.username, profilePic: data.profilePic });
-                })
-                .catch((error) => console.error('Error fetching user data:', error));
-        }
+        const fetchData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    setIsLoggedIn(true);
 
-        fetch('http://localhost:5000/api/users/subreddits', {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                setJoinedSubreddits(data);
-            })
-            .catch((error) => console.error('Error fetching joined communities:', error));
+                    // Fetch user data
+                    const userResponse = await fetch('http://localhost:5000/api/me', {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+                    const userData = await userResponse.json();
+                    setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profilePic });
 
-        fetch('http://localhost:5000/api/user/all')
-            .then(response => response.json())
-            .then((data) => {
+                    // Fetch joined subreddits
+                    const joinedSubredditsResponse = await fetch('http://localhost:5000/api/users/subreddits', {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    });
+                    const joinedSubredditsData = await joinedSubredditsResponse.json();
+                    setJoinedSubreddits(joinedSubredditsData);
+                }
+
+                // Fetch all users
+                const usersResponse = await fetch('http://localhost:5000/api/user/all');
+                const usersData = await usersResponse.json();
                 const userMap = new Map();
-                data.forEach((user: User) => {
+                usersData.forEach((user: User) => {
                     userMap.set(user.user_id, user);
                 });
                 setUsers(userMap);
-            })
-            .catch((error) => console.error('Error fetching users:', error));
 
-        fetchSubredditData();
+                // Fetch subreddit data
+                const subredditResponse = await fetch(`http://localhost:5000/api/subreddits/r/${subredditName}`);
+                const subredditData = await subredditResponse.json();
+                if (subredditData) {
+                    setSubreddit(subredditData);
+
+                    // Fetch posts for the subreddit
+                    const postsResponse = await fetch(`http://localhost:5000/api/subreddits/${subredditData.subreddit_id}/posts`);
+                    const postsData = await postsResponse.json();
+                    setPosts(postsData);
+
+                    // Check membership status
+                    if (token) {
+                        const membershipResponse = await fetch('http://localhost:5000/api/users/subreddits', {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            },
+                        });
+                        const membershipData = await membershipResponse.json();
+                        const isUserMember = membershipData.some(
+                            (joinedSubreddit: Subreddit) => joinedSubreddit.subreddit_id === subredditData.subreddit_id
+                        );
+                        setIsMember(isUserMember);
+                    }
+                } else {
+                    setError('Subreddit not found');
+                }
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                setError('Failed to load data. Please try again later.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
     }, [subredditName]);
-
-    useEffect(() => {
-        if (subreddit?.subreddit_id) {
-            fetchSubredditPost();
-            checkMembershipStatus();
-        }
-    }, [subreddit]);
-
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            setIsLoggedIn(true);
-        }
-        fetchSubredditData();
-    }, [subredditName]);
-
-    const fetchSubredditData = async () => {
-        try {
-            const response = await fetch(`http://localhost:5000/api/subreddits/r/${subredditName}`);
-            const data = await response.json();
-            if (data) {
-                setSubreddit(data);
-            }
-            else {
-                setError('Subreddit not found');
-            }
-            setSubreddit(data);
-        } catch (error) {
-            console.error('Error fetching Subreddit data :', error);
-        }
-    };
-
-    const fetchSubredditPost = async () => {
-        try {
-
-            const response = await fetch(`http://localhost:5000/api/subreddits/${subreddit?.subreddit_id}/posts`);
-            const data = await response.json();
-            console.log(data);
-            if (Array.isArray(data) && data.length > 0) {
-                setPosts(data);
-            }
-        } catch (error) {
-            console.error('Error fetching subreddit posts:', error);
-        }
-    };
-
-    const checkMembershipStatus = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch('http://localhost:5000/api/users/subreddits', {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            const joinedSubreddits = await response.json();
-            const isUserMember = joinedSubreddits.some(
-                (joinedSubreddit: Subreddit) => joinedSubreddit.subreddit_id === subreddit?.subreddit_id
-            );
-            setIsMember(isUserMember);
-        } catch (error) {
-            console.error('Error checking membership status:', error);
-        }
-    };
 
     const handleJoinSubreddit = async () => {
         try {
@@ -213,8 +184,8 @@ const SubredditPage = () => {
         return <div>Error: {error}</div>;
     }
 
-    if (!subreddit) {
-        return <div>Loading subreddit...</div>;
+    if (isLoading) {
+        return <Loading />;
     }
 
     return (
@@ -242,7 +213,7 @@ const SubredditPage = () => {
                                 />
                                 {isDropdownOpen && (
                                     <div className="dropdown-menu enhanced-dropdown">
-                                        <a href="/profile" className="dropdown-item">Profile</a>
+                                        <a href="/profile" className="dropdown-item">{user?.username}</a>
                                         <a href="/edit" className="dropdown-item">Edit</a>
                                         <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
                                     </div>
@@ -262,7 +233,7 @@ const SubredditPage = () => {
             {/* Main content */}
             <div className="main-content">
                 {/* Left Sidebar */}
-                <div className="left-sidebar">
+                <div className="left-sidebar subreddit">
                     <h2 className="title">Menu</h2>
                     <ul>
                         <li>
@@ -293,18 +264,18 @@ const SubredditPage = () => {
                                     />
                                 </div>
                                 <div className="subreddit-page-header-content">
-                                    <div className="subreddit-page-icon">{subreddit.name[0].toUpperCase()}</div>
+                                    <div className="subreddit-page-icon">{subreddit?.name[0].toUpperCase()}</div>
                                     <div className="subreddit-page-details">
-                                        <h1 className="subreddit-page-title">{subreddit.title}</h1>
-                                        <p className="subreddit-page-name">r/{subreddit.name}</p>
-                                        <p className="subreddit-page-description">{subreddit.description}</p>
+                                        <h1 className="subreddit-page-title">{subreddit?.title}</h1>
+                                        <p className="subreddit-page-name">r/{subreddit?.name}</p>
+                                        <p className="subreddit-page-description">{subreddit?.description}</p>
                                     </div>
                                     {isLoggedIn && (
                                         <>
-                                            {user?.user_id === subreddit.user_id ? (
+                                            {user?.user_id === subreddit?.user_id ? (
                                                 <button
                                                     className="subreddit-page-edit-button"
-                                                    onClick={() => window.location.href = `/edit-subreddit/${subreddit.subreddit_id}`}
+                                                    onClick={() => window.location.href = `/edit-subreddit/${subreddit?.subreddit_id}`}
                                                 >
                                                     Edit Subreddit
                                                 </button>
@@ -332,7 +303,7 @@ const SubredditPage = () => {
                 </div>
 
                 {/* Right Sidebar */}
-                <div className="right-sidebar">
+                <div className="right-sidebar subreddit">
                     <div className="joined-communities">
                         <h3>Joined Communities</h3>
                         <ul>

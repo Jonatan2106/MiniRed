@@ -42,14 +42,14 @@ const Register = () => {
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="register-input"
+          className="register-input-box"
         />
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="register-input"
+          className="register-input-box"
         />
         <div className="password-container">
           <input
@@ -57,7 +57,7 @@ const Register = () => {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="register-input"
+            className="register-input-box"
           />
           <button
             type="button"
@@ -73,7 +73,7 @@ const Register = () => {
             placeholder="Confirm Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="register-input"
+            className="register-input-box"
           />
           <button
             type="button"

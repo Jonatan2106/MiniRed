@@ -4,7 +4,7 @@ import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import { AiOutlinePlusCircle } from "react-icons/ai";
 import '../styles/home.css';
 import '../styles/main.css';
-import { text } from 'stream/consumers';
+import Loading from './Loading';
 
 interface Post {
   post_id: string;
@@ -51,55 +51,55 @@ const Home = () => {
   const [users, setUsers] = useState<Map<string, User>>(new Map());
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Inside the Home component
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-      fetch('http://localhost:5000/api/me', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          setUser({ username: data.username, profilePic: data.profilePic });
-        })
-        .catch((error) => console.error('Error fetching user data:', error));
-    }
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          setIsLoggedIn(true);
+          const userResponse = await fetch('http://localhost:5000/api/me', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const userData = await userResponse.json();
+          setUser({ username: userData.username, profilePic: userData.profilePic });
+        }
 
-    fetch('http://localhost:5000/api/posts')
-      .then((response) => response.json())
-      .then((data) => {
-        setPosts(data);
-        setSearchResults(data);
-      })
-      .catch((error) => setError('Error fetching posts'));
+        const postsResponse = await fetch('http://localhost:5000/api/posts');
+        const postsData = await postsResponse.json();
+        setPosts(postsData);
+        setSearchResults(postsData);
 
-    fetch('http://localhost:5000/api/users/subreddits', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      }
-    })
-      .then(response => response.json())
-      .then(data => {
-        setJoinedSubreddits(data);
-      })
-      .catch((error) => console.error('Error fetching joined communities:', error));
+        const subredditsResponse = await fetch('http://localhost:5000/api/users/subreddits', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        const subredditsData = await subredditsResponse.json();
+        setJoinedSubreddits(subredditsData);
 
-    fetch('http://localhost:5000/api/user/all')
-      .then((response) => response.json())
-      .then((data) => {
+        const usersResponse = await fetch('http://localhost:5000/api/user/all');
+        const usersData = await usersResponse.json();
         const userMap = new Map();
-        data.forEach((user: User) => {
-          userMap.set(user.user_id, user); // Ensure user_id is the key
+        usersData.forEach((user: User) => {
+          userMap.set(user.user_id, user);
         });
         setUsers(userMap);
-      })
-      .catch((error) => console.error('Error fetching users:', error));
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load data. Please try again later.');
+      } finally {
+        setIsLoading(false); // Ensure loading is stopped in all cases
+      }
+    };
+
+    fetchData();
   }, []);
 
 
@@ -136,7 +136,9 @@ const Home = () => {
     setDropdownOpen((prev) => !prev);
   };
 
-  // const subredditCreatedAt = subreddit.created_at ? new Date(subreddit.created_at).toLocaleString() : "Unknown Date";
+  if (isLoading) {
+    return <Loading />; // Show loading screen
+  }
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -176,7 +178,7 @@ const Home = () => {
                 />
                 {isDropdownOpen && (
                   <div className="dropdown-menu enhanced-dropdown">
-                    <a href="/profile" className="dropdown-item">Profile</a>
+                    <a href="/profile" className="dropdown-item">{user?.username}</a>
                     <a href="/edit" className="dropdown-item">Edit</a>
                     <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
                   </div>
@@ -198,7 +200,7 @@ const Home = () => {
       {/* Main content */}
       <div className="main-content">
         {/* Left Sidebar */}
-        <div className="left-sidebar">
+        <div className="left-sidebar home">
           <h2 className="title">Menu</h2>
           <ul>
             <li>
@@ -301,7 +303,8 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
   const [voteCount, setVoteCount] = useState<{ upvotes: number; downvotes: number, score: number }>({ upvotes: 0, downvotes: 0, score: 0 });
   const [commentCount, setCommentCount] = useState<number>(0);
   const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
-  const [voteId, setVoteId] = useState<string | null>(null); // Store the voteId
+  const [voteId, setVoteId] = useState<string | null>(null); 
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchCommentCount();
@@ -325,7 +328,8 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
         })
         .catch(error => {
           console.error('Error fetching user vote:', error);
-        });
+        })
+        .finally(() => setIsLoading(false)); // Stop loading after fetching user vote
     }
   }, [post.post_id]);
 

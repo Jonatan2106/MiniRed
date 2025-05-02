@@ -2,6 +2,7 @@ import e, { Request, Response } from 'express';
 import { Comment } from '../../../models/comment';
 import { Post } from '../../../models/post';
 import { User } from '../../../models/user';
+import { Vote } from '../../../models/vote';
 import { v4 } from 'uuid';
 
 //1. Get comments for a post
@@ -173,16 +174,18 @@ export const updateComment = async (req: Request, res: Response) => {
 //4, Delete a comment
 export const deleteComment = async (req: Request, res: Response) => {
     try {
-
         const comment = await Comment.findByPk(req.params.id);
-
         if (comment) {
+            await Vote.destroy({
+                where: {
+                    kategori_id: req.params.id,
+                },
+            });
             await comment.destroy();
             res.status(204).send();
         } else {
             res.status(404).json({ message: 'Comment not found' });
         }
-
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to delete comment' });

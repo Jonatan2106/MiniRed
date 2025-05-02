@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/api';
 import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
+import Loading from './Loading';
 import '../styles/postdetail.css';
 import '../styles/main.css';
 
@@ -47,27 +48,35 @@ const PostDetail = () => {
   const [replyContent, setReplyContent] = useState<{ [key: string]: string }>({});
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
-
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-      fetch('http://localhost:5000/api/me', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          setUser({ username: data.username, profilePic: data.profilePic });
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        setIsLoggedIn(true);
+        fetch('http://localhost:5000/api/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         })
-        .catch((error) => console.error('Error fetching user data:', error));
+          .then((response) => response.json())
+          .then((data) => {
+            setUser({ username: data.username, profilePic: data.profilePic });
+          })
+          .catch((error) => console.error('Error fetching user data:', error));
+      }
+
+      fetchPostAndComments();
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+    finally {
+      setIsLoading(false);
     }
 
-    fetchPostAndComments();
   }, [id]);
 
   const fetchPostAndComments = async () => {
@@ -220,6 +229,10 @@ const PostDetail = () => {
     });
   };
 
+  if (isLoading) {
+    return <Loading />;
+  }
+
   return (
     <div className="post-detail-container">
       <button className="back-button" onClick={() => navigate(-1)}>
@@ -300,10 +313,18 @@ const Comment = ({
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   const [voteId, setVoteId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchVoteCount();
-    fetchUserVote();
+    try {
+      fetchVoteCount();
+      fetchUserVote();
+    } catch (error) {
+      console.error('Error fetching vote data:', error);
+    }
+    finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const fetchVoteCount = async () => {
@@ -462,6 +483,10 @@ const Comment = ({
     }
   };
 
+  if (isLoading) {
+    return <Loading />;
+  }
+
   return (
     <div className="comment-card">
       <div className="comment-header">
@@ -473,7 +498,7 @@ const Comment = ({
             className="comment-author-profile-pic"
           />
           {/* Author Name (Clickable) */}
-          <a href={"http://localhost:5173/u/"+(comment.user)?.username} className="comment-author">
+          <a href={"http://localhost:5173/u/" + (comment.user)?.username} className="comment-author">
             {comment.user.username}
           </a>
         </div>

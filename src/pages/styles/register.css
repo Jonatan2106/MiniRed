@@ -30,8 +30,9 @@
 }
 
 /* Input Fields */
-.register-container .register-input {
+.register-container .register-input-box {
     max-width: 94.5%;
+    width: 100%;
     padding: 12px;
     margin: 10px 0;
     border: 1px solid #989898;
@@ -43,13 +44,13 @@
     margin-bottom: 20px;
 }
 
-.register-container .register-input:focus {
+.register-container .register-input-box:focus {
     border-color: #ff4500;
     box-shadow: 0 0 5px rgba(255, 69, 0, 0.5);
     outline: none;
 }
 
-.register-container .register-input::placeholder {
+.register-container .register-input-box::placeholder {
     color: #a8a8a8;
     font-style: italic;
 }
