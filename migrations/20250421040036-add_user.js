@@ -21,13 +21,8 @@ export default {
         type: Sequelize.STRING,
         allowNull: false
       },
-      user_type: {
-        type: Sequelize.ENUM("ADMIN", "USER"), 
-        allowNull: false,
-        defaultValue: "USER"
-      },
       profile_pic: {
-        type: Sequelize.BLOB,
+        type: Sequelize.STRING,
         allowNull: true
       },
       created_at: {
