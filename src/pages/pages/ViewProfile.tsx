@@ -225,10 +225,6 @@ const ViewProfile = () => {
         return <div className="error-message">{error}</div>;
     }
 
-    if (!user) {
-        return <div>Loading...</div>;
-    }
-
     if (isLoading) {
         return <Loading />;
     }
@@ -305,11 +301,11 @@ const ViewProfile = () => {
                     <div className="view-profile-container">
                         {/* Profile Header */}
                         <div className="view-profile-header">
-                            <img src={user.profilePic || '/default.png'} alt={user.username} className="view-profile-pic" />
+                            <img src={user?.profilePic || '/default.png'} alt={user?.username} className="view-profile-pic" />
                             <div className="view-profile-info">
-                                <h1>{user.username}</h1>
-                                <p>u/{user.username}</p>
-                                <p>Joined {new Date(user.created_at).toLocaleDateString()}</p>
+                                <h1>{user?.username}</h1>
+                                <p>u/{user?.username}</p>
+                                <p>Joined {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}</p>
                             </div>
                         </div>
 
