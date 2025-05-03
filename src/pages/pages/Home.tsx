@@ -118,34 +118,56 @@ const Home = () => {
     };
 
     fetchData();
-  }, [allSubreddits, posts]); // Fetch data on component mount and when allSubreddits or posts change
+  }, []); // Fetch data on component mount and when allSubreddits or posts change
 
+  const useDebounce = (value: string, delay: number) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+
+    return debouncedValue;
+  };
+
+  const debouncedQuery = useDebounce(query, 300);
+
+  useEffect(() => {
+    handleSearch();
+  }, [debouncedQuery]);
 
   const handleCreatePost = () => {
     window.location.href = '/create-post';
   };
 
   const handleSearch = () => {
-    if (query.trim() === '') {
-      // window.location.reload();
-      // setFilteredSubredd its([]); // Clear filtered subreddits if query is empty
-      // setFilteredSubreddits(allSubreddits);
-    } else {
-      // Filter posts based on the query matching the title
-      const filteredPosts = posts.filter((post) =>
-        post.title.toLowerCase().includes(query.toLowerCase())
-      );
-      setSearchResults(filteredPosts);
+    const trimmedQuery = query.trim().toLowerCase();
 
-      // Filter communities based on the query matching the name
-      const filteredSubreddits = allSubreddits.filter((subreddit) =>
-        subreddit.name.toLowerCase().includes(query.toLowerCase())
-      );
-
-      console.log("Filtered Subreddits:", filteredSubreddits); // Debugging line
-      setFilteredSubreddits(filteredSubreddits);
-      console.log("Filtered Subreddits:", filteredSubreddits); // Debugging line
+    if (trimmedQuery === '') {
+      // Reset to show all posts and subreddits if the query is empty
+      setSearchResults(posts);
+      setFilteredSubreddits(allSubreddits);
+      return;
     }
+
+    // Filter posts based on the query matching the title
+    const filteredPosts = posts.filter((post) =>
+      post.title.toLowerCase().includes(trimmedQuery)
+    );
+
+    // Filter subreddits based on the query matching the name
+    const filteredSubreddits = allSubreddits.filter((subreddit) =>
+      subreddit.name.toLowerCase().includes(trimmedQuery)
+    );
+
+    setSearchResults(filteredPosts);
+    setFilteredSubreddits(filteredSubreddits);
   };
 
   const handleLogout = () => {
@@ -186,6 +208,18 @@ const Home = () => {
           <button className="search-button" onClick={handleSearch}>
             Search
           </button>
+          {query && (
+            <button
+              className="clear-button"
+              onClick={() => {
+                setQuery('');
+                setSearchResults(posts);
+                setFilteredSubreddits(allSubreddits);
+              }}
+            >
+              Clear
+            </button>
+          )}
         </div>
         <div className="navbar-right">
           {isLoggedIn ? (
