@@ -265,6 +265,7 @@ const Home = () => {
             </li>
             <li>
               <FaCompass className="icon" /> {/* Explore icon */}
+              
               <a href="/explore">Explore</a>
             </li>
             <li>
