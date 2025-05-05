@@ -14,16 +14,23 @@ const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    username: string;
+    email: string;
+    password: string;
+    profilePic: string | File; // Allow both string and File
+  }>({
     username: "",
     email: "",
     password: "",
-    profilePic: null,
+    profilePic: "",
   });
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<{
     username: string;
+    email: string;
+    password: string;
     profilePic: string;
   } | null>(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
@@ -62,17 +69,36 @@ const EditProfile = () => {
         })
           .then((response) => response.json())
           .then((data) => {
-            setUser({ username: data.username, profilePic: data.profilePic });
+            setUser({
+              username: data.username,
+              email: data.email,
+              password: data.password,
+              profilePic: data.profilePic,
+            });
+            setFormData({
+              username: data.username,
+              email: data.email,
+              password: data.password,
+              profilePic: data.profilePic,
+            });
           })
-          .catch((error) => console.error("Error fetching user data:", error));
+          .catch((error) => console.error("Error fetching user data:", error))
+          .finally(() => setIsLoading(false));
+      } else {
+        setIsLoading(false);
+      }
+      if (popupType && inputValue !== "") {
+        setFormData((prev) => ({
+          ...prev,
+          [popupType === "propic" ? "profilePic" : popupType]: inputValue,
+        }));
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-    finally {
+      console.error("Error in useEffect:", error);
+    } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [inputValue]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -91,15 +117,15 @@ const EditProfile = () => {
         setError("You must be logged in to update your profile.");
         return;
       }
-  
+
       const payload = new FormData();
       payload.append("username", formData.username);
       payload.append("email", formData.email);
       payload.append("password", formData.password);
-      if (formData.profilePic) {
-        payload.append("profilePic", formData.profilePic); // Assuming profilePic is a File object
+      if (formData.profilePic instanceof File) {
+        payload.append("profilePic", formData.profilePic);
       }
-  
+
       const response = await fetch("http://localhost:5000/api/me", {
         method: "PUT",
         headers: {
@@ -107,22 +133,29 @@ const EditProfile = () => {
         },
         body: payload,
       });
-  
-      if (response.ok) {
-        const updatedUser = await response.json();
-        console.log("User profile updated successfully:", updatedUser);
-        setUser(updatedUser.user);
-        closePopup();
-      } else {
+
+      if (!response.ok) {
         const errorData = await response.json();
-        console.error("Failed to update user profile:", errorData.message);
-        setError(errorData.message);
+        throw new Error(errorData.message || "Failed to update profile.");
       }
-    } catch (error) {
-      console.error("Error updating user profile:", error);
-      setError("An unexpected error occurred.");
+
+      const updatedUser = await response.json();
+      setUser(updatedUser.user || updatedUser);
+      setFormData({
+        username: updatedUser.username,
+        email: updatedUser.email,
+        password: updatedUser.password,
+        profilePic: updatedUser.profilePic,
+      });
+      setPopupType(null);
+      setInputValue('');
+      setError(null);
+    } catch (error: any) {
+      console.error("Error updating profile:", error.message);
+      setError(error.message || "Unexpected error");
     }
   };
+
 
   if (error) {
     return <div>Error: {error}</div>;
@@ -229,7 +262,18 @@ const EditProfile = () => {
                   <p className="modal-subtext">{descriptions[popupType]}</p>
 
                   {popupType === 'propic' ? (
-                    <input type="file" className="modal-input" />
+                    <input
+                      type="file"
+                      className="modal-input"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          setFormData((prev) => ({
+                            ...prev,
+                            profilePic:  user?.profilePic || "", // Assign the File object
+                          }));
+                        }
+                      }}
+                    />
                   ) : (
                     <input
                       className="modal-input"
@@ -244,10 +288,7 @@ const EditProfile = () => {
                     <button className="cancel-btn" onClick={closePopup}>Cancel</button>
                     <button
                       className="save-btn"
-                      onClick={() => {
-                        handleSubmit();
-                        closePopup();
-                      }}
+                      onClick={handleSubmit}
                     >
                       Save
                     </button>
