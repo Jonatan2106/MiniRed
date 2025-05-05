@@ -93,7 +93,8 @@
 .profile-form .user,
 .profile-form .email,
 .profile-form .password,
-.profile-form .propic {
+.profile-form .propic,
+.profile-form .delete {
   display: flex;
   justify-content: space-between;
   align-items: center;

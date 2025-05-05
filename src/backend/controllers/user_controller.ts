@@ -7,6 +7,7 @@ import { Post } from '../../../models/post';
 import { generateToken } from '../utils/jwt_helper';
 import { Vote } from '../../../models/vote'; // Assuming you have a Vote model defined
 import { Subreddit } from '../../../models/subreddit';
+import { c } from 'vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf';
 
 // POST /register - Register a new user
 export const registerUser = async (req: Request, res: Response) => {
@@ -142,14 +143,37 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         if (!user) {
             return;
         }
-        if (username !== undefined || email !== undefined || (password !== undefined && password.trim() !== "") || profilePic !== undefined) {
+        
+        if (username !== undefined || username !== "") {
             user.username = username;
+        }
+        else {
+            user.username = user.username;
+        }
+        if (email !== undefined || email !== "") {
             user.email = email;
+        }
+        else {
+            user.email = user.email;
+        }
+        if (password !== undefined) {
+            console.log("password", password);
             const hashedPassword = await bcrypt.hash(password, 10);
             user.password = hashedPassword;
+        }
+        else {
+            user.password = user.password;
+        }
+        if (profilePic !== undefined || profilePic !== "") {
             user.profile_pic = profilePic;
         }
+        else {
+            user.profile_pic = user.profile_pic;
+        }
+        console.log(user);
         await user.save();
+        console.log(user);
+        res.status(200).json({ message: 'User profile updated successfully', user });
     } catch (error) {
         console.error(error);
     }

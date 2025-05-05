@@ -4,38 +4,30 @@ import Loading from './Loading';
 import "../styles/editprofile.css";
 import "../styles/main.css";
 
-interface User {
-  user_id: string;
-  username: string;
-  profilePic: string;
-}
-
 const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState<string | null>(null);
-  const [formData, setFormData] = useState<{
-    username: string;
-    email: string;
-    password: string;
-    profilePic: string | File; // Allow both string and File
-  }>({
+  const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
-    profilePic: "",
+    profilePic: "" as string | File,
   });
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<{
+  const [user, setUser] = useState<null | {
     username: string;
     email: string;
     password: string;
     profilePic: string;
-  } | null>(null);
+  }>(null);
+
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [popupType, setPopupType] = useState<'username' | 'email' | 'password' | 'propic' | null>(null);
+  const [popupType, setPopupType] = useState<'username' | 'email' | 'password' | 'propic' | 'delete' | null>(null);
   const [inputValue, setInputValue] = useState('');
+
   const closePopup = () => {
     setPopupType(null);
     setInputValue('');
@@ -46,6 +38,7 @@ const EditProfile = () => {
     email: 'Email',
     password: 'Password',
     propic: 'Profile Picture',
+    delete: 'Delete Profile'
   };
 
   const descriptions = {
@@ -53,50 +46,40 @@ const EditProfile = () => {
     email: 'Update your email address.',
     password: 'Changing your password will affect how you log in.',
     propic: 'Upload or change your profile picture.',
+    delete: 'Deleting your profile will remove all your data permanently.'
   };
 
-  // Inside the Home component
   useEffect(() => {
-    try {
-      const token = localStorage.getItem("token");
-      if (token) {
-        setIsLoggedIn(true);
-        fetch("http://localhost:5000/api/me", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+      fetch("http://localhost:5000/api/me", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setUser(data);
+          setFormData({
+            username: data.username,
+            email: data.email,
+            password: "",
+            profilePic: data.profilePic,
+          });
         })
-          .then((response) => response.json())
-          .then((data) => {
-            setUser({
-              username: data.username,
-              email: data.email,
-              password: data.password,
-              profilePic: data.profilePic,
-            });
-            setFormData({
-              username: data.username,
-              email: data.email,
-              password: data.password,
-              profilePic: data.profilePic,
-            });
-          })
-          .catch((error) => console.error("Error fetching user data:", error))
-          .finally(() => setIsLoading(false));
-      } else {
-        setIsLoading(false);
-      }
-      if (popupType && inputValue !== "") {
-        setFormData((prev) => ({
-          ...prev,
-          [popupType === "propic" ? "profilePic" : popupType]: inputValue,
-        }));
-      }
-    } catch (error) {
-      console.error("Error in useEffect:", error);
-    } finally {
+        .catch((err) => console.error("Error fetching user data:", err))
+        .finally(() => setIsLoading(false));
+    } else {
       setIsLoading(false);
+    }
+
+    if (popupType && inputValue !== "") {
+      setFormData((prev) => ({
+        ...prev,
+        [popupType === "propic" ? "profilePic" : popupType]: inputValue,
+      }));
     }
   }, [inputValue]);
 
@@ -118,21 +101,27 @@ const EditProfile = () => {
         return;
       }
 
-      const payload = new FormData();
-      payload.append("username", formData.username);
-      payload.append("email", formData.email);
-      payload.append("password", formData.password);
-      if (formData.profilePic instanceof File) {
-        payload.append("profilePic", formData.profilePic);
+      const updatedFormData = { ...formData };
+      if (popupType && popupType !== 'propic' && popupType !== 'delete') {
+        updatedFormData[popupType] = inputValue;
       }
+
+      const payload = {
+        username: updatedFormData.username,
+        email: updatedFormData.email,
+        password: updatedFormData.password,
+        profilePic: typeof updatedFormData.profilePic === "string" || File ? updatedFormData.profilePic : null,
+      };
 
       const response = await fetch("http://localhost:5000/api/me", {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: payload,
+        body: JSON.stringify(payload),
       });
+
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -144,30 +133,51 @@ const EditProfile = () => {
       setFormData({
         username: updatedUser.username,
         email: updatedUser.email,
-        password: updatedUser.password,
+        password: "",
         profilePic: updatedUser.profilePic,
       });
-      setPopupType(null);
-      setInputValue('');
+      closePopup();
       setError(null);
-    } catch (error: any) {
-      console.error("Error updating profile:", error.message);
-      setError(error.message || "Unexpected error");
+    } catch (err: any) {
+      console.error("Error updating profile:", err.message);
+      setError(err.message || "Unexpected error");
     }
   };
 
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  const handleDelete = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("You must be logged in to delete your profile.");
+        return;
+      }
 
-  if (isLoading) {
-    return <Loading />;
-  }
+      const res = await fetch("http://localhost:5000/api/me", {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to delete account.");
+      }
+
+      localStorage.removeItem("token");
+      window.location.href = "/";
+    } catch (err: any) {
+      console.error("Error deleting profile:", err.message);
+      setError(err.message || "Unexpected error");
+    }
+  };
+
+  if (error) return <div>Error: {error}</div>;
+  if (isLoading) return <Loading />;
 
   return (
     <div className="home-wrapper">
-      {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-left">
           <div className="logo">
@@ -176,104 +186,102 @@ const EditProfile = () => {
         </div>
         <div className="navbar-right">
           {isLoggedIn && (
-            <>
-              <div className="profile-menu">
-                <img
-                  src={user?.profilePic || "/default.png"}
-                  className="profile-pic"
-                  onClick={toggleDropdown}
-                />
-                {isDropdownOpen && (
-                  <div className="dropdown-menu">
-                    <a href="/profile" className="dropdown-item">{user?.username}</a>
-                    <a href="/edit" className="dropdown-item">Edit</a>
-                    <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
-                  </div>
-                )}
-              </div>
-            </>
+            <div className="profile-menu">
+              <img
+                src={
+                  formData.profilePic instanceof File
+                    ? URL.createObjectURL(formData.profilePic)
+                    : formData.profilePic || "/default.png"
+                }
+                className="profile-pic"
+                onClick={toggleDropdown}
+              />
+              {isDropdownOpen && (
+                <div className="dropdown-menu">
+                  <a href="/profile" className="dropdown-item">{user?.username}</a>
+                  <a href="/edit" className="dropdown-item">Edit</a>
+                  <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </nav>
 
-      {/* Main content */}
       <div className="main-content">
-        {/* Left Sidebar */}
         <div className="left-sidebar">
           <h2 className="title">Menu</h2>
           <ul>
-            <li>
-              <FaHome className="icon" />
-              <a href="/">Home</a>
-            </li>
-            <li>
-              <FaCompass className="icon" />
-              <a href="/explore">Explore</a>
-            </li>
-            <li>
-              <FaFire className="icon" />
-              <a href="/popular">Popular</a>
-            </li>
+            <li><FaHome className="icon" /><a href="/">Home</a></li>
+            <li><FaCompass className="icon" /><a href="/explore">Explore</a></li>
+            <li><FaFire className="icon" /><a href="/popular">Popular</a></li>
           </ul>
         </div>
 
-        {/* Edit Profile Section */}
         <div className="edit-profile-wrapper">
           <h3>Edit Profile</h3>
           <div className="profile-form">
             <div className="user" onClick={() => setPopupType('username')}>
-              <div className="form-group">
-                <h4>Username</h4>
-                <p>Change your username. This will affect your log in.</p>
-              </div>
+              <div className="form-group"><h4>Username</h4><p>{descriptions.username}</p></div>
               <div className="panah">&gt;</div>
             </div>
 
             <div className="email" onClick={() => setPopupType('email')}>
-              <div className="form-group">
-                <h4>Email</h4>
-                <p>Update your email address.</p>
-              </div>
+              <div className="form-group"><h4>Email</h4><p>{descriptions.email}</p></div>
               <div className="panah">&gt;</div>
             </div>
 
             <div className="password" onClick={() => setPopupType('password')}>
-              <div className="form-group">
-                <h4>Password</h4>
-                <p>Change your password. This will affect your log in.</p>
-              </div>
+              <div className="form-group"><h4>Password</h4><p>{descriptions.password}</p></div>
               <div className="panah">&gt;</div>
             </div>
 
             <div className="propic" onClick={() => setPopupType('propic')}>
-              <div className="form-group">
-                <h4>Profile Picture</h4>
-                <p>Upload or change your profile picture.</p>
-              </div>
+              <div className="form-group"><h4>Profile Picture</h4><p>{descriptions.propic}</p></div>
+              <div className="panah">&gt;</div>
+            </div>
+
+            <div className="delete" onClick={() => setPopupType('delete')}>
+              <div className="form-group"><h4>Delete Profile</h4><p>{descriptions.delete}</p></div>
               <div className="panah">&gt;</div>
             </div>
 
             {popupType && (
               <div className="overlay" onClick={closePopup}>
                 <div className="modal" onClick={(e) => e.stopPropagation()}>
-                  <div className="modal-header">
-                    <h3>{titles[popupType]}</h3>
-                  </div>
+                  <div className="modal-header"><h3>{titles[popupType]}</h3></div>
                   <p className="modal-subtext">{descriptions[popupType]}</p>
 
-                  {popupType === 'propic' ? (
-                    <input
-                      type="file"
-                      className="modal-input"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          setFormData((prev) => ({
-                            ...prev,
-                            profilePic:  user?.profilePic || "", // Assign the File object
-                          }));
-                        }
-                      }}
-                    />
+                  {popupType === 'delete' ? (
+                    <>
+                      <p className="modal-warning">Are you sure? This action cannot be undone.</p>
+                      <div className="modal-actions">
+                        <button className="cancel-btn" onClick={closePopup}>Cancel</button>
+                        <button className="delete-btn" onClick={handleDelete}>Delete</button>
+                      </div>
+                    </>
+                  ) : popupType === 'propic' ? (
+                    <>
+                      <input
+                        type="file"
+                        className="modal-input"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              // profilePic: e.target.files[0],
+                            }));
+                          }
+                        }}
+                      />
+                      {formData.profilePic instanceof File && (
+                        <img
+                          src={URL.createObjectURL(formData.profilePic)}
+                          alt="Preview"
+                          className="profile-preview"
+                        />
+                      )}
+                    </>
                   ) : (
                     <input
                       className="modal-input"
@@ -284,15 +292,12 @@ const EditProfile = () => {
                     />
                   )}
 
-                  <div className="modal-actions">
-                    <button className="cancel-btn" onClick={closePopup}>Cancel</button>
-                    <button
-                      className="save-btn"
-                      onClick={handleSubmit}
-                    >
-                      Save
-                    </button>
-                  </div>
+                  {popupType !== 'delete' && (
+                    <div className="modal-actions">
+                      <button className="cancel-btn" onClick={closePopup}>Cancel</button>
+                      <button className="save-btn" onClick={handleSubmit}>Save</button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
