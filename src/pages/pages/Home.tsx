@@ -44,6 +44,7 @@ const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
+  const [allSubreddits, setAllSubreddits] = useState<Subreddit[]>([]);
   const [filteredSubreddits, setFilteredSubreddits] = useState<Subreddit[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User>();
@@ -75,6 +76,23 @@ const Home = () => {
         setPosts(postsData);
         setSearchResults(postsData);
 
+
+        const allSubredditsResponse = await fetch('http://localhost:5000/api/subreddits', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+
+        const allSubredditsData = await allSubredditsResponse.json();
+        console.log('Fetched Subreddits:', allSubredditsData);
+
+        if (Array.isArray(allSubredditsData)) {
+          setAllSubreddits(allSubredditsData); // Set all subreddits for filtering
+        } else {
+          console.error('Invalid data format:', allSubredditsData);
+        }
+
         const subredditsResponse = await fetch('http://localhost:5000/api/users/subreddits', {
           method: 'GET',
           headers: {
@@ -100,30 +118,56 @@ const Home = () => {
     };
 
     fetchData();
-  }, []);
+  }, []); // Fetch data on component mount and when allSubreddits or posts change
 
+  const useDebounce = (value: string, delay: number) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+
+    return debouncedValue;
+  };
+
+  const debouncedQuery = useDebounce(query, 300);
+
+  useEffect(() => {
+    handleSearch();
+  }, [debouncedQuery]);
 
   const handleCreatePost = () => {
     window.location.href = '/create-post';
   };
 
   const handleSearch = () => {
-    if (query.trim() === '') {
-      window.location.reload();
-    } else {
-      // Filter posts based on the query matching the title
-      const filteredPosts = posts.filter((post) =>
-        post.title.toLowerCase().includes(query.toLowerCase())
-      );
-      setSearchResults(filteredPosts);
+    const trimmedQuery = query.trim().toLowerCase();
 
-      // Filter communities based on the query matching the name
-      const filteredCommunities = joinedSubreddits.filter((subreddit) =>
-        subreddit.name.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredSubreddits(filteredCommunities);
-      console.log("Filtered communities:", filteredCommunities);
+    if (trimmedQuery === '') {
+      // Reset to show all posts and subreddits if the query is empty
+      setSearchResults(posts);
+      setFilteredSubreddits(allSubreddits);
+      return;
     }
+
+    // Filter posts based on the query matching the title
+    const filteredPosts = posts.filter((post) =>
+      post.title.toLowerCase().includes(trimmedQuery)
+    );
+
+    // Filter subreddits based on the query matching the name
+    const filteredSubreddits = allSubreddits.filter((subreddit) =>
+      subreddit.name.toLowerCase().includes(trimmedQuery)
+    );
+
+    setSearchResults(filteredPosts);
+    setFilteredSubreddits(filteredSubreddits);
   };
 
   const handleLogout = () => {
@@ -164,6 +208,18 @@ const Home = () => {
           <button className="search-button" onClick={handleSearch}>
             Search
           </button>
+          {query && (
+            <button
+              className="clear-button"
+              onClick={() => {
+                setQuery('');
+                setSearchResults(posts);
+                setFilteredSubreddits(allSubreddits);
+              }}
+            >
+              Clear
+            </button>
+          )}
         </div>
         <div className="navbar-right">
           {isLoggedIn ? (
@@ -209,6 +265,7 @@ const Home = () => {
             </li>
             <li>
               <FaCompass className="icon" /> {/* Explore icon */}
+              
               <a href="/explore">Explore</a>
             </li>
             <li>
@@ -279,16 +336,13 @@ const SubredditCard = ({ subreddit, users }: { subreddit: Subreddit; users: Map<
   const owner = users.get(subreddit.user_id)?.username;
   const createdAt = new Date(subreddit.created_at).toLocaleString();
 
-  console.log("Subreddit created at:", createdAt);
-  console.log("Subreddit owner:", owner);
-
   return (
     <div className="post-card">
       <a href={`/r/${subreddit.name}`} className="post-link">
         <div className="post-content">
           <div className="post-header">
-            <span className="username">Owner: {owner}</span>
-            <span className="timestamp">Created: {createdAt}</span>
+            <span className="username">u/{owner}</span>
+            <span className="timestamp">{createdAt}</span>
           </div>
           <h3>r/{subreddit.name}</h3>
           <p>{subreddit.description}</p>
@@ -303,7 +357,7 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
   const [voteCount, setVoteCount] = useState<{ upvotes: number; downvotes: number, score: number }>({ upvotes: 0, downvotes: 0, score: 0 });
   const [commentCount, setCommentCount] = useState<number>(0);
   const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
-  const [voteId, setVoteId] = useState<string | null>(null); 
+  const [voteId, setVoteId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

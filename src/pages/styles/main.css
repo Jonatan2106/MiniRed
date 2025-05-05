@@ -38,6 +38,11 @@ a:hover {
   cursor: pointer;
 }
 
+.profile-pic:hover {
+  box-shadow: 0 0 10px rgba(255, 64, 0, 0.82);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
 .create-post-btn {
   justify-content: center;
   align-items: center;

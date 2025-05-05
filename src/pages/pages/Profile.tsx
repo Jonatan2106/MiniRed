@@ -58,7 +58,7 @@ interface OverviewItem {
 
 const Profile = () => {
   const [users, setUsers] = useState<Map<string, User>>(new Map());
-  const [user, setUser] = useState<{ username: string; profilePic: string } | null>(null);
+  const [user, setUser] = useState<{ username: string; profilePic: string; user_id?: string } | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -68,6 +68,16 @@ const Profile = () => {
   const [Downvoted, setDownVotes] = useState<Vote[]>([]);
   const [upvoted, setUpVotes] = useState<Vote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [postKarma, setPostKarma] = useState<number>(0);
+  const [commentKarma, setCommentKarma] = useState<number>(0);
+
+  const calculatePostKarma = (posts: Post[], userId: string): number => {
+    return posts.filter((post) => post.user_id === userId).length;
+  };
+  
+  const calculateCommentKarma = (comments: Comment[], userId: string): number => {
+    return comments.filter((comment) => comment.user_id === userId).length;
+  };
 
   useEffect(() => {
     try {
@@ -82,11 +92,17 @@ const Profile = () => {
         })
           .then((response) => response.json())
           .then((data) => {
-            setUser({ username: data.username, profilePic: data.profilePic });
+            setUser({ username: data.username, profilePic: data.profilePic, user_id: data.user_id });
+
+            const calculatedPostKarma = calculatePostKarma(posts, data.user_id);
+            const calculatedCommentKarma = calculateCommentKarma(comments, data.user_id);
+            setPostKarma(calculatedPostKarma);
+            setCommentKarma(calculatedCommentKarma);
+
           })
           .catch((error) => console.error('Error fetching user data:', error));
       }
-  
+
       fetch('http://localhost:5000/api/user/me/posts', {
         method: 'GET',
         headers: {
@@ -96,7 +112,7 @@ const Profile = () => {
         .then(response => response.json())
         .then(data => setPosts(data))
         .catch(() => console.error('Error fetching posts'));
-  
+
       fetch('http://localhost:5000/api/user/me/comments', {
         method: 'GET',
         headers: {
@@ -121,7 +137,7 @@ const Profile = () => {
           setComments(commentsWithPosts);
         })
         .catch(() => console.error('Error fetching comments'));
-  
+
       fetch('http://localhost:5000/api/user/me/downvoted', {
         method: 'GET',
         headers: {
@@ -131,7 +147,7 @@ const Profile = () => {
         .then(response => response.json())
         .then(data => setDownVotes(data))
         .catch(() => console.error('Error fetching downvoted posts'));
-  
+
       fetch('http://localhost:5000/api/user/me/upvoted', {
         method: 'GET',
         headers: {
@@ -141,7 +157,7 @@ const Profile = () => {
         .then(response => response.json())
         .then(data => setUpVotes(data))
         .catch(() => console.error('Error fetching upvoted posts'));
-  
+
       fetch('http://localhost:5000/api/users/subreddits', {
         method: 'GET',
         headers: {
@@ -157,7 +173,9 @@ const Profile = () => {
     finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user, posts, comments, joinedSubreddits, Downvoted, upvoted]);
+
+  
 
   const handleTabClick = (tab: 'Overview' | 'Posts' | 'Comments' | 'Upvoted' | 'Downvoted'): void => {
     setActiveTab(tab);
@@ -287,6 +305,18 @@ const Profile = () => {
             <div className="profile-info">
               <h1 className="username">{user?.username || "Loading..."}</h1>
               <p className="user-handle">u/{user?.username}</p>
+            </div>
+          </div>
+
+          {/* Profile Stats */}
+          <div className="profile-stats">
+            <div className="profile-stat-item">
+              <h3>{postKarma}</h3>
+              <p>Post Karma</p>
+            </div>
+            <div className="profile-stat-item">
+              <h3>{commentKarma}</h3>
+              <p>Comment Karma</p>
             </div>
           </div>
 

@@ -6,7 +6,7 @@
     color: #d7dadc;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border: 1px solid #272729; 
+    border: 1px solid #272729;
 }
 
 .view-profile-header {
@@ -101,6 +101,28 @@
 
 .view-profile-content {
     margin-top: 1.5rem;
+    min-height: 300px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.view-profile-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.view-profile-content::-webkit-scrollbar-track {
+    background: #1a1a1b;
+    border-radius: 4px;
+}
+
+.view-profile-content::-webkit-scrollbar-thumb {
+    background-color: #ff4500;
+    border-radius: 4px;
+    border: 2px solid #1a1a1b;
+}
+
+.view-profile-content::-webkit-scrollbar-thumb:hover {
+    background-color: #ff5700;
 }
 
 .view-profile-post-item {

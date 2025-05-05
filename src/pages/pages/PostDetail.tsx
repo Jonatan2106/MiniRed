@@ -313,7 +313,6 @@ const Comment = ({
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   const [voteId, setVoteId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     try {
@@ -321,9 +320,6 @@ const Comment = ({
       fetchUserVote();
     } catch (error) {
       console.error('Error fetching vote data:', error);
-    }
-    finally {
-      setIsLoading(false);
     }
   }, []);
 
@@ -488,10 +484,6 @@ const Comment = ({
       console.error('Error canceling vote:', error);
     }
   };
-
-  if (isLoading) {
-    return <Loading />;
-  }
 
   return (
     <div className="comment-card">

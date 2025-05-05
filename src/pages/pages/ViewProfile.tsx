@@ -5,6 +5,7 @@ import { AiOutlinePlusCircle } from 'react-icons/ai';
 import Loading from './Loading';
 import '../styles/viewprofile.css';
 import '../styles/home.css';
+import { c } from 'vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf';
 
 interface User {
     user_id: string;
@@ -118,16 +119,58 @@ const ViewProfile = () => {
         const response = await fetch(`http://localhost:5000/api/user/${userId}/post`, {
             headers: { Authorization: `Bearer ${token}` },
         });
+
         if (!response.ok) throw new Error('Failed to fetch user posts');
-        return response.json();
+
+        const posts = await response.json();
+
+        const postsWithSubreddit = await Promise.all(
+            posts.map(async (post: any) => {
+                const subredditResponse = await fetch(`http://localhost:5000/api/subreddits/${post.subreddit_id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (!subredditResponse.ok) {
+                    console.error(`Failed to fetch subreddit for post ${post.post_id}`);
+                    return { ...post, subreddit_name: 'Unknown Subreddit' };
+                }
+
+                const subreddit = await subredditResponse.json();
+                console.log('Subreddit:', subreddit.name); // Debugging line
+                return { ...post, subreddit_name: subreddit.name, subreddit: subreddit };
+            })
+        );
+
+        return postsWithSubreddit;
     };
 
     const fetchUserComments = async (userId: string, token: string | null): Promise<Comment[]> => {
         const response = await fetch(`http://localhost:5000/api/user/${userId}/comment`, {
             headers: { Authorization: `Bearer ${token}` },
         });
+
         if (!response.ok) throw new Error('Failed to fetch user comments');
-        return response.json();
+
+        const comments = await response.json();
+
+        const commentsWithPost = await Promise.all(
+            comments.map(async (comment: any) => {
+                const postResponse = await fetch(`http://localhost:5000/api/posts/${comment.post_id}`, {
+                    method: 'GET',
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (!postResponse.ok) {
+                    console.error(`Failed to fetch post for comment ${comment.comment_id}`);
+                    return { ...comment, post: { title: 'Unknown Post' } };
+                }
+
+                const post = await postResponse.json();
+                return { ...comment, post };
+            })
+        );
+
+        return commentsWithPost;
     };
 
     const fetchJoinedCommunities = async (userId: string, token: string | null): Promise<Subreddit[]> => {
@@ -180,10 +223,6 @@ const ViewProfile = () => {
 
     if (error) {
         return <div className="error-message">{error}</div>;
-    }
-
-    if (!user) {
-        return <div>Loading...</div>;
     }
 
     if (isLoading) {
@@ -239,7 +278,7 @@ const ViewProfile = () => {
             {/* Main Content */}
             <div className="main-content">
                 {/* Left Sidebar */}
-                <div className="left-sidebar">
+                <div className="left-sidebar home">
                     <h2 className="title">Menu</h2>
                     <ul>
                         <li>
@@ -262,11 +301,11 @@ const ViewProfile = () => {
                     <div className="view-profile-container">
                         {/* Profile Header */}
                         <div className="view-profile-header">
-                            <img src={user.profilePic || '/default.png'} alt={user.username} className="view-profile-pic" />
+                            <img src={user?.profilePic || '/default.png'} alt={user?.username} className="view-profile-pic" />
                             <div className="view-profile-info">
-                                <h1>{user.username}</h1>
-                                <p>u/{user.username}</p>
-                                <p>Joined {new Date(user.created_at).toLocaleDateString()}</p>
+                                <h1>{user?.username}</h1>
+                                <p>u/{user?.username}</p>
+                                <p>Joined {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}</p>
                             </div>
                         </div>
 

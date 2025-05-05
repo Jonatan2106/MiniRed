@@ -52,6 +52,9 @@ const SubredditPage = () => {
     const [subreddit, setSubreddit] = useState<Subreddit | null>(null);
     const [isMember, setIsMember] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [bannerPic, setBannerPic] = useState<string>(() => {
+        return `/banner_${Math.floor(Math.random() * 3) + 1}.jpg`;
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -258,7 +261,7 @@ const SubredditPage = () => {
                             <div className="subreddit-page-header">
                                 <div className="subreddit-page-banner">
                                     <img
-                                        src={`/banner_${Math.floor(Math.random() * 3) + 1}.jpg`}
+                                        src={bannerPic}
                                         alt="Subreddit Banner"
                                         className="subreddit-page-banner-image"
                                     />

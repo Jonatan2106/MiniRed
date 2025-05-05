@@ -285,4 +285,4 @@ export const getPostBySubredditId = async (req: Request, res: Response) => {
     console.error('Error fetching posts by subreddit ID:', err);
     res.status(500).json({ message: 'Error fetching posts', error: err });
   }
-};
+};  

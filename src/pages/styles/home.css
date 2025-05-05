@@ -32,13 +32,71 @@ html,
     color: #FF4500;
 }
 
+/* Search Bar Container */
+.navbar-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+/* Search Input */
 .navbar-center .search-input {
     background-color: #272729;
-    border: none;
-    border-radius: 20px;
-    padding: 0.5rem 1rem;
-    width: 400px;
+    border: 1px solid #444;
+    border-radius: 9999px;
+    padding: 0.6rem 1.5rem;
+    margin: .5rem 1rem;
+    width: 300px;
     color: white;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.navbar-center .search-input:focus {
+    outline: none;
+    border-color: #FF4500;
+    box-shadow: 0 0 8px rgba(255, 69, 0, 0.8);
+}
+
+/* Search Button */
+.navbar-center .search-button {
+    background-color: #FF4500;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.navbar-center .search-button:hover {
+    background-color: #FF5700;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(255, 87, 0, 0.4);
+}
+
+/* Clear Button */
+.navbar-center .clear-button {
+    background-color: transparent;
+    color: #FF4500;
+    border: 1px solid #FF4500;
+    padding: 0.6rem 1rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.navbar-center .clear-button:hover {
+    background-color: #FF4500;
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(255, 69, 0, 0.4);
 }
 
 .navbar-right {
@@ -677,21 +735,18 @@ img {
     }
 }
 
-.navbar-center .search-button {
-    background-color: #FF4500;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-left: 0.5rem;
-    font-weight: bold;
-}
+/* Responsive Search Bar */
+@media (max-width: 768px) {
+    .navbar-center .search-input {
+        width: 200px;
+        font-size: 0.9rem;
+    }
 
-.navbar-center .search-button:hover {
-    background-color: #FF5700;
-    transform: scale(1.05);
-    transition: 1s;
+    .navbar-center .search-button,
+    .navbar-center .clear-button {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
 }
 
 /* Community Card */
