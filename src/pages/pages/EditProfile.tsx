@@ -3,11 +3,11 @@ import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import Loading from './Loading';
 import "../styles/editprofile.css";
 import "../styles/main.css";
+import { User } from "../../../models/user";
 
 const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<string | null>(null);
+  const [image, setImage] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -17,16 +17,12 @@ const EditProfile = () => {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<null | {
-    username: string;
-    email: string;
-    password: string;
-    profilePic: string;
-  }>(null);
+  const [user, setUser] = useState<null | User>(null);
 
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [popupType, setPopupType] = useState<'username' | 'email' | 'password' | 'propic' | 'delete' | null>(null);
   const [inputValue, setInputValue] = useState('');
+  const [profile_pic, setProfilePic] = useState('');
 
   const closePopup = () => {
     setPopupType(null);
@@ -50,6 +46,11 @@ const EditProfile = () => {
   };
 
   useEffect(() => {
+    console.log("Updated User:", user);
+    setProfilePic(user?.profile_pic || '');
+  }, [user]);
+
+  useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
@@ -65,8 +66,8 @@ const EditProfile = () => {
           setFormData({
             username: data.username,
             email: data.email,
-            password: "",
-            profilePic: data.profilePic,
+            password: data.password,
+            profilePic: data.profile_pic,
           });
         })
         .catch((err) => console.error("Error fetching user data:", err))
@@ -100,28 +101,33 @@ const EditProfile = () => {
         setError("You must be logged in to update your profile.");
         return;
       }
-
       const updatedFormData = { ...formData };
-      if (popupType && popupType !== 'propic' && popupType !== 'delete') {
-        updatedFormData[popupType] = inputValue;
+      if (popupType && popupType !== 'propic') {
+        if (popupType !== 'delete') {
+          updatedFormData[popupType] = inputValue;
+        }
       }
+
+      let imageBase64 = null;
+        if (image) {
+            imageBase64 = await toBase64(image);
+        }
 
       const payload = {
         username: updatedFormData.username,
         email: updatedFormData.email,
         password: updatedFormData.password,
-        profilePic: typeof updatedFormData.profilePic === "string" || File ? updatedFormData.profilePic : null,
+        profilePic: imageBase64,
       };
 
       const response = await fetch("http://localhost:5000/api/me", {
         method: "PUT",
         headers: {
-          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
-
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -133,7 +139,7 @@ const EditProfile = () => {
       setFormData({
         username: updatedUser.username,
         email: updatedUser.email,
-        password: "",
+        password: updatedUser.password,
         profilePic: updatedUser.profilePic,
       });
       closePopup();
@@ -144,6 +150,13 @@ const EditProfile = () => {
     }
   };
 
+  const toBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
 
   const handleDelete = async () => {
     try {
@@ -189,9 +202,7 @@ const EditProfile = () => {
             <div className="profile-menu">
               <img
                 src={
-                  formData.profilePic instanceof File
-                    ? URL.createObjectURL(formData.profilePic)
-                    : formData.profilePic || "/default.png"
+                  profile_pic ? `http://localhost:5173${profile_pic}` : "/default.png"
                 }
                 className="profile-pic"
                 onClick={toggleDropdown}
@@ -262,25 +273,36 @@ const EditProfile = () => {
                     </>
                   ) : popupType === 'propic' ? (
                     <>
+                      <div className="profile-pic-preview-container">
+                        {formData.profilePic instanceof File ? (
+                          <img
+                            src={URL.createObjectURL(formData.profilePic)}
+                            alt="Profile Preview"
+                            className="profile-pic-preview"
+                          />
+                        ) : (
+                          <img
+                            src={formData.profilePic || "/default.png"} 
+                            alt="Default Profile"
+                            className="profile-pic-preview"
+                          />
+                        )}
+                      </div>
                       <input
                         type="file"
                         className="modal-input"
+                        accept="image/*"
                         onChange={(e) => {
                           if (e.target.files && e.target.files.length > 0) {
+                            const file = e.target.files[0];
                             setFormData((prev) => ({
                               ...prev,
-                              // profilePic: e.target.files[0],
+                              profilePic: file, // Update the profilePic with the selected file
                             }));
+                            setImage(file); // Update the preview image
                           }
                         }}
                       />
-                      {formData.profilePic instanceof File && (
-                        <img
-                          src={URL.createObjectURL(formData.profilePic)}
-                          alt="Preview"
-                          className="profile-preview"
-                        />
-                      )}
                     </>
                   ) : (
                     <input

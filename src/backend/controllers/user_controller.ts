@@ -7,7 +7,12 @@ import { Post } from '../../../models/post';
 import { generateToken } from '../utils/jwt_helper';
 import { Vote } from '../../../models/vote'; // Assuming you have a Vote model defined
 import { Subreddit } from '../../../models/subreddit';
-import { c } from 'vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // POST /register - Register a new user
 export const registerUser = async (req: Request, res: Response) => {
@@ -135,7 +140,33 @@ export const getUserComments = async (req: Request, res: Response) => {
 // PUT /me - update user profile
 export const updateUserProfile = async (req: Request, res: Response) => {
     try {
+
         const { userId, username, email, password, profilePic } = req.body;
+
+        let imagePath: string | null = null;
+
+        if (profilePic) {
+            const matches = profilePic.match(/^data:(.+);base64,(.+)$/);
+            if (!matches || matches.length !== 3) {
+                res.status(400).json({ message: 'Invalid image format' });
+            }
+
+            const mimeType = matches[1];
+            const base64Data = matches[2];
+            const extension = mimeType.split('/')[1];
+            const fileName = `${userId}.${extension}`;
+            const savePath = path.join(__dirname, '../../../public/uploads', fileName);
+            imagePath = `/uploads/${fileName}`;
+
+            const uploadDir = path.join(__dirname, '../../../public/uploads');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            fs.writeFileSync(savePath, Buffer.from(base64Data, 'base64'));
+            imagePath = `/uploads/${fileName}`;
+        }
+
         if (!userId) {
             return;
         }
@@ -143,7 +174,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         if (!user) {
             return;
         }
-        
+
         if (username !== undefined || username !== "") {
             user.username = username;
         }
@@ -165,14 +196,13 @@ export const updateUserProfile = async (req: Request, res: Response) => {
             user.password = user.password;
         }
         if (profilePic !== undefined || profilePic !== "") {
-            user.profile_pic = profilePic;
+            console.log("profilePic", imagePath);
+            user.profile_pic = imagePath || '';
         }
         else {
             user.profile_pic = user.profile_pic;
         }
-        console.log(user);
         await user.save();
-        console.log(user);
         res.status(200).json({ message: 'User profile updated successfully', user });
     } catch (error) {
         console.error(error);
