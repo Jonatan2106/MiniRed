@@ -376,7 +376,7 @@ const Profile = () => {
                         }
                       }}
                       >
-                      <h2>Posts</h2>
+                      
                       {item.type === 'post' && (
                         <>
                           <p>

@@ -57,12 +57,9 @@ const Popular = () => {
                     setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profilePic });
                 }
 
-                const postsResponse = await fetch('http://localhost:5000/api/posts');
+                const postsResponse = await fetch('http://localhost:5000/api/posts/by-votes');
                 const postsData = await postsResponse.json();
-
-                const sortedPosts = postsData.sort((a: Post, b: Post) => b.score - a.score);
-
-                setPosts(sortedPosts); // Update the state with sorted posts
+                setPosts(postsData);
 
                 const subredditsResponse = await fetch('http://localhost:5000/api/users/subreddits', {
                     method: 'GET',
@@ -123,7 +120,7 @@ const Popular = () => {
                     </div>
                 </div>
                 <div className="navbar-center">
-                    <h1>Judul disini</h1>
+                    <h1 className="popular-title">Popular Pages</h1>
                 </div>
                 <div className="navbar-right">
                     {isLoggedIn ? (
@@ -280,7 +277,6 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
             </a>
             <div className="post-footer">
                 <div className="vote-section">
-                    <span className="vote-count">Score: {voteCount.score}</span>
                 </div>
                 <div className="comment-count">
                     <span>{commentCount}</span> <span>Comments</span>

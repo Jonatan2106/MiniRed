@@ -824,3 +824,16 @@ img {
 .post-card .post-header .username:hover {
     text-decoration: underline;
 }
+
+.popular-title {
+    transition: 
+        color 0.3s,
+        text-shadow 0.3s,
+        transform 0.7s;
+    cursor: pointer;
+}
+
+.popular-title:hover {
+    color: #FF4500;
+    transform: scale(1.07);
+}

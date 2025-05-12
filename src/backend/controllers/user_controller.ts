@@ -7,6 +7,12 @@ import { Post } from '../../../models/post';
 import { generateToken } from '../utils/jwt_helper';
 import { Vote } from '../../../models/vote'; // Assuming you have a Vote model defined
 import { Subreddit } from '../../../models/subreddit';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // POST /register - Register a new user
 export const registerUser = async (req: Request, res: Response) => {
@@ -135,23 +141,61 @@ export const getUserComments = async (req: Request, res: Response) => {
 export const updateUserProfile = async (req: Request, res: Response) => {
     try {
         const { userId, username, email, password, profilePic } = req.body;
-        if (!userId) {
-            return;
+
+        let imagePath: string | null = null;
+
+        if (profilePic) {
+            const matches = profilePic.match(/^data:(.+);base64,(.+)$/);
+            if (!matches || matches.length !== 3) {
+                return res.status(400).json({ message: 'Invalid image format' });
+            }
+
+            const mimeType = matches[1];
+            const base64Data = matches[2];
+            const extension = mimeType.split('/')[1];
+            const fileName = `${userId}.${extension}`;
+            const savePath = path.join(__dirname, '../../../public/uploads', fileName);
+            imagePath = `/uploads/${fileName}`;
+
+            const uploadDir = path.join(__dirname, '../../../public/uploads');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir, { recursive: true });
+            }
+
+            fs.writeFileSync(savePath, Buffer.from(base64Data, 'base64'));
         }
+
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+
         const user = await User.findByPk(userId);
         if (!user) {
-            return;
+            return res.status(404).json({ message: 'User not found' });
         }
-        if (username !== undefined || email !== undefined || (password !== undefined && password.trim() !== "") || profilePic !== undefined) {
+
+        if (username && username.trim() !== "") {
             user.username = username;
+        }
+
+        if (email && email.trim() !== "") {
             user.email = email;
+        }
+
+        if (password && password.trim() !== "") {
             const hashedPassword = await bcrypt.hash(password, 10);
             user.password = hashedPassword;
-            user.profile_pic = profilePic;
         }
+
+        if (profilePic && imagePath) {
+            user.profile_pic = imagePath;
+        }
+
         await user.save();
+        res.status(200).json({ message: 'User profile updated successfully', user });
     } catch (error) {
-        console.error(error);
+        console.error('Error updating user profile:', error);
+        res.status(500).json({ message: 'Failed to update user profile' });
     }
 };
 

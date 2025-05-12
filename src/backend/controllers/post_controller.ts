@@ -132,3 +132,57 @@ export const getPostCommentsCount = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Failed to fetch comment count' });
   }
 };
+
+export const getPostsByVotes = async (req: Request, res: Response) => {
+  try {
+    const posts = await Post.findAll({
+      include: [
+        {
+          model: Vote,
+          as: 'votes',
+          where: {
+            kategori_type: 'POST'
+          }
+        }
+      ]
+    });
+
+    // Calculate score for each post and add it to the post object
+    const postsWithScore = await Promise.all(posts.map(async (post) => {
+      const upvotes = await Vote.count({
+        where: {
+          kategori_id: post.post_id,
+          kategori_type: 'POST',
+          vote_type: true
+        }
+      });
+
+      const downvotes = await Vote.count({
+        where: {
+          kategori_id: post.post_id,
+          kategori_type: 'POST',
+          vote_type: false
+        }
+      });
+
+      let score:Number;
+      if (upvotes <= 0) {
+        score = 0;
+      } else {
+        score = upvotes - downvotes;
+      }
+      return {
+        ...post.toJSON(),
+        score
+      };
+    }));
+
+    // Sort posts by score in descending order
+    const sortedPosts = postsWithScore.sort((a, b) => b.score - a.score);
+
+    res.json(sortedPosts);
+  } catch (err) {
+    console.error('Error fetching posts by votes:', err);
+    res.status(500).json({ message: 'Error fetching posts', error: err });
+  }
+};

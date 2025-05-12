@@ -229,8 +229,10 @@ const SubredditPage = () => {
                     ) : (
                         <>
                             <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-                            <a className="nav-link" href="/login">Login</a>
-                            <a className="nav-link" href="/register">Register</a>
+                            <div className="auth-buttons">
+                                <a className="nav-link login-button" href="/login">Login</a>
+                                <a className="nav-link register-button" href="/register">Register</a>
+                            </div>
                         </>
                     )}
                 </div>
