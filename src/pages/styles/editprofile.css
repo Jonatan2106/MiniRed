@@ -93,7 +93,8 @@
 .profile-form .user,
 .profile-form .email,
 .profile-form .password,
-.profile-form .propic {
+.profile-form .propic,
+.profile-form .delete {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -218,6 +219,32 @@
 
 .save-btn:hover {
   background: #FF5700;
+}
+
+/* Profile Picture Preview Container */
+.profile-pic-preview-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* Profile Picture Preview */
+.profile-pic-preview {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ccc;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Modal Input */
+.modal-input {
+  margin-top: 10px;
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
 }
 
 /* Responsive Design */

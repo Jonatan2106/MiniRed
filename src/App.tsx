@@ -13,12 +13,14 @@ import SubredditPage from './pages/pages/Subreddit';
 import CreatePost from './pages/pages/CreatePost';
 import ViewProfile from './pages/pages/ViewProfile';
 import EditSubreddit from './pages/pages/EditSubreddit';
+import ExplorePage from './pages/pages/ExplorePage';
 
 const App = () => {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/explore" element={<ExplorePage />} />
         <Route path="/r/:subredditName" element={<SubredditPage />} />
         <Route path="/u/:username" element={<ViewProfile />} />
         <Route path="/post/:id" element={<PostDetail />} />
