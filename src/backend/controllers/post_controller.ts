@@ -13,7 +13,9 @@ const __dirname = path.dirname(__filename);
 // 1. List all posts
 export const getPosts = async (req: Request, res: Response) => {
   try {
-    const posts = await Post.findAll();
+    const posts = await Post.findAll({
+      order: [['created_at', 'DESC']],
+    });
     res.json(posts);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching posts', error: err });
