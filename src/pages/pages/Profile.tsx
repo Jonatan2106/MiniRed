@@ -74,7 +74,7 @@ const Profile = () => {
   const calculatePostKarma = (posts: Post[], userId: string): number => {
     return posts.filter((post) => post.user_id === userId).length;
   };
-  
+
   const calculateCommentKarma = (comments: Comment[], userId: string): number => {
     return comments.filter((comment) => comment.user_id === userId).length;
   };
@@ -175,7 +175,7 @@ const Profile = () => {
     }
   }, [user, posts, comments, joinedSubreddits, Downvoted, upvoted]);
 
-  
+
 
   const handleTabClick = (tab: 'Overview' | 'Posts' | 'Comments' | 'Upvoted' | 'Downvoted'): void => {
     setActiveTab(tab);
@@ -365,6 +365,7 @@ const Profile = () => {
                       className={`overview-item ${item.type}-item`}
                       onClick={() => {
                         if (item.type === 'post') {
+                          
                           window.location.href = `/post/${item.post_id}`;
                         } else if (item.type === 'comment') {
                           window.location.href = `/post/${item.post_id}`;
@@ -374,7 +375,8 @@ const Profile = () => {
                           window.location.href = `/post/${item.post.post_id}`;
                         }
                       }}
-                    >
+                      >
+                      <h2>Posts</h2>
                       {item.type === 'post' && (
                         <>
                           <p>
@@ -385,6 +387,7 @@ const Profile = () => {
                       )}
                       {item.type === 'comment' && (
                         <>
+                        {/* <h2>Recent Commen</h2> */}
                           <p>
                             Commented: <span className="font-semibold">{item.content}</span>
                           </p>

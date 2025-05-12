@@ -14,6 +14,7 @@ import CreatePost from './pages/pages/CreatePost';
 import ViewProfile from './pages/pages/ViewProfile';
 import EditSubreddit from './pages/pages/EditSubreddit';
 import ExplorePage from './pages/pages/ExplorePage';
+import Popular from './pages/pages/Popular';
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/popular" element={<Popular />} />
         <Route path="/r/:subredditName" element={<SubredditPage />} />
         <Route path="/u/:username" element={<ViewProfile />} />
         <Route path="/post/:id" element={<PostDetail />} />
