@@ -42,7 +42,7 @@ const EditProfile = () => {
     email: 'Update your email address.',
     password: 'Changing your password will affect how you log in.',
     propic: 'Upload or change your profile picture.',
-    delete: 'Deleting your profile will remove all your data permanently.'
+    delete: 'Deleting your profile will remove all your data permanently and cannot be reversed.'
   };
 
   useEffect(() => {
@@ -96,57 +96,49 @@ const EditProfile = () => {
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("You must be logged in to update your profile.");
-        return;
-      }
-      const updatedFormData = { ...formData };
-      if (popupType && popupType !== 'propic') {
-        if (popupType !== 'delete') {
-          updatedFormData[popupType] = inputValue;
-        }
-      }
-
-      let imageBase64 = null;
-        if (image) {
-            imageBase64 = await toBase64(image);
+        const token = localStorage.getItem("token");
+        if (!token) {
+            setError("You must be logged in to update your profile.");
+            return;
         }
 
-      const payload = {
-        username: updatedFormData.username,
-        email: updatedFormData.email,
-        password: updatedFormData.password,
-        profilePic: imageBase64,
-      };
+        const payload: { [key: string]: any } = {};
 
-      const response = await fetch("http://localhost:5000/api/me", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+        if (popupType && popupType !== 'delete') {
+            if (popupType === 'propic' && image) {
+                payload.profilePic = await toBase64(image);
+            } else if (popupType !== 'propic') {
+                payload[popupType] = inputValue;
+            }
+        }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update profile.");
-      }
+        console.log("Payload to send:", payload);
 
-      const updatedUser = await response.json();
-      setUser(updatedUser.user || updatedUser);
-      setFormData({
-        username: updatedUser.username,
-        email: updatedUser.email,
-        password: updatedUser.password,
-        profilePic: updatedUser.profilePic,
-      });
-      closePopup();
-      setError(null);
+        const response = await fetch("http://localhost:5000/api/me", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to update profile.");
+        }
+
+        const updatedUser = await response.json();
+        setUser(updatedUser.user || updatedUser);
+        setFormData((prev) => ({
+            ...prev,
+            ...payload,
+        }));
+        closePopup();
+        setError(null);
     } catch (err: any) {
-      console.error("Error updating profile:", err.message);
-      setError(err.message || "Unexpected error");
+        console.error("Error updating profile:", err.message);
+        setError(err.message || "Unexpected error");
     }
   };
 

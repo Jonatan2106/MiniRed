@@ -140,7 +140,6 @@ export const getUserComments = async (req: Request, res: Response) => {
 // PUT /me - update user profile
 export const updateUserProfile = async (req: Request, res: Response) => {
     try {
-
         const { userId, username, email, password, profilePic } = req.body;
 
         let imagePath: string | null = null;
@@ -148,7 +147,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         if (profilePic) {
             const matches = profilePic.match(/^data:(.+);base64,(.+)$/);
             if (!matches || matches.length !== 3) {
-                res.status(400).json({ message: 'Invalid image format' });
+                return res.status(400).json({ message: 'Invalid image format' });
             }
 
             const mimeType = matches[1];
@@ -164,48 +163,39 @@ export const updateUserProfile = async (req: Request, res: Response) => {
             }
 
             fs.writeFileSync(savePath, Buffer.from(base64Data, 'base64'));
-            imagePath = `/uploads/${fileName}`;
         }
 
         if (!userId) {
-            return;
-        }
-        const user = await User.findByPk(userId);
-        if (!user) {
-            return;
+            return res.status(400).json({ message: 'User ID is required' });
         }
 
-        if (username !== undefined || username !== "") {
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (username && username.trim() !== "") {
             user.username = username;
         }
-        else {
-            user.username = user.username;
-        }
-        if (email !== undefined || email !== "") {
+
+        if (email && email.trim() !== "") {
             user.email = email;
         }
-        else {
-            user.email = user.email;
-        }
-        if (password !== undefined) {
-            console.log("password", password);
+
+        if (password && password.trim() !== "") {
             const hashedPassword = await bcrypt.hash(password, 10);
             user.password = hashedPassword;
         }
-        else {
-            user.password = user.password;
+
+        if (profilePic && imagePath) {
+            user.profile_pic = imagePath;
         }
-        if (profilePic !== undefined || profilePic !== "") {
-            console.log("profilePic", imagePath);
-            user.profile_pic = imagePath || '';
-        }
-        else {
-            user.profile_pic = user.profile_pic;
-        }
+
         await user.save();
         res.status(200).json({ message: 'User profile updated successfully', user });
     } catch (error) {
-        console.error(error);
+        console.error('Error updating user profile:', error);
+        res.status(500).json({ message: 'Failed to update user profile' });
     }
 };
 
