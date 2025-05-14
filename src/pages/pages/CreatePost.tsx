@@ -104,7 +104,7 @@ const CreatePost = () => {
     const selected = subreddits.find((sub) => sub.subreddit_id === selectedSubreddit);
 
     if (isLoading) {
-        return <Loading />; // Show loading screen
+        return <Loading />; 
     }
 
     return (

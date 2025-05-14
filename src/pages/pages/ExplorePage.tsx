@@ -20,6 +20,20 @@ interface User {
   profilePic: string;
 }
 
+// Debounce hook (copied from Home.tsx)
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+};
+
 const ExplorePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
@@ -31,6 +45,7 @@ const ExplorePage = () => {
   const [users, setUsers] = useState<Map<string, User>>(new Map());
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const debouncedQuery = useDebounce(query, 300);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,7 +60,7 @@ const ExplorePage = () => {
             },
           });
           const userData = await userResponse.json();
-          setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profilePic });
+          setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profile_pic });
         }
 
         const allSubredditsResponse = await fetch('http://localhost:5000/api/subreddits', {
@@ -92,16 +107,16 @@ const ExplorePage = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    handleSearch();
+  }, [debouncedQuery]);
+
   const handleSearch = () => {
     const trimmedQuery = query.trim().toLowerCase();
-
     if (trimmedQuery === '') {
-      // Reset to show all subreddits if the query is empty
       setFilteredSubreddits(allSubreddits);
       return;
     }
-
-    // Filter subreddits based on the query matching the name
     const filteredSubreddits = allSubreddits.filter((subreddit) =>
       subreddit.name.toLowerCase().includes(trimmedQuery)
     );
@@ -164,7 +179,7 @@ const ExplorePage = () => {
               <button className="create-post-btn"><AiOutlinePlusCircle className="icon" />Create Post</button>
               <div className="profile-menu">
                 <img
-                  src={user?.profilePic ? user?.profilePic : "/default.png"}
+                  src={user?.profilePic ? "http://localhost:5173"+user?.profilePic : "/default.png"}
                   className="profile-pic"
                   onClick={toggleDropdown}
                   alt={user?.username}

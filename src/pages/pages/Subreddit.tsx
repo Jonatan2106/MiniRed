@@ -55,7 +55,6 @@ const SubredditPage = () => {
     const [bannerPic, setBannerPic] = useState<string>(() => {
         return `/banner_${Math.floor(Math.random() * 3) + 1}.jpg`;
     });
-    const navigate = useNavigate();
 
     const fetchData = async () => {
         try {
@@ -71,7 +70,7 @@ const SubredditPage = () => {
                     },
                 });
                 const userData = await userResponse.json();
-                setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profilePic });
+                setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profile_pic });
 
                 // Fetch joined subreddits
                 const joinedSubredditsResponse = await fetch('http://localhost:5000/api/users/subreddits', {
@@ -212,7 +211,7 @@ const SubredditPage = () => {
                             <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
                             <div className="profile-menu">
                                 <img
-                                    src={user?.profilePic ? user?.profilePic : "/default.png"}
+                                    src={user?.profilePic ? "http://localhost:5173"+user?.profilePic : "/default.png"}
                                     className="profile-pic"
                                     onClick={toggleDropdown}
                                     alt={user?.username}

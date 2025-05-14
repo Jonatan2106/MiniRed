@@ -49,6 +49,7 @@ const PostDetail = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [user, setUser] = useState<{ user_id: string; username: string; profilePic: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [alert, setAlert] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -92,10 +93,10 @@ const PostDetail = () => {
       const cleanedComments = rawComments.map((c: any) => c.comment ? c.comment : c);
 
       const nested = nestComments(cleanedComments);
-      setComments(nested); // Clear and set the new state
+      setComments(nested); 
     } catch (error) {
       console.error('Error fetching post or comments', error);
-      setComments([]); // Reset comments on error
+      setComments([]); 
     }
   };
 
@@ -105,7 +106,7 @@ const PostDetail = () => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please log in to comment.');
+      window.location.href = '/login';
       return;
     }
 
@@ -121,13 +122,13 @@ const PostDetail = () => {
 
       if (response.ok) {
         setNewComment('');
-        await fetchPostAndComments(); // ✅ Refetch to rebuild threaded structure
+        await fetchPostAndComments();
       } else {
-        alert('Failed to add comment');
+        showAlert('Failed to add comment');
       }
     } catch (error) {
       console.error('Error adding comment:', error);
-      alert('An error occurred while adding your comment.');
+      showAlert('An error occurred while adding your comment.');
     }
   };
 
@@ -138,7 +139,7 @@ const PostDetail = () => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please log in to reply.');
+      window.location.href = '/login';
       return;
     }
 
@@ -161,11 +162,11 @@ const PostDetail = () => {
         setReplyContent({ ...replyContent, [parentCommentId]: '' });
         await fetchPostAndComments(); // Refetch to rebuild threaded structure
       } else {
-        alert('Failed to add reply');
+        showAlert('Failed to add reply');
       }
     } catch (error) {
       console.error('Error adding reply:', error);
-      alert('An error occurred while adding your reply.');
+      showAlert('An error occurred while adding your reply.');
     }
   };
 
@@ -229,6 +230,11 @@ const PostDetail = () => {
     });
   };
 
+  const showAlert = (message: string, type: 'success' | 'error' = 'success') => {
+    setAlert({ show: true, message, type });
+    setTimeout(() => setAlert({ ...alert, show: false }), 2500);
+  };
+
   if (isLoading) {
     return <Loading />;
   }
@@ -277,6 +283,7 @@ const PostDetail = () => {
                   handleReply={handleReply}
                   fetchPostAndComments={fetchPostAndComments}
                   currentUser={user}
+                  showAlert={showAlert}
                 />
               ))
             ) : (
@@ -284,6 +291,12 @@ const PostDetail = () => {
             )}
           </div>
         </>
+      )}
+
+      {alert.show && (
+        <div className={`custom-alert ${alert.type}`}>
+          {alert.message}
+        </div>
       )}
     </div>
   );
@@ -298,6 +311,7 @@ const Comment = ({
   handleReply,
   fetchPostAndComments,
   currentUser,
+  showAlert
 }: {
   comment: Comment;
   replyContent: { [key: string]: string };
@@ -305,6 +319,7 @@ const Comment = ({
   handleReply: (e: React.FormEvent, parentCommentId: string) => void;
   fetchPostAndComments: () => Promise<void>;
   currentUser: { user_id: string; username: string; profilePic: string } | null;
+  showAlert: (msg: string, type?: 'success' | 'error') => void;
 }) => {
   const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
   const [voteCount, setVoteCount] = useState<number>(0);
@@ -364,7 +379,7 @@ const Comment = ({
   const handleVote = async (type: 'upvote' | 'downvote') => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please log in to vote.');
+      window.location.href = '/login';
       return;
     }
 
@@ -391,7 +406,7 @@ const Comment = ({
           setUserVote(type); // Update the user's vote locally
           setVoteId(data.vote.vote_id || null); // Store the vote ID
         } else {
-          alert(data.message || 'Failed to vote.');
+          showAlert(data.message || 'Failed to vote.');
         }
       }
     } catch (error) {
@@ -402,7 +417,7 @@ const Comment = ({
   const handleEditComment = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please log in to edit your comment.');
+      window.location.href = '/login';
       return;
     }
 
@@ -417,11 +432,11 @@ const Comment = ({
       });
 
       if (response.ok) {
-        alert('Comment updated successfully.');
+        showAlert('Comment updated successfully.');
         setShowEditPopup(false);
         fetchPostAndComments(); // Refresh comments
       } else {
-        alert('Failed to update comment.');
+        showAlert('Failed to update comment.');
       }
     } catch (error) {
       console.error('Error editing comment:', error);
@@ -431,7 +446,7 @@ const Comment = ({
   const handleDeleteComment = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert('Please log in to delete your comment.');
+      window.location.href = '/login';
       return;
     }
 
@@ -444,11 +459,11 @@ const Comment = ({
       });
 
       if (response.ok) {
-        alert('Comment deleted successfully.');
+        showAlert('Comment deleted successfully.');
         setShowDeletePopup(false);
         fetchPostAndComments(); // Refresh comments
       } else {
-        alert('Failed to delete comment.');
+        showAlert('Failed to delete comment.');
       }
     } catch (error) {
       console.error('Error deleting comment:', error);
@@ -461,7 +476,7 @@ const Comment = ({
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('Please log in to cancel your vote.');
+        window.location.href = '/login';
         return;
       }
 
@@ -478,7 +493,7 @@ const Comment = ({
         setVoteId(null); // Clear the vote ID
       } else {
         const errorData = await response.json();
-        alert(errorData.message || 'Failed to cancel vote.');
+        showAlert(errorData.message || 'Failed to cancel vote.');
       }
     } catch (error) {
       console.error('Error canceling vote:', error);
@@ -603,6 +618,7 @@ const Comment = ({
               handleReply={handleReply}
               fetchPostAndComments={fetchPostAndComments}
               currentUser={currentUser}
+              showAlert={showAlert}
             />
           ))}
         </div>

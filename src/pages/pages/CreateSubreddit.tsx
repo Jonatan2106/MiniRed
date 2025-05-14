@@ -23,7 +23,7 @@ const CreateSubreddit = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch user data when the component mounts
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -41,12 +41,12 @@ const CreateSubreddit = () => {
         .catch((error) => console.error('Error fetching user data:', error))
         .finally(() => setIsLoading(false));
     }
-  }, []); // Empty dependency array ensures this runs only once
+  }, []); 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate input fields
+    
     if (!subredditName || !subredditTitle || !subredditDescription) {
       setError('All fields are required.');
       return;
@@ -72,7 +72,7 @@ const CreateSubreddit = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Redirect to the newly created subreddit's page
+       
         navigate(`/r/${data.name}`);
       } else {
         const data = await response.json();

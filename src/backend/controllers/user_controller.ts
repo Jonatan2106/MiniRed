@@ -147,7 +147,8 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         if (profilePic) {
             const matches = profilePic.match(/^data:(.+);base64,(.+)$/);
             if (!matches || matches.length !== 3) {
-                return res.status(400).json({ message: 'Invalid image format' });
+                res.status(400).json({ message: 'Invalid image format' });
+                return;
             }
 
             const mimeType = matches[1];
@@ -166,12 +167,14 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         }
 
         if (!userId) {
-            return res.status(400).json({ message: 'User ID is required' });
+            res.status(400).json({ message: 'User ID is required' });
+            return;
         }
 
         const user = await User.findByPk(userId);
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            res.status(404).json({ message: 'User not found' });
+            return;
         }
 
         if (username && username.trim() !== "") {
@@ -187,12 +190,14 @@ export const updateUserProfile = async (req: Request, res: Response) => {
             user.password = hashedPassword;
         }
 
-        if (profilePic && imagePath) {
+        console.log('Image path:', imagePath);
+        if (imagePath) {
             user.profile_pic = imagePath;
         }
 
         await user.save();
         res.status(200).json({ message: 'User profile updated successfully', user });
+
     } catch (error) {
         console.error('Error updating user profile:', error);
         res.status(500).json({ message: 'Failed to update user profile' });
@@ -299,5 +304,76 @@ export const getAllUpVotes = async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to get user upvotes' });
+    }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+    try {
+        const userId = req.body.userId;
+
+        // Find the user by ID
+        const user = await User.findByPk(userId);
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return
+        }
+
+        // Delete the user
+        await user.destroy();
+
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to delete user' });
+    }
+}
+
+export const verifyPassword = async (req: Request, res: Response) => {
+    try {
+        const { password: password } = req.body;
+        const userId = req.body.userId;
+        console.log('User ID:', userId);
+        console.log('Password:', req.body);
+        if (!userId || !password) {
+            res.status(400).json({ message: 'User ID and password are required' })
+            return;
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            res.status(404).json({ message: 'User not found' })
+            return;
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (isMatch) {
+            res.status(200).json({ message: 'Password verified' })
+            return;
+        } else {
+            res.status(401).json({ message: 'Incorrect password' })
+            return;
+        }
+    } catch (error) {
+        console.error('Error verifying password:', error);
+        res.status(500).json({ message: 'Failed to verify password' });
+    }
+};
+
+// GET /check-username?username=... - Check if username exists
+export const checkUsername = async (req: Request, res: Response) => {
+    try {
+        const { username } = req.query;
+        if (!username || typeof username !== 'string') {
+            res.status(400).json({ message: 'Username is required' });
+        }
+        const user = await User.findOne({ where: { username } });
+        if (user) {
+            res.json({ exists: true });
+        } else {
+            res.json({ exists: false });
+        }
+    } catch (error) {
+        console.error('Error checking username:', error);
+        res.status(500).json({ message: 'Failed to check username' });
     }
 };

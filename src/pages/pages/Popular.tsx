@@ -54,7 +54,7 @@ const Popular = () => {
                         },
                     });
                     const userData = await userResponse.json();
-                    setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profilePic });
+                    setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profile_pic });
                 }
 
                 const postsResponse = await fetch('http://localhost:5000/api/posts/by-votes');
@@ -128,7 +128,7 @@ const Popular = () => {
                             <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
                             <div className="profile-menu">
                                 <img
-                                    src={user?.profilePic ? user?.profilePic : "/default.png"}
+                                    src={user?.profilePic ? "http://localhost:5173"+user?.profilePic : "/default.png"}
                                     className="profile-pic"
                                     onClick={toggleDropdown}
                                     alt={user?.username}

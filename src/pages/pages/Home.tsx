@@ -68,7 +68,7 @@ const Home = () => {
             },
           });
           const userData = await userResponse.json();
-          setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profilePic });
+          setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profile_pic });
         }
 
         const postsResponse = await fetch('http://localhost:5000/api/posts');
@@ -227,7 +227,7 @@ const Home = () => {
               <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
               <div className="profile-menu">
                 <img
-                  src={user?.profilePic ? user?.profilePic : "/default.png"}
+                  src={user?.profilePic ? "http://localhost:5173"+user?.profilePic : "/default.png"}
                   className="profile-pic"
                   onClick={toggleDropdown}
                   alt={user?.username}
@@ -417,7 +417,7 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('Please login to vote.');
+        window.location.href = '/login';
         return;
       }
 
@@ -462,7 +462,7 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('Please login to cancel your vote.');
+        window.location.href = '/login';  
         return;
       }
 

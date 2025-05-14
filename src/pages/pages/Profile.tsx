@@ -80,102 +80,105 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        setIsLoggedIn(true);
-        fetch('http://localhost:5000/api/me', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            setUser({ username: data.username, profilePic: data.profilePic, user_id: data.user_id });
-
-            const calculatedPostKarma = calculatePostKarma(posts, data.user_id);
-            const calculatedCommentKarma = calculateCommentKarma(comments, data.user_id);
-            setPostKarma(calculatedPostKarma);
-            setCommentKarma(calculatedCommentKarma);
-
-          })
-          .catch((error) => console.error('Error fetching user data:', error));
-      }
-
-      fetch('http://localhost:5000/api/user/me/posts', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        }
-      })
-        .then(response => response.json())
-        .then(data => setPosts(data))
-        .catch(() => console.error('Error fetching posts'));
-
-      fetch('http://localhost:5000/api/user/me/comments', {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+      fetch('http://localhost:5000/api/me', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
         .then((response) => response.json())
-        .then(async (commentsData) => {
-          // Fetch posts for each comment
-          const commentsWithPosts = await Promise.all(
-            commentsData.map(async (comment: Comment) => {
-              const postResponse = await fetch(`http://localhost:5000/api/posts/${comment.post_id}`, {
-                method: 'GET',
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              });
-              const post = await postResponse.json();
-              return { ...comment, post }; // Merge post into comment
-            })
-          );
-          setComments(commentsWithPosts);
+        .then((data) => {
+          setUser({ username: data.username, profilePic: data.profile_pic, user_id: data.user_id });
+          const calculatedPostKarma = calculatePostKarma(posts, data.user_id);
+          const calculatedCommentKarma = calculateCommentKarma(comments, data.user_id);
+          setPostKarma(calculatedPostKarma);
+          setCommentKarma(calculatedCommentKarma);
         })
-        .catch(() => console.error('Error fetching comments'));
-
-      fetch('http://localhost:5000/api/user/me/downvoted', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        }
-      })
-        .then(response => response.json())
-        .then(data => setDownVotes(data))
-        .catch(() => console.error('Error fetching downvoted posts'));
-
-      fetch('http://localhost:5000/api/user/me/upvoted', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        }
-      })
-        .then(response => response.json())
-        .then(data => setUpVotes(data))
-        .catch(() => console.error('Error fetching upvoted posts'));
-
-      fetch('http://localhost:5000/api/users/subreddits', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        }
-      })
-        .then(response => response.json())
-        .then(data => setJoinedSubreddits(data))
-        .catch(() => console.error('Error fetching joined communities'));
-    } catch (error) {
-      console.error('Error fetching data:', error);
+        .catch((error) => console.error('Error fetching user data:', error));
     }
-    finally {
-      setIsLoading(false);
+
+    fetch('http://localhost:5000/api/user/me/posts', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      }
+    })
+      .then(response => response.json())
+      .then(data => setPosts(data))
+      .catch(() => console.error('Error fetching posts'));
+
+    fetch('http://localhost:5000/api/user/me/comments', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => response.json())
+      .then(async (commentsData) => {
+        // Fetch posts for each comment
+        const commentsWithPosts = await Promise.all(
+          commentsData.map(async (comment: Comment) => {
+            const postResponse = await fetch(`http://localhost:5000/api/posts/${comment.post_id}`, {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            const post = await postResponse.json();
+            return { ...comment, post }; // Merge post into comment
+          })
+        );
+        setComments(commentsWithPosts);
+      })
+      .catch(() => console.error('Error fetching comments'));
+
+    fetch('http://localhost:5000/api/users/subreddits', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      }
+    })
+      .then(response => response.json())
+      .then(data => setJoinedSubreddits(data))
+      .catch(() => console.error('Error fetching joined communities'));
+
+    setIsLoading(false);
+  }, []);
+
+  // Fetch upvoted and downvoted votes in a separate effect
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    fetch('http://localhost:5000/api/user/me/upvoted', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    })
+      .then(response => response.json())
+      .then(data => setUpVotes(data))
+      .catch(() => console.error('Error fetching upvoted posts'));
+
+    fetch('http://localhost:5000/api/user/me/downvoted', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    })
+      .then(response => response.json())
+      .then(data => setDownVotes(data))
+      .catch(() => console.error('Error fetching downvoted posts'));
+  }, []);
+
+  useEffect(() => {
+    if (user && user.user_id) {
+      setPostKarma(calculatePostKarma(posts, user.user_id));
+      setCommentKarma(calculateCommentKarma(comments, user.user_id));
     }
-  }, [user, posts, comments, joinedSubreddits, Downvoted, upvoted]);
-
-
+  }, [posts, comments, user]);
 
   const handleTabClick = (tab: 'Overview' | 'Posts' | 'Comments' | 'Upvoted' | 'Downvoted'): void => {
     setActiveTab(tab);
@@ -230,7 +233,7 @@ const Profile = () => {
               <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
               <div className="profile-menu">
                 <img
-                  src={user?.profilePic || "/default.png"}
+                  src={user?.profilePic ? "http://localhost:5173" + user?.profilePic : "/default.png"}
                   className="profile-pic"
                   onClick={toggleDropdown}
                   alt={user?.username}
@@ -297,7 +300,9 @@ const Profile = () => {
           <div className="profile-header">
             <div className="profile-avatar">
               <img
-                src={user?.profilePic || "/default.png"}
+                src={
+                  user?.profilePic ? "http://localhost:5173" + user?.profilePic : "/default.png"
+                }
                 alt={user?.username}
                 className="avatar"
               />
@@ -312,11 +317,11 @@ const Profile = () => {
           <div className="profile-stats">
             <div className="profile-stat-item">
               <h3>{postKarma}</h3>
-              <p>Post Karma</p>
+              <p>Total Post</p>
             </div>
             <div className="profile-stat-item">
               <h3>{commentKarma}</h3>
-              <p>Comment Karma</p>
+              <p>Total Comment</p>
             </div>
           </div>
 
@@ -365,7 +370,7 @@ const Profile = () => {
                       className={`overview-item ${item.type}-item`}
                       onClick={() => {
                         if (item.type === 'post') {
-                          
+
                           window.location.href = `/post/${item.post_id}`;
                         } else if (item.type === 'comment') {
                           window.location.href = `/post/${item.post_id}`;
@@ -375,8 +380,8 @@ const Profile = () => {
                           window.location.href = `/post/${item.post.post_id}`;
                         }
                       }}
-                      >
-                      
+                    >
+
                       {item.type === 'post' && (
                         <>
                           <p>
@@ -387,7 +392,7 @@ const Profile = () => {
                       )}
                       {item.type === 'comment' && (
                         <>
-                        {/* <h2>Recent Commen</h2> */}
+                          {/* <h2>Recent Commen</h2> */}
                           <p>
                             Commented: <span className="font-semibold">{item.content}</span>
                           </p>
