@@ -14,6 +14,8 @@ import CreatePost from './pages/pages/CreatePost';
 import ViewProfile from './pages/pages/ViewProfile';
 import EditSubreddit from './pages/pages/EditSubreddit';
 import ExplorePage from './pages/pages/ExplorePage';
+import Popular from './pages/pages/Popular';
+import { ProtectedRoute } from './utils/protected_route';
 
 const App = () => {
   return (
@@ -21,17 +23,42 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/popular" element={<Popular />} />
         <Route path="/r/:subredditName" element={<SubredditPage />} />
-        <Route path="/u/:username" element={<ViewProfile />} />
+        <Route path="/u/:username" element={
+          <ProtectedRoute>
+            <ViewProfile />
+          </ProtectedRoute>
+        } />
         <Route path="/post/:id" element={<PostDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/search" element={<Search />} />
-        <Route path="/create-subreddit" element={<CreateSubreddit />} /> 
-        <Route path="/create-post" element={<CreatePost />} /> 
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/edit" element={<EditProfile />} />
-        <Route path="/edit-subreddit/:subredditId" element={<EditSubreddit />} />
+        <Route path="/create-subreddit" element={
+          <ProtectedRoute>
+            <CreateSubreddit />
+          </ProtectedRoute>
+        } />
+        <Route path="/create-post" element={
+          <ProtectedRoute>
+            <CreatePost />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
+        <Route path="/edit" element={
+          <ProtectedRoute>
+            <EditProfile />
+          </ProtectedRoute>
+        } />
+        <Route path="/edit-subreddit/:subredditId" element={
+          <ProtectedRoute>
+            <EditSubreddit />
+          </ProtectedRoute>
+        } />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

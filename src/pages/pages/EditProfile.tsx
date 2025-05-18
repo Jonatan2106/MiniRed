@@ -18,15 +18,17 @@ const EditProfile = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<null | User>(null);
-
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [popupType, setPopupType] = useState<'username' | 'email' | 'password' | 'propic' | 'delete' | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [profile_pic, setProfilePic] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [modalError, setModalError] = useState<string | null>(null);
 
   const closePopup = () => {
     setPopupType(null);
     setInputValue('');
+    setModalError(null);
   };
 
   const titles = {
@@ -42,8 +44,10 @@ const EditProfile = () => {
     email: 'Update your email address.',
     password: 'Changing your password will affect how you log in.',
     propic: 'Upload or change your profile picture.',
-    delete: 'Deleting your profile will remove all your data permanently.'
+    delete: 'Deleting your profile will remove all your data permanently and cannot be reversed.'
   };
+
+
 
   useEffect(() => {
     console.log("Updated User:", user);
@@ -101,24 +105,59 @@ const EditProfile = () => {
         setError("You must be logged in to update your profile.");
         return;
       }
-      const updatedFormData = { ...formData };
-      if (popupType && popupType !== 'propic') {
-        if (popupType !== 'delete') {
-          updatedFormData[popupType] = inputValue;
+
+      // Require current password for all changes except delete
+      if (popupType !== 'delete') {
+        if (!currentPassword) {
+          setModalError("Please enter your current password.");
+          return;
+        }
+        // Verify current password
+        const verifyRes = await fetch("http://localhost:5000/api/verify-password", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ password: currentPassword }),
+        });
+        if (!verifyRes.ok) {
+          setModalError("Current password is incorrect.");
+          return;
         }
       }
 
-      let imageBase64 = null;
-        if (image) {
-            imageBase64 = await toBase64(image);
-        }
+      // Email validation
+      if (popupType === "email" && !inputValue.includes("@")) {
+        setModalError("Please enter a valid email address!");
+        return;
+      }
 
-      const payload = {
-        username: updatedFormData.username,
-        email: updatedFormData.email,
-        password: updatedFormData.password,
-        profilePic: imageBase64,
-      };
+      // Username uniqueness check
+      if (popupType === "username") {
+        const checkRes = await fetch(`http://localhost:5000/api/check-username?username=${encodeURIComponent(inputValue)}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          }
+        });
+        const checkData = await checkRes.json();
+        if (!checkRes.ok || checkData.exists) {
+          setModalError("Username is already taken.");
+          return;
+        }
+      }
+
+      const payload: { [key: string]: any } = {};
+
+      if (popupType && popupType !== 'delete') {
+        if (popupType === 'propic' && image) {
+          payload.profilePic = await toBase64(image);
+        } else if (popupType !== 'propic') {
+          payload[popupType] = inputValue;
+        }
+      }
 
       const response = await fetch("http://localhost:5000/api/me", {
         method: "PUT",
@@ -136,17 +175,16 @@ const EditProfile = () => {
 
       const updatedUser = await response.json();
       setUser(updatedUser.user || updatedUser);
-      setFormData({
-        username: updatedUser.username,
-        email: updatedUser.email,
-        password: updatedUser.password,
-        profilePic: updatedUser.profilePic,
-      });
+      setFormData((prev) => ({
+        ...prev,
+        ...payload,
+      }));
       closePopup();
       setError(null);
+      setCurrentPassword('');
     } catch (err: any) {
       console.error("Error updating profile:", err.message);
-      setError(err.message || "Unexpected error");
+      setModalError(err.message || "Unexpected error");
     }
   };
 
@@ -173,16 +211,42 @@ const EditProfile = () => {
         },
       });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to delete account.");
+      if (res.ok) {
+        localStorage.removeItem("token");
+        window.location.href = "/";
       }
 
-      localStorage.removeItem("token");
-      window.location.href = "/";
     } catch (err: any) {
       console.error("Error deleting profile:", err.message);
       setError(err.message || "Unexpected error");
+    }
+  };
+
+  // Add this helper to reset modal state
+  const resetModalState = () => {
+    setInputValue('');
+    setCurrentPassword('');
+    setModalError(null);
+    setImage(null);
+  };
+
+  // When opening a popup, always refresh user data and reset modal state
+  const openPopup = async (type: typeof popupType) => {
+    resetModalState();
+    setPopupType(type);
+    // Always fetch latest user data when opening username/email/password popup
+    if (type === 'username' || type === 'email' || type === 'password') {
+      const token = localStorage.getItem("token");
+      if (token) {
+        const res = await fetch("http://localhost:5000/api/me", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setUser(data);
+        if (type === 'username') setInputValue(data.username);
+        if (type === 'email') setInputValue(data.email);
+      }
     }
   };
 
@@ -232,27 +296,27 @@ const EditProfile = () => {
         <div className="edit-profile-wrapper">
           <h3>Edit Profile</h3>
           <div className="profile-form">
-            <div className="user" onClick={() => setPopupType('username')}>
+            <div className="user" onClick={() => openPopup('username')}>
               <div className="form-group"><h4>Username</h4><p>{descriptions.username}</p></div>
               <div className="panah">&gt;</div>
             </div>
 
-            <div className="email" onClick={() => setPopupType('email')}>
+            <div className="email" onClick={() => openPopup('email')}>
               <div className="form-group"><h4>Email</h4><p>{descriptions.email}</p></div>
               <div className="panah">&gt;</div>
             </div>
 
-            <div className="password" onClick={() => setPopupType('password')}>
+            <div className="password" onClick={() => openPopup('password')}>
               <div className="form-group"><h4>Password</h4><p>{descriptions.password}</p></div>
               <div className="panah">&gt;</div>
             </div>
 
-            <div className="propic" onClick={() => setPopupType('propic')}>
+            <div className="propic" onClick={() => openPopup('propic')}>
               <div className="form-group"><h4>Profile Picture</h4><p>{descriptions.propic}</p></div>
               <div className="panah">&gt;</div>
             </div>
 
-            <div className="delete" onClick={() => setPopupType('delete')}>
+            <div className="delete" onClick={() => openPopup('delete')}>
               <div className="form-group"><h4>Delete Profile</h4><p>{descriptions.delete}</p></div>
               <div className="panah">&gt;</div>
             </div>
@@ -282,7 +346,7 @@ const EditProfile = () => {
                           />
                         ) : (
                           <img
-                            src={formData.profilePic || "/default.png"} 
+                            src={formData.profilePic || "/default.png"}
                             alt="Default Profile"
                             className="profile-pic-preview"
                           />
@@ -297,28 +361,51 @@ const EditProfile = () => {
                             const file = e.target.files[0];
                             setFormData((prev) => ({
                               ...prev,
-                              profilePic: file, // Update the profilePic with the selected file
+                              profilePic: file,
                             }));
-                            setImage(file); // Update the preview image
+                            setImage(file);
                           }
                         }}
                       />
+                      {/* Current password input for propic */}
+                      <input
+                        className="modal-input"
+                        type="password"
+                        placeholder="Enter current password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                      />
                     </>
                   ) : (
-                    <input
-                      className="modal-input"
-                      type={popupType === 'password' ? 'password' : 'text'}
-                      placeholder={`Enter new ${titles[popupType]}`}
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                    />
+                    <>
+                      <input
+                        className="modal-input"
+                        type={popupType === 'password' ? 'password' : 'text'}
+                        placeholder={`Enter new ${titles[popupType]}`}
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                      />
+                      {/* Current password input for username, email, password */}
+                      <input
+                        className="modal-input"
+                        type="password"
+                        placeholder="Enter current password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                      />
+                    </>
                   )}
 
                   {popupType !== 'delete' && (
-                    <div className="modal-actions">
-                      <button className="cancel-btn" onClick={closePopup}>Cancel</button>
-                      <button className="save-btn" onClick={handleSubmit}>Save</button>
-                    </div>
+                    <>
+                      {modalError && (
+                        <div className="modal-error">{modalError}</div>
+                      )}
+                      <div className="modal-actions">
+                        <button className="cancel-btn" onClick={closePopup}>Cancel</button>
+                        <button className="save-btn" onClick={handleSubmit}>Save</button>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>

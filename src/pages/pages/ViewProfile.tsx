@@ -5,7 +5,6 @@ import { AiOutlinePlusCircle } from 'react-icons/ai';
 import Loading from './Loading';
 import '../styles/viewprofile.css';
 import '../styles/home.css';
-import { c } from 'vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf';
 
 interface User {
     user_id: string;
@@ -100,7 +99,7 @@ const ViewProfile = () => {
             headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
-        setCurrentUser({ username: data.username, profilePic: data.profilePic });
+        setCurrentUser({ username: data.username, profilePic: data.profile_pic });
         setIsLoggedIn(true);
     };
 
@@ -252,7 +251,9 @@ const ViewProfile = () => {
                             <button className="create-post-btn"><AiOutlinePlusCircle className="icon" />Create Post</button>
                             <div className="profile-menu">
                                 <img
-                                    src={currentUser?.profilePic || '/default.png'}
+                                    src={
+                                        currentUser?.profilePic ? "http://localhost:5173"+currentUser?.profilePic : '/default.png'
+                                    }
                                     className="profile-pic"
                                     alt={currentUser?.username}
                                     onClick={toggleDropdown} // Toggle dropdown on click

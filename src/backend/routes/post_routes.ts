@@ -1,9 +1,10 @@
 import express from 'express';
-import { getPosts, getPostById, createPost, updatePost, deletePost, getPostCommentsCount} from '../controllers/post_controller';
+import { getPosts, getPostById, createPost, updatePost, deletePost, getPostCommentsCount, getPostsByVotes} from '../controllers/post_controller';
 import { authenticateJWT } from '../middleware/auth_middleware';
 
 const PostRouter = express.Router();
 
+PostRouter.get('/posts/by-votes', getPostsByVotes);
 PostRouter.get('/posts', getPosts);
 PostRouter.get('/posts/:id', getPostById);
 PostRouter.get('/posts/:id/comments/count', getPostCommentsCount);

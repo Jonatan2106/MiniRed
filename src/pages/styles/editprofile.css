@@ -108,9 +108,15 @@
 .profile-form .user:hover,
 .profile-form .email:hover,
 .profile-form .password:hover,
-.profile-form .propic:hover {
+.profile-form .propic:hover,
+.profile-form .delete:hover {
   transform: scale(1.02);
   background-color: #333;
+}
+
+.profile-form .delete h4,
+.profile-form .delete p {
+  color: #ff1e00;
 }
 
 .profile-form h4 {
@@ -198,7 +204,8 @@
 }
 
 .cancel-btn,
-.save-btn {
+.save-btn,
+.delete-btn {
   padding: 0.8rem 1.5rem;
   border: none;
   border-radius: 8px;
@@ -212,12 +219,14 @@
   color: #D7DADC;
 }
 
-.save-btn {
+.save-btn,
+.delete-btn {
   background: #FF4500;
   color: white;
 }
 
-.save-btn:hover {
+.save-btn:hover,
+.delete-btn:hover {
   background: #FF5700;
 }
 
@@ -247,6 +256,13 @@
   font-size: 14px;
 }
 
+.modal-actions {
+  margin-top: 10px;
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .left-sidebar {
@@ -259,5 +275,39 @@
 
   .modal {
     width: 90%;
+  }
+}
+
+.modal-error {
+  color: #ff4d4f;
+  background: #2a1a1a;
+  border: 1px solid #ff4d4f;
+  border-radius: 6px;
+  padding: 0.7em 1em;
+  margin-bottom: 1em;
+  text-align: center;
+  font-weight: bold;
+  animation: shake 0.2s 1;
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px);
+  }
+
+  50% {
+    transform: translateX(5px);
+  }
+
+  75% {
+    transform: translateX(-5px);
+  }
+
+  100% {
+    transform: translateX(0);
   }
 }

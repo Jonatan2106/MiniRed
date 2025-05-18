@@ -392,3 +392,47 @@
         height: 80px;
     }
 }
+
+.custom-alert {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    z-index: 2000;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    color: #fff;
+    background: #323232;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    animation: fadeInOut 2.5s;
+}
+
+.custom-alert.success {
+    background: #FF5700; 
+}
+
+.custom-alert.error {
+    background: #dc3545;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    10% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    90% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}

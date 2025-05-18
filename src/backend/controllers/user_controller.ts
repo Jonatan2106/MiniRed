@@ -139,7 +139,6 @@ export const getUserComments = async (req: Request, res: Response) => {
 // PUT /me - update user profile
 export const updateUserProfile = async (req: Request, res: Response) => {
     try {
-
         const { userId, username, email, password, profilePic } = req.body;
 
         let imagePath: string | null = null;
@@ -148,6 +147,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
             const matches = profilePic.match(/^data:(.+);base64,(.+)$/);
             if (!matches || matches.length !== 3) {
                 res.status(400).json({ message: 'Invalid image format' });
+                return;
             }
 
             const mimeType = matches[1];
@@ -163,48 +163,43 @@ export const updateUserProfile = async (req: Request, res: Response) => {
             }
 
             fs.writeFileSync(savePath, Buffer.from(base64Data, 'base64'));
-            imagePath = `/uploads/${fileName}`;
         }
 
         if (!userId) {
-            return;
-        }
-        const user = await User.findByPk(userId);
-        if (!user) {
+            res.status(400).json({ message: 'User ID is required' });
             return;
         }
 
-        if (username !== undefined || username !== "") {
+        const user = await User.findByPk(userId);
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+
+        if (username && username.trim() !== "") {
             user.username = username;
         }
-        else {
-            user.username = user.username;
-        }
-        if (email !== undefined || email !== "") {
+
+        if (email && email.trim() !== "") {
             user.email = email;
         }
-        else {
-            user.email = user.email;
-        }
-        if (password !== undefined) {
-            console.log("password", password);
+
+        if (password && password.trim() !== "") {
             const hashedPassword = await bcrypt.hash(password, 10);
             user.password = hashedPassword;
         }
-        else {
-            user.password = user.password;
+
+        console.log('Image path:', imagePath);
+        if (imagePath) {
+            user.profile_pic = imagePath;
         }
-        if (profilePic !== undefined || profilePic !== "") {
-            console.log("profilePic", imagePath);
-            user.profile_pic = imagePath || '';
-        }
-        else {
-            user.profile_pic = user.profile_pic;
-        }
+
         await user.save();
         res.status(200).json({ message: 'User profile updated successfully', user });
+
     } catch (error) {
-        console.error(error);
+        console.error('Error updating user profile:', error);
+        res.status(500).json({ message: 'Failed to update user profile' });
     }
 };
 
@@ -308,5 +303,76 @@ export const getAllUpVotes = async (req: Request, res: Response) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to get user upvotes' });
+    }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+    try {
+        const userId = req.body.userId;
+
+        // Find the user by ID
+        const user = await User.findByPk(userId);
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return
+        }
+
+        // Delete the user
+        await user.destroy();
+
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to delete user' });
+    }
+}
+
+export const verifyPassword = async (req: Request, res: Response) => {
+    try {
+        const { password: password } = req.body;
+        const userId = req.body.userId;
+        console.log('User ID:', userId);
+        console.log('Password:', req.body);
+        if (!userId || !password) {
+            res.status(400).json({ message: 'User ID and password are required' })
+            return;
+        }
+
+        const user = await User.findByPk(userId);
+        if (!user) {
+            res.status(404).json({ message: 'User not found' })
+            return;
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (isMatch) {
+            res.status(200).json({ message: 'Password verified' })
+            return;
+        } else {
+            res.status(401).json({ message: 'Incorrect password' })
+            return;
+        }
+    } catch (error) {
+        console.error('Error verifying password:', error);
+        res.status(500).json({ message: 'Failed to verify password' });
+    }
+};
+
+// GET /check-username?username=... - Check if username exists
+export const checkUsername = async (req: Request, res: Response) => {
+    try {
+        const { username } = req.query;
+        if (!username || typeof username !== 'string') {
+            res.status(400).json({ message: 'Username is required' });
+        }
+        const user = await User.findOne({ where: { username } });
+        if (user) {
+            res.json({ exists: true });
+        } else {
+            res.json({ exists: false });
+        }
+    } catch (error) {
+        console.error('Error checking username:', error);
+        res.status(500).json({ message: 'Failed to check username' });
     }
 };
