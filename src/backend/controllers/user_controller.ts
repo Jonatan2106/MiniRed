@@ -19,7 +19,6 @@ export const registerUser = async (req: Request, res: Response) => {
     try {
         const { username, email, password } = req.body;
         const user_id = uuidv4();
-        // Hash the password before saving to the database
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = await User.create({ user_id, username, email, password: hashedPassword });
