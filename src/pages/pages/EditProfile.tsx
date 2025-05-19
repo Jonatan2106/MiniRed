@@ -86,7 +86,7 @@ const EditProfile = () => {
         [popupType === "propic" ? "profilePic" : popupType]: inputValue,
       }));
     }
-  }, [inputValue]);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");

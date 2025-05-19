@@ -475,7 +475,6 @@ const Profile = () => {
                       {user?.user_id === post.user_id && (
                         <div
                           className="kebab-menu"
-                          style={{ position: 'absolute', top: 10, right: 10, zIndex: 2 }}
                           onMouseEnter={() => setOpenMenuPostId(post.post_id)}
                           onMouseLeave={() => setOpenMenuPostId(null)}
                           onClick={e => e.stopPropagation()}
@@ -483,13 +482,8 @@ const Profile = () => {
                           <button>⋮</button>
                           {openMenuPostId === post.post_id && (
                             <div className="menu-options">
-                              {/* <button onClick={() => {/* Tambahkan Edit jika ada */ /*}}>Edit</button> */}
-                              <button
-                                style={{ color: 'black' }}
-                                onClick={() => handleDeletePost(post.post_id)}
-                              >
-                                Delete
-                              </button>
+                              <button onClick={() => handleDeletePost(post.post_id)}> Edit </button>
+                              <button onClick={() => handleDeletePost(post.post_id)}> Delete </button>
                             </div>
                           )}
                         </div>
