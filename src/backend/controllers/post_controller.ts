@@ -86,12 +86,42 @@ export const updatePost = async (req: Request, res: Response) => {
   try {
     const post = await Post.findByPk(req.params.id);
     if (post) {
-      await post.update(req.body);
+      const { title, content, image } = req.body;
+
+      let imagePath: string | null = null;
+
+      if (image) {
+        const matches = image.match(/^data:(.+);base64,(.+)$/);
+        if (!matches || matches.length !== 3) {
+          res.status(400).json({ message: 'Invalid image format' });
+        }
+
+        const mimeType = matches[1];
+        const base64Data = matches[2];
+        const extension = mimeType.split('/')[1];
+        const fileName = `${post.post_id}.${extension}`;
+        const savePath = path.join(__dirname, '../../../public/uploads', fileName);
+
+        const uploadDir = path.join(__dirname, '../../../public/uploads');
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        fs.writeFileSync(savePath, Buffer.from(base64Data, 'base64'));
+        imagePath = `/uploads/${fileName}`;
+      }
+
+      post.title = title;
+      post.content = content;
+      post.image = imagePath ?? ''; 
+      await post.save();
+
       res.json(post);
     } else {
       res.status(404).json({ message: 'Post not found' });
     }
   } catch (err) {
+    console.error('Error updating post:', err);
     res.status(500).json({ message: 'Error updating post', error: err });
   }
 };
