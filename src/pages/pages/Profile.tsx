@@ -70,6 +70,7 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [postKarma, setPostKarma] = useState<number>(0);
   const [commentKarma, setCommentKarma] = useState<number>(0);
+  const [openMenuPostId, setOpenMenuPostId] = useState<string | null>(null);
 
   const calculatePostKarma = (posts: Post[], userId: string): number => {
     return posts.filter((post) => post.user_id === userId).length;
@@ -202,6 +203,37 @@ const Profile = () => {
   const handleCreateSubreddit = () => {
     window.location.href = '/create-subreddit';
   };
+
+  // ...existing code...
+
+  const handleDeletePost = async (postId: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/posts/:id`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // Hapus post dari state
+        setPosts((prev) => prev.filter((post) => post.post_id !== postId));
+        // Hapus semua comment yang terkait post ini dari state
+        setComments((prev) => prev.filter((comment) => comment.post_id !== postId));
+        alert('Post deleted successfully!');
+      } else {
+        alert('Failed to delete post.');
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Error deleting post.');
+    }
+  };
+  // ...existing code...
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -370,7 +402,6 @@ const Profile = () => {
                       className={`overview-item ${item.type}-item`}
                       onClick={() => {
                         if (item.type === 'post') {
-
                           window.location.href = `/post/${item.post_id}`;
                         } else if (item.type === 'comment') {
                           window.location.href = `/post/${item.post_id}`;
@@ -431,6 +462,7 @@ const Profile = () => {
                       onClick={() => {
                         window.location.href = `/post/${post.post_id}`;
                       }}
+                      style={{ position: 'relative' }}
                     >
                       <p>
                         Post Title: <span className="font-semibold">{post.title}</span>
@@ -439,6 +471,29 @@ const Profile = () => {
                       <p className="text-sm">
                         Posted on {new Date(post.created_at).toLocaleString()}
                       </p>
+                      {/* Kebab Menu */}
+                      {user?.user_id === post.user_id && (
+                        <div
+                          className="kebab-menu"
+                          style={{ position: 'absolute', top: 10, right: 10, zIndex: 2 }}
+                          onMouseEnter={() => setOpenMenuPostId(post.post_id)}
+                          onMouseLeave={() => setOpenMenuPostId(null)}
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <button>⋮</button>
+                          {openMenuPostId === post.post_id && (
+                            <div className="menu-options">
+                              {/* <button onClick={() => {/* Tambahkan Edit jika ada */ /*}}>Edit</button> */}
+                              <button
+                                style={{ color: 'black' }}
+                                onClick={() => handleDeletePost(post.post_id)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))
                 ) : (
