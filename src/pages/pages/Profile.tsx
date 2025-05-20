@@ -546,7 +546,6 @@ const Profile = () => {
                       {user?.user_id === post.user_id && (
                         <div
                           className="kebab-menu"
-                          style={{ position: 'absolute', top: 10, right: 10, zIndex: 2 }}
                           onMouseEnter={() => setOpenMenuPostId(post.post_id)}
                           onMouseLeave={() => setOpenMenuPostId(null)}
                           onClick={e => e.stopPropagation()}
