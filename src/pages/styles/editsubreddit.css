@@ -202,3 +202,60 @@
 .modal-save:hover {
     background-color: #0064b1;
 }
+
+/* Status message styles */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+}
+
+.status-message {
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+    text-align: center;
+    font-weight: bold;
+}
+
+.status-message.success {
+    background-color: rgba(46, 125, 50, 0.2);
+    color: #4caf50;
+    border: 1px solid #4caf50;
+}
+
+.status-message.error {
+    background-color: rgba(229, 57, 53, 0.2);
+    color: #ff4d4f;
+    border: 1px solid #ff4d4f;
+}
+
+.save-btn, .cancel-btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.cancel-btn {
+    background: #444;
+    color: #D7DADC;
+}
+
+.save-btn {
+    background: #FF4500;
+    color: white;
+}
+
+.save-btn:hover {
+    background: #FF5700;
+}

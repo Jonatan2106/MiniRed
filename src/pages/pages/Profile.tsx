@@ -72,6 +72,12 @@ const Profile = () => {
   const [commentKarma, setCommentKarma] = useState<number>(0);
   const [openMenuPostId, setOpenMenuPostId] = useState<string | null>(null);
 
+  const [isEditPostModalOpen, setIsEditPostModalOpen] = useState(false);
+  const [currentEditingPost, setCurrentEditingPost] = useState<Post | null>(null);
+  const [editPostContent, setEditPostContent] = useState('');
+  const [editPostTitle, setEditPostTitle] = useState('');
+  const [editModalError, setEditModalError] = useState<string | null>(null);
+
   const calculatePostKarma = (posts: Post[], userId: string): number => {
     return posts.filter((post) => post.user_id === userId).length;
   };
@@ -146,6 +152,16 @@ const Profile = () => {
       .then(data => setJoinedSubreddits(data))
       .catch(() => console.error('Error fetching joined communities'));
 
+      fetch('http://localhost:5000/api/posts:id', {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        }
+      })
+        .then(response => response.json())
+        .then(data => setPosts(data))
+        .catch(() => console.error('Error fetching posts'));
+
     setIsLoading(false);
   }, []);
 
@@ -204,8 +220,6 @@ const Profile = () => {
     window.location.href = '/create-subreddit';
   };
 
-  // ...existing code...
-
   const handleDeletePost = async (postId: string) => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -233,7 +247,6 @@ const Profile = () => {
       alert('Error deleting post.');
     }
   };
-  // ...existing code...
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -243,6 +256,64 @@ const Profile = () => {
 
   const toggleDropdown = () => {
     setDropdownOpen((prev) => !prev);
+  };
+
+  const handleOpenEditModal = (post: Post) => {
+    setCurrentEditingPost(post);
+    setEditPostTitle(post.title);
+    setEditPostContent(post.content);
+    setEditModalError(null);
+    setIsEditPostModalOpen(true);
+  };
+
+  const handleUpdatePost = async () => {
+    try {
+      if (!currentEditingPost) return;
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setEditModalError("You must be logged in to update your post.");
+        return;
+      }
+
+      // Only validate content since we're not changing the title
+      if (!editPostContent.trim()) {
+        setEditModalError("Post content cannot be empty.");
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/posts/${currentEditingPost.post_id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          content: editPostContent,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update post.");
+      }
+
+      // Update the post in local state
+      const updatedPost = await response.json();
+      setPosts(prev => 
+        prev.map(post => 
+          post.post_id === currentEditingPost.post_id ? updatedPost : post
+        )
+      );
+
+      // Close the modal
+      setIsEditPostModalOpen(false);
+      setCurrentEditingPost(null);
+      
+    } catch (err: any) {
+      console.error("Error updating post:", err.message);
+      setEditModalError(err.message || "Unexpected error");
+    }
   };
 
   if (isLoading) {
@@ -483,9 +554,14 @@ const Profile = () => {
                           <button>⋮</button>
                           {openMenuPostId === post.post_id && (
                             <div className="menu-options">
-                              {/* <button onClick={() => {/* Tambahkan Edit jika ada */ /*}}>Edit</button> */}
+                              <button onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEditModal(post);
+                              }}>
+                                Edit
+                              </button>
                               <button
-                                style={{ color: 'black' }}
+                                style={{ color: 'white' }}
                                 onClick={() => handleDeletePost(post.post_id)}
                               >
                                 Delete
@@ -604,6 +680,51 @@ const Profile = () => {
 
         {/* Right Sidebar */}
       </div>
+
+      {isEditPostModalOpen && currentEditingPost && (
+        <div className="overlay" onClick={() => setIsEditPostModalOpen(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Edit Post</h3>
+            </div>
+            <p className="modal-subtext">Update your post content.</p>
+
+            {/* Show title as read-only */}
+            <div className="modal-field">
+              <label>Post Title:</label>
+              <div className="read-only-field">{editPostTitle}</div>
+            </div>
+
+            {/* Allow editing only the content */}
+            <textarea
+              className="modal-input"
+              placeholder="Post Content"
+              value={editPostContent}
+              onChange={(e) => setEditPostContent(e.target.value)}
+              rows={5}
+            />
+
+            {editModalError && (
+              <div className="modal-error">{editModalError}</div>
+            )}
+            
+            <div className="modal-actions">
+              <button 
+                className="cancel-btn" 
+                onClick={() => setIsEditPostModalOpen(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="save-btn" 
+                onClick={handleUpdatePost}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

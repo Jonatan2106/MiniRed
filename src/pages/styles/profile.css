@@ -426,6 +426,18 @@ p {
     font-size: 0.875rem;
 }
 
+/* Modal Styles */
+.modal-field {
+  margin-bottom: 15px;
+}
+
+.modal-field label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+
 /* Responsive Styles */
 @media (max-width: 1000px) {
     .main-content {

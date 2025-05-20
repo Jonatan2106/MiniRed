@@ -54,7 +54,7 @@ const EditSubreddit = () => {
             })
                 .then((response) => {
                     if (response.ok) {
-                        alert('Subreddit updated successfully!');
+                        
                     } else {
                         alert('Failed to update subreddit.');
                     }
