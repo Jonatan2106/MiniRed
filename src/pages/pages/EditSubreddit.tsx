@@ -1,11 +1,13 @@
+import Loading from './Loading';
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { IoIosArrowForward } from "react-icons/io";
-import Loading from './Loading';
-import '../styles/editsubreddit.css';
-import '../styles/main.css';
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
+
+import '../styles/editsubreddit.css';
+import '../styles/main.css';
 
 const EditSubreddit = () => {
     const { subredditId } = useParams<{ subredditId: string }>();
@@ -47,7 +49,6 @@ const EditSubreddit = () => {
             .then((response) => {
                 console.log('Update response:', response);
 
-                // Update local state with the updated data
                 setSubreddit(response);
                 setTitle(response.title || updatedTitle);
                 setName(response.name || updatedName);

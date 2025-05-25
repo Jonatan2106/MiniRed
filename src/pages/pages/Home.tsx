@@ -1,9 +1,11 @@
-import React, { useState, useEffect, use } from 'react';
-import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import Loading from './Loading';
+
+import React, { useState, useEffect} from 'react';
+import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 import { useNavigate } from 'react-router-dom';
+
 import '../styles/home.css';
 import '../styles/main.css';
 
@@ -308,19 +310,15 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
     }
 
     if (userVote === type) {
-      // If the user clicks the same vote again, cancel/delete the vote
       await handleCancelVote();
       return;
     }
 
-    // Cast the new vote
     const voteType = type === 'upvote' ? true : false;
 
     try {
-      // Using fetchFromAPI instead of fetch
       const data = await fetchFromAPI(`/posts/${post.post_id}/votes`, 'POST', { vote_type: voteType });
 
-      // Update UI state
       fetchVoteCount();
       setUserVote(type);
       setVoteId(data.vote.vote_id || null);
@@ -330,7 +328,6 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
     }
   };
 
-  // Handle canceling the vote
   const handleCancelVote = async () => {
     if (!voteId) return;
 
@@ -341,25 +338,20 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
     }
 
     try {
-      // Use fetchFromAPI instead of fetch
       await fetchFromAPI(`/votes/${voteId}`, 'DELETE');
 
-      // Update UI state
       fetchVoteCount();
       setUserVote(null);
       setVoteId(null);
       console.log('Vote successfully deleted');
     } catch (error) {
-      // Handle "Unexpected end of JSON input" error that happens with empty responses
       if (error instanceof Error && error.message.includes('JSON')) {
-        // Consider this a success even with JSON parsing error
         fetchVoteCount();
         setUserVote(null);
         setVoteId(null);
         console.log('Vote successfully deleted (empty response)');
       } else {
         console.error('Error canceling vote:', error);
-        // Don't alert to avoid disrupting user experience
       }
     }
   };

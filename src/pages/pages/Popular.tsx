@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import '../styles/popular.css';
-import '../styles/main.css';
 import Loading from './Loading';
+
+import React, { useState, useEffect } from 'react';
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
+
+import '../styles/popular.css';
+import '../styles/main.css';
 
 interface Post {
     post_id: string;

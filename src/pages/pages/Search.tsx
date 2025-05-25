@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
+
 import '../styles/search.css';
 import '../styles/main.css';
-import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 
 const Search = () => {
   const [query, setQuery] = useState('');

@@ -1,23 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import Loading from './Loading';
-import "../styles/editprofile.css";
-import "../styles/main.css";
+
+import React, { useState, useEffect } from "react";
 import { User } from "../../../models/user";
 import { fetchFromAPI } from "../../api/auth";
 import { useNavigate } from 'react-router-dom';
 
+import "../styles/editprofile.css";
+import "../styles/main.css";
 
 const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [image, setImage] = useState<File | null>(null);
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    profilePic: "" as string | File,
-  });
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<null | User>(null);
@@ -28,6 +21,13 @@ const EditProfile = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [modalError, setModalError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    profilePic: "" as string | File,
+  });
 
   const closePopup = () => {
     setPopupType(null);
@@ -50,8 +50,6 @@ const EditProfile = () => {
     propic: 'Upload or change your profile picture.',
     delete: 'Deleting your profile will remove all your data permanently and cannot be reversed.'
   };
-
-
 
   useEffect(() => {
     console.log("Updated User:", user);
@@ -105,13 +103,11 @@ const EditProfile = () => {
         return;
       }
 
-      // Require current password for all changes except delete
       if (popupType !== 'delete') {
         if (!currentPassword) {
           setModalError("Please enter your current password.");
           return;
         }
-        // Verify current password
         const verifyRes = await fetchFromAPI(`/verify-password`, 'POST', { password: currentPassword });
         if (!verifyRes) {
           setModalError("Current password is incorrect.");
@@ -119,13 +115,11 @@ const EditProfile = () => {
         }
       }
 
-      // Email validation
       if (popupType === "email" && !inputValue.includes("@")) {
         setModalError("Please enter a valid email address!");
         return;
       }
 
-      // Username uniqueness check
       if (popupType === "username") {
         const checkRes = await fetchFromAPI(`/check-username?username=${encodeURIComponent(inputValue)}`, 'GET');
         if (checkRes.exists) {
@@ -188,7 +182,6 @@ const EditProfile = () => {
     }
   };
 
-  // Add this helper to reset modal state
   const resetModalState = () => {
     setInputValue('');
     setCurrentPassword('');

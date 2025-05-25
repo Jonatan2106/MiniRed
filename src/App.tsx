@@ -1,5 +1,3 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import Home from './pages/pages/Home';
 import PostDetail from './pages/pages/PostDetail';
 import Login from './pages/pages/Login';
@@ -15,13 +13,16 @@ import ViewProfile from './pages/pages/ViewProfile';
 import EditSubreddit from './pages/pages/EditSubreddit';
 import ExplorePage from './pages/pages/ExplorePage';
 import Popular from './pages/pages/Popular';
+import Loading from './pages/pages/Loading';
+
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, useNavigate, useLocation } from 'react-router-dom';
 import { ProtectedRoute } from './utils/protected_route';
 import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import { fetchFromAPI } from './api/auth';
-import Loading from './pages/pages/Loading';
-import './App.css';
 import { AiOutlinePlusCircle } from "react-icons/ai";
 
+import './App.css';
 
 // Komponen AppContent dengan UI dari EditProfile.tsx
 const AppContent = () => {
@@ -41,16 +42,18 @@ const AppContent = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [profile_pic, setProfilePic] = useState('');
-  const navigate = useNavigate();
+  const [joinedSubreddits, setJoinedSubreddits] = useState<any[]>([]);
+
   const location = useLocation();
   const isCreatePostPage = location.pathname === '/create-post';
-  const [joinedSubreddits, setJoinedSubreddits] = useState<any[]>([]);
   const isProfilePage = location.pathname === '/profile';
   const isEditProfilePage = location.pathname === '/edit'; 
   const isCreateSubredditPage = location.pathname === '/create-subreddit';
   const shouldHideCreate = isCreatePostPage || isEditProfilePage || isCreateSubredditPage;
   const shouldHideSearch = isCreatePostPage || isProfilePage || isEditProfilePage || isCreateSubredditPage;
-
+  
+  const navigate = useNavigate();
+  
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {

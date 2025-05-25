@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { fetchFromAPI } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { IoEyeOffSharp, IoEyeSharp  } from "react-icons/io5";
+
 import '../styles/login.css';
 
 const Login = () => {
@@ -15,8 +16,8 @@ const Login = () => {
     try {
       const response = await fetchFromAPI('/login', 'POST', { username, password });
       const token = response.token;
-      localStorage.setItem('token', token); // Store the JWT token in localStorage
-      navigate('/'); // Redirect to home or profile after successful login
+      localStorage.setItem('token', token);
+      navigate('/'); 
     } catch (error) {
       setError('Login failed. Please check your credentials.');
     }

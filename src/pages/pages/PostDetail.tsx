@@ -1,11 +1,13 @@
+import Loading from './Loading';
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/auth';
 import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
-import Loading from './Loading';
+import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
+
 import '../styles/postdetail.css';
 import '../styles/main.css';
-import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 
 interface Post {
   post_id: string;
@@ -38,13 +40,13 @@ interface Comment {
     username: string;
     profilePic: string;
   };
-  replies: Comment[]; // Recursive
+  replies: Comment[]; 
 }
 
 const PostDetail = () => {
   const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);  // Ensure this is always an empty array
+  const [comments, setComments] = useState<Comment[]>([]);  
   const [newComment, setNewComment] = useState<string>('');
   const [replyContent, setReplyContent] = useState<{ [key: string]: string }>({});
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -140,7 +142,7 @@ const PostDetail = () => {
         const updatedComments = addReplyToComment(comments, parentCommentId, newReply.comment);
         setComments(updatedComments);
         setReplyContent({ ...replyContent, [parentCommentId]: '' });
-        await fetchPostAndComments(); // Refetch to rebuild threaded structure
+        await fetchPostAndComments();
       } else {
         showAlert('Failed to add reply');
       }
@@ -322,7 +324,7 @@ const Comment = ({
   const fetchVoteCount = async () => {
     try {
       const data = await fetchFromAPIWithoutAuth(`/comments/${comment.comment_id}/votes/count`, 'GET');
-      setVoteCount(data.score); // Update the vote count
+      setVoteCount(data.score);
     } catch (error) {
       console.error('Error fetching vote count:', error);
     }
@@ -363,19 +365,17 @@ const Comment = ({
 
     try {
       if (userVote === type) {
-        // Cancel the vote
         await handleCancelVote();
       } else {
-        // Cast a new vote
         const voteType = type === 'upvote' ? true : false;
 
         const data = await fetchFromAPI(`/comments/${comment.comment_id}/votes`, 'POST', {
           vote_type: voteType
         });
 
-        fetchVoteCount(); // Refresh the vote count
-        setUserVote(type); // Update the user's vote locally
-        setVoteId(data.vote.vote_id || null); // Store the vote ID
+        fetchVoteCount();
+        setUserVote(type); 
+        setVoteId(data.vote.vote_id || null); 
       }
     } catch (error) {
       console.error('Error voting:', error);
@@ -397,7 +397,7 @@ const Comment = ({
 
       showAlert('Comment updated successfully.');
       setShowEditPopup(false);
-      fetchPostAndComments(); // Refresh comments
+      fetchPostAndComments(); 
     } catch (error) {
       console.error('Error editing comment:', error);
       showAlert('Failed to update comment.');
@@ -416,7 +416,7 @@ const Comment = ({
 
       showAlert('Comment deleted successfully.');
       setShowDeletePopup(false);
-      fetchPostAndComments(); // Refresh comments
+      fetchPostAndComments();
     } catch (error) {
       console.error('Error deleting comment:', error);
       showAlert('Failed to delete comment.');
@@ -435,9 +435,9 @@ const Comment = ({
 
       await fetchFromAPI(`/votes/${voteId}`, 'DELETE');
 
-      fetchVoteCount(); // Refresh the vote count
-      setUserVote(null); // Reset the user's vote
-      setVoteId(null); // Clear the vote ID
+      fetchVoteCount();
+      setUserVote(null); 
+      setVoteId(null); 
     } catch (error) {
       console.error('Error canceling vote:', error);
       showAlert('Failed to cancel vote.');
@@ -497,7 +497,7 @@ const Comment = ({
           <button
             className={`vote-button ${userVote === 'upvote' ? 'upvoted' : ''} up`}
             onClick={(e) => {
-              e.stopPropagation();  // Prevent redirect on button click
+              e.stopPropagation();  
               handleVote('upvote');
             }}
           >
@@ -510,7 +510,7 @@ const Comment = ({
           <button
             className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
             onClick={(e) => {
-              e.stopPropagation();  // Prevent redirect on button click
+              e.stopPropagation();  
               handleVote('downvote');
             }}
           >

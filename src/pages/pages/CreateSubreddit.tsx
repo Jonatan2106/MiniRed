@@ -1,8 +1,10 @@
+import Loading from './Loading';
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Loading from './Loading';
-import '../styles/createsubreddit.css';
 import { fetchFromAPI } from '../../api/auth';
+
+import '../styles/createsubreddit.css';
 
 interface Subreddit {
   subreddit_id: string;

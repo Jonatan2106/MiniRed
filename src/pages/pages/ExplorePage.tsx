@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
-import { AiOutlinePlusCircle } from "react-icons/ai";
-import '../styles/explore.css';
-import '../styles/main.css';
 import Loading from './Loading';
+
+import React, { useState, useEffect } from 'react';
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 import { useNavigate } from 'react-router-dom';
+
+import '../styles/explore.css';
+import '../styles/main.css';
 
 interface Subreddit {
   subreddit_id: string;
@@ -23,7 +23,6 @@ interface User {
   profilePic: string;
 }
 
-// Debounce hook (copied from Home.tsx)
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -65,8 +64,8 @@ const ExplorePage = () => {
         console.log('Fetched Subreddits:', allSubredditsResponse);
 
         if (Array.isArray(allSubredditsResponse)) {
-          setAllSubreddits(allSubredditsResponse); // Set all subreddits for filtering
-          setFilteredSubreddits(allSubredditsResponse); // Default to showing all subreddits
+          setAllSubreddits(allSubredditsResponse); 
+          setFilteredSubreddits(allSubredditsResponse); 
         } else {
           console.error('Invalid data format:', allSubredditsResponse);
         }
@@ -84,7 +83,7 @@ const ExplorePage = () => {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
       } finally {
-        setIsLoading(false); // Ensure loading is stopped in all cases
+        setIsLoading(false); 
       }
     };
 
@@ -118,7 +117,7 @@ const ExplorePage = () => {
   };
 
   if (isLoading) {
-    return <Loading />; // Show loading screen
+    return <Loading />; 
   }
 
   if (error) {

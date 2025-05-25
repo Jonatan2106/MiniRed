@@ -1,13 +1,13 @@
-import React, { useState, useEffect, use } from 'react';
-import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
-import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
-import { AiOutlinePlusCircle } from 'react-icons/ai';
-import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import Loading from './Loading';
-import '../styles/subreddit.css';
-import '../styles/main.css';
+
+import React, { useState, useEffect, use } from 'react';
+import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
+import { useNavigate, useParams } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
+
+import '../styles/subreddit.css';
+import '../styles/main.css';
 
 interface Post {
     post_id: string;
@@ -65,16 +65,13 @@ const SubredditPage = () => {
             if (token) {
                 setIsLoggedIn(true);
 
-                // Fetch user data
                 const userResponse = await fetchFromAPI('/me', 'GET');
                 setUser({ user_id: userResponse.user_id, username: userResponse.username, profilePic: userResponse.profile_pic });
 
-                // Fetch joined subreddits
                 const joinedSubredditsResponse = await fetchFromAPI('/users/subreddits', 'GET');
                 setJoinedSubreddits(joinedSubredditsResponse);
             }
 
-            // Fetch all users
             const usersResponse = await fetchFromAPI('/user/all', 'GET');
             const userMap = new Map();
             usersResponse.forEach((user: User) => {
@@ -82,16 +79,13 @@ const SubredditPage = () => {
             });
             setUsers(userMap);
 
-            // Fetch subreddit data
             const subredditResponse = await fetchFromAPIWithoutAuth(`/subreddits/r/${subredditName}`, 'GET');
             if (subredditResponse) {
                 setSubreddit(subredditResponse);
 
-                // Fetch posts for the subreddit
                 const postsResponse = await fetchFromAPIWithoutAuth(`/subreddits/${subredditResponse.subreddit_id}/posts`, 'GET');
                 setPosts(postsResponse);
 
-                // Check membership status
                 if (token) {
                     const membershipResponse = await fetchFromAPI('/users/subreddits', 'GET');
                     const isUserMember = membershipResponse.some(
@@ -247,18 +241,18 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
     const [voteCount, setVoteCount] = useState<{ upvotes: number; downvotes: number, score: number }>({ upvotes: 0, downvotes: 0, score: 0 });
     const [commentCount, setCommentCount] = useState<number>(0);
     const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
-    const [voteId, setVoteId] = useState<string | null>(null); // Store the voteId
+    const [voteId, setVoteId] = useState<string | null>(null); 
 
     useEffect(() => {
         fetchCommentCount();
-        fetchVoteCount(); // fetch vote counts
+        fetchVoteCount(); 
 
         const token = localStorage.getItem('token');
         if (token) {
             fetchFromAPI(`/posts/${post.post_id}/votes`, 'GET')
                 .then(data => {
                     if (Array.isArray(data) && data.length > 0) {
-                        const vote = data[0]; // Assuming one vote per post per user
+                        const vote = data[0]; 
                         setUserVote(vote.vote_type ? 'upvote' : 'downvote');
                         setVoteId(vote.vote_id || null);
                     }
@@ -296,22 +290,17 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
             }
 
             if (userVote === type) {
-                // If the user clicks the same vote again, cancel/delete the vote
                 await handleCancelVote();
             } else {
-                // Otherwise, cast the new vote
                 const voteType = type === 'upvote' ? true : false;
 
                 const response = await fetchFromAPI(`/posts/${post.post_id}/votes`, 'POST', { vote_type: voteType });
                 const data = await response;
-                // console.log(data); // Log the response to ensure we're getting the expected structure
-
                 if (response) {
-                    fetchVoteCount(); // Refresh vote counts
-                    setUserVote(type); // Set the user vote locally
+                    fetchVoteCount(); 
+                    setUserVote(type); 
 
-                    // Correctly using vote_id from the response
-                    setVoteId(data.vote.vote_id || null); // Use vote_id (not voteId)
+                    setVoteId(data.vote.vote_id || null); 
                 } else {
                     alert(data.message || 'Failed to vote.');
                 }
@@ -321,7 +310,6 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
         }
     };
 
-    // Handle canceling the vote
     const handleCancelVote = async () => {
         if (!voteId) return;
 
@@ -336,9 +324,9 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
 
             if (response) {
                 console.log('Vote successfully deleted');
-                fetchVoteCount(); // Refresh vote counts
-                setUserVote(null); // Remove the user's vote
-                setVoteId(null); // Reset the voteId
+                fetchVoteCount(); 
+                setUserVote(null); 
+                setVoteId(null); 
             } else {
                 const errorData = await response;
                 console.error('Failed to cancel vote:', errorData.message);
@@ -383,7 +371,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
                     <button
                         className={`vote-button ${userVote === 'upvote' ? 'upvoted' : ''} up`}
                         onClick={(e) => {
-                            e.stopPropagation();  // Prevent redirect on button click
+                            e.stopPropagation();
                             handleVote('upvote');
                         }}
                     >
@@ -396,7 +384,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
                     <button
                         className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
                         onClick={(e) => {
-                            e.stopPropagation();  // Prevent redirect on button click
+                            e.stopPropagation();
                             handleVote('downvote');
                         }}
                     >

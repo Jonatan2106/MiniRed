@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
-import { AiOutlinePlusCircle } from "react-icons/ai";
 import Loading from './Loading';
-import '../styles/profile.css';
-import '../styles/main.css';
+
+import React, { useState, useEffect } from 'react';
 import { fetchFromAPI } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
+
+import '../styles/profile.css';
+import '../styles/main.css';
 
 interface Post {
   post_id: string;
@@ -41,21 +41,21 @@ interface Vote {
   vote_id: string;
   user_id: string;
   kategori_id: string;
-  kategori_type: "POST" | "COMMENT"; // Specifies whether the vote is for a post or a comment
-  vote_type: boolean; // true for upvote, false for downvote
+  kategori_type: "POST" | "COMMENT";  
+  vote_type: boolean; 
   created_at: string;
-  post?: Post; // Optional, included if the vote is for a post
-  comment?: Comment; // Optional, included if the vote is for a comment
+  post?: Post;
+  comment?: Comment;
 }
 
 interface OverviewItem {
   type: 'post' | 'comment' | 'upvoted' | 'downvoted';
   created_at: string;
-  post_id?: string; // For posts and comments
-  title?: string; // For posts
-  content?: string; // For comments
-  post?: Post; // For comments, upvoted, and downvoted items
-  kategori_type?: 'POST' | 'COMMENT'; // For upvoted and downvoted items
+  post_id?: string; 
+  title?: string; 
+  content?: string;
+  post?: Post; 
+  kategori_type?: 'POST' | 'COMMENT'; 
 }
 
 const Profile = () => {
@@ -109,12 +109,11 @@ const Profile = () => {
 
     fetchFromAPI('/user/me/comments', 'GET')
       .then(async (commentsData) => {
-        // Fetch posts for each comment
         const commentsWithPosts = await Promise.all(
           commentsData.map(async (comment: Comment) => {
             const postResponse = await fetchFromAPI(`/posts/${comment.post_id}`, 'GET')
             const post = await postResponse;
-            return { ...comment, post }; // Merge post into comment
+            return { ...comment, post }; 
           })
         );
         setComments(commentsWithPosts);
@@ -132,7 +131,6 @@ const Profile = () => {
     setIsLoading(false);
   }, []);
 
-  // Fetch upvoted and downvoted votes in a separate effect
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -173,14 +171,10 @@ const Profile = () => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
 
     try {
-      // Call the API to delete the post
       await fetchFromAPI(`/posts/${postId}`, 'DELETE');
 
-      // If we get here without an exception, deletion was successful
-      // Update the local state to remove the deleted post
       setPosts((prev) => prev.filter((post) => post.post_id !== postId));
 
-      // Remove any comments related to the deleted post
       setComments((prev) => prev.filter((comment) => comment.post_id !== postId));
 
       alert('Post deleted successfully!');
@@ -208,22 +202,18 @@ const Profile = () => {
       return;
     }
 
-    // Only validate content since we're not changing the title
     if (!editPostContent.trim()) {
       setEditModalError("Post content cannot be empty.");
       return;
     }
 
-    // Properly format the update data
     const updateData = {
-      title: editPostTitle, // Include title even if unchanged
+      title: editPostTitle, 
       content: editPostContent
     };
 
-    // Send the update request with proper payload
     const response = await fetchFromAPI(`/posts/${currentEditingPost.post_id}`, 'PUT', updateData);
     
-    // Update the post in local state
     setPosts(prev =>
       prev.map(post =>
         post.post_id === currentEditingPost.post_id 
@@ -232,11 +222,9 @@ const Profile = () => {
       )
     );
 
-    // Close the modal
     setIsEditPostModalOpen(false);
     setCurrentEditingPost(null);
     
-    // Show success message
     alert('Post updated successfully!');
 
   } catch (err: any) {

@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import Loading from './Loading';
-import '../styles/createpost.css';
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/auth';
+
+import '../styles/createpost.css';
 
 interface Subreddit {
     subreddit_id: string;

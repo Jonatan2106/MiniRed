@@ -1,11 +1,13 @@
+import Loading from './Loading';
+
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import Loading from './Loading';
-import '../styles/viewprofile.css';
-import '../styles/home.css';
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 import { useNavigate } from 'react-router-dom';
+
+import '../styles/viewprofile.css';
+import '../styles/home.css';
 
 interface User {
     user_id: string;
@@ -120,7 +122,7 @@ const ViewProfile = () => {
             posts.map(async (post: any) => {
                 try {
                     const subreddit = await fetchFromAPI(`/subreddits/${post.subreddit_id}`, 'GET');
-                    console.log('Subreddit:', subreddit.name); // Debugging line
+                    console.log('Subreddit:', subreddit.name); 
                     return { ...post, subreddit_name: subreddit.name, subreddit: subreddit };
                 } catch (error) {
                     console.error(`Failed to fetch subreddit for post ${post.post_id}:`, error);
@@ -172,7 +174,7 @@ const ViewProfile = () => {
                 return voteData.score;
             } catch (error) {
                 console.error(`Failed to fetch votes for post ${postId}:`, error);
-                return 0; // Return 0 for failed votes to avoid breaking the calculation
+                return 0; 
             }
         });
 
@@ -187,7 +189,7 @@ const ViewProfile = () => {
                 return voteData.score;
             } catch (error) {
                 console.error(`Failed to fetch votes for comment ${commentId}:`, error);
-                return 0; // Return 0 for failed votes to avoid breaking the calculation
+                return 0; 
             }
         });
 
