@@ -5,6 +5,8 @@ import { AiOutlinePlusCircle } from 'react-icons/ai';
 import Loading from './Loading';
 import '../styles/viewprofile.css';
 import '../styles/home.css';
+import { fetchFromAPI } from '../../api/auth';
+import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 
 interface User {
     user_id: string;
@@ -94,49 +96,36 @@ const ViewProfile = () => {
     }, [username]);
 
     const fetchCurrentUser = async (token: string) => {
-        const response = await fetch('http://localhost:5000/api/me', {
-            method: 'GET',
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await response.json();
-        setCurrentUser({ username: data.username, profilePic: data.profile_pic });
+        const response = await fetchFromAPI('/me', 'GET');
+        setCurrentUser({ username: response.username, profilePic: response.profile_pic });
         setIsLoggedIn(true);
     };
 
     const fetchUserProfile = async (username: string, token: string | null): Promise<User> => {
-        const response = await fetch('http://localhost:5000/api/user/all', {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) throw new Error('Failed to fetch user data');
-        const users = await response.json();
-        const user = users.find((u: User) => u.username === username);
+        const response = await fetchFromAPIWithoutAuth('/user/all', 'GET');
+        if (!response) throw new Error('Failed to fetch user data');
+        const user = response.find((u: User) => u.username === username);
         if (!user) throw new Error('User not found');
         return user;
     };
 
     const fetchUserPosts = async (userId: string, token: string | null): Promise<Post[]> => {
-        const response = await fetch(`http://localhost:5000/api/user/${userId}/post`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetchFromAPI(`/user/${userId}/post`, 'GET');
 
-        if (!response.ok) throw new Error('Failed to fetch user posts');
+        if (!response) throw new Error('Failed to fetch user posts');
 
-        const posts = await response.json();
+        const posts = await response;
 
         const postsWithSubreddit = await Promise.all(
             posts.map(async (post: any) => {
-                const subredditResponse = await fetch(`http://localhost:5000/api/subreddits/${post.subreddit_id}`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-
-                if (!subredditResponse.ok) {
-                    console.error(`Failed to fetch subreddit for post ${post.post_id}`);
+                try {
+                    const subreddit = await fetchFromAPI(`/subreddits/${post.subreddit_id}`, 'GET');
+                    console.log('Subreddit:', subreddit.name); // Debugging line
+                    return { ...post, subreddit_name: subreddit.name, subreddit: subreddit };
+                } catch (error) {
+                    console.error(`Failed to fetch subreddit for post ${post.post_id}:`, error);
                     return { ...post, subreddit_name: 'Unknown Subreddit' };
                 }
-
-                const subreddit = await subredditResponse.json();
-                console.log('Subreddit:', subreddit.name); // Debugging line
-                return { ...post, subreddit_name: subreddit.name, subreddit: subreddit };
             })
         );
 
@@ -144,64 +133,64 @@ const ViewProfile = () => {
     };
 
     const fetchUserComments = async (userId: string, token: string | null): Promise<Comment[]> => {
-        const response = await fetch(`http://localhost:5000/api/user/${userId}/comment`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        try {
+            const comments = await fetchFromAPI(`/user/${userId}/comment`, 'GET');
 
-        if (!response.ok) throw new Error('Failed to fetch user comments');
+            const commentsWithPost = await Promise.all(
+                comments.map(async (comment: any) => {
+                    try {
+                        const post = await fetchFromAPI(`/posts/${comment.post_id}`, 'GET');
+                        return { ...comment, post };
+                    } catch (error) {
+                        console.error(`Failed to fetch post for comment ${comment.comment_id}:`, error);
+                        return { ...comment, post: { title: 'Unknown Post' } };
+                    }
+                })
+            );
 
-        const comments = await response.json();
-
-        const commentsWithPost = await Promise.all(
-            comments.map(async (comment: any) => {
-                const postResponse = await fetch(`http://localhost:5000/api/posts/${comment.post_id}`, {
-                    method: 'GET',
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-
-                if (!postResponse.ok) {
-                    console.error(`Failed to fetch post for comment ${comment.comment_id}`);
-                    return { ...comment, post: { title: 'Unknown Post' } };
-                }
-
-                const post = await postResponse.json();
-                return { ...comment, post };
-            })
-        );
-
-        return commentsWithPost;
+            return commentsWithPost;
+        } catch (error) {
+            console.error('Failed to fetch user comments:', error);
+            throw new Error('Failed to fetch user comments');
+        }
     };
 
     const fetchJoinedCommunities = async (userId: string, token: string | null): Promise<Subreddit[]> => {
-        const response = await fetch(`http://localhost:5000/api/users/${userId}/subreddits`, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) throw new Error('Failed to fetch joined communities');
-        return response.json();
+        try {
+            const communities = await fetchFromAPI(`/users/${userId}/subreddits`, 'GET');
+            return communities;
+        } catch (error) {
+            console.error('Failed to fetch joined communities:', error);
+            throw new Error('Failed to fetch joined communities');
+        }
     };
 
     const calculatePostKarma = async (postIds: string[], token: string | null): Promise<number> => {
         const karmaPromises = postIds.map(async (postId) => {
-            const response = await fetch(`http://localhost:5000/api/posts/${postId}/votes/count`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!response.ok) throw new Error('Failed to fetch post votes');
-            const { score } = await response.json();
-            return score;
+            try {
+                const voteData = await fetchFromAPI(`/posts/${postId}/votes/count`, 'GET');
+                return voteData.score;
+            } catch (error) {
+                console.error(`Failed to fetch votes for post ${postId}:`, error);
+                return 0; // Return 0 for failed votes to avoid breaking the calculation
+            }
         });
+
         const karmaValues = await Promise.all(karmaPromises);
         return karmaValues.reduce((total, score) => total + score, 0);
     };
 
     const calculateCommentKarma = async (commentIds: string[], token: string | null): Promise<number> => {
         const karmaPromises = commentIds.map(async (commentId) => {
-            const response = await fetch(`http://localhost:5000/api/comments/${commentId}/votes/count`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!response.ok) throw new Error('Failed to fetch comment votes');
-            const { score } = await response.json();
-            return score;
+            try {
+                const voteData = await fetchFromAPI(`/comments/${commentId}/votes/count`, 'GET');
+                return voteData.score;
+            } catch (error) {
+                console.error(`Failed to fetch votes for comment ${commentId}:`, error);
+                return 0; // Return 0 for failed votes to avoid breaking the calculation
+            }
         });
+
         const karmaValues = await Promise.all(karmaPromises);
         return karmaValues.reduce((total, score) => total + score, 0);
     };
@@ -230,73 +219,8 @@ const ViewProfile = () => {
 
     return (
         <div className="home-wrapper">
-            {/* Navbar */}
-            <nav className="navbar">
-                <div className="navbar-left">
-                    <div className="logo">
-                        <a className="app-title" href="/">MiniRed</a>
-                    </div>
-                </div>
-                <div className="navbar-center">
-                    <input
-                        className="search-input"
-                        type="text"
-                        placeholder="Search Reddit"
-                    />
-                    <button className="search-button">Search</button>
-                </div>
-                <div className="navbar-right">
-                    {isLoggedIn ? (
-                        <>
-                            <button className="create-post-btn"><AiOutlinePlusCircle className="icon" />Create Post</button>
-                            <div className="profile-menu">
-                                <img
-                                    src={
-                                        currentUser?.profilePic ? "http://localhost:5173"+currentUser?.profilePic : '/default.png'
-                                    }
-                                    className="profile-pic"
-                                    alt={currentUser?.username}
-                                    onClick={toggleDropdown} // Toggle dropdown on click
-                                />
-                                {isDropdownOpen && ( // Show dropdown only if `isDropdownOpen` is true
-                                    <div className="dropdown-menu">
-                                        <a href="/profile" className="dropdown-item">{currentUser?.username}</a>
-                                        <a href="/edit" className="dropdown-item">Edit</a>
-                                        <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <div className="auth-buttons">
-                            <a className="nav-link login-button" href="/login">Login</a>
-                            <a className="nav-link register-button" href="/register">Register</a>
-                        </div>
-                    )}
-                </div>
-            </nav>
-
             {/* Main Content */}
             <div className="main-content">
-                {/* Left Sidebar */}
-                <div className="left-sidebar home">
-                    <h2 className="title">Menu</h2>
-                    <ul>
-                        <li>
-                            <FaHome className="icon" />
-                            <a href="/">Home</a>
-                        </li>
-                        <li>
-                            <FaCompass className="icon" />
-                            <a href="/explore">Explore</a>
-                        </li>
-                        <li>
-                            <FaFire className="icon" />
-                            <a href="/popular">Popular</a>
-                        </li>
-                    </ul>
-                </div>
-
                 {/* Profile Content */}
                 <div className="feed">
                     <div className="view-profile-container">

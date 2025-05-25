@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/search.css';
 import '../styles/main.css';
+import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 
 const Search = () => {
   const [query, setQuery] = useState('');
@@ -11,9 +12,8 @@ const Search = () => {
 
   const handleSearch = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/search?q=${query}`);
-      const data = await response.json();
-      setResults(data);
+      const response = await fetchFromAPIWithoutAuth(`/search?q=${query}`, 'GET');
+      setResults(response);
       setError(null); // Clear any previous errors
     } catch (error) {
       console.error('Search failed', error);

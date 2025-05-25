@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loading from './Loading';
 import '../styles/createsubreddit.css';
+import { fetchFromAPI } from '../../api/auth';
 
 interface Subreddit {
   subreddit_id: string;
@@ -25,22 +26,14 @@ const CreateSubreddit = () => {
 
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsLoggedIn(true);
-      fetch('http://localhost:5000/api/me', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    setIsLoggedIn(true);
+    fetchFromAPI('/me', 'GET')
+      .then((data) => {
+        setUser({ userId: data.user_id, username: data.username, profilePic: data.profilePic });
       })
-        .then((response) => response.json())
-        .then((data) => {
-          setUser({ userId: data.user_id, username: data.username, profilePic: data.profilePic });
-        })
-        .catch((error) => console.error('Error fetching user data:', error))
-        .finally(() => setIsLoading(false));
-    }
+      .catch((error) => console.error('Error fetching user data:', error))
+      .finally(() => setIsLoading(false));
+    
   }, []); 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,29 +47,17 @@ const CreateSubreddit = () => {
 
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/subreddits', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: user?.userId,
-          name: subredditName,
-          title: subredditTitle,
-          description: subredditDescription,
-          is_privated: subredditPrivacy,
-        }),
+      const response = await fetchFromAPI('/subreddits', 'POST', {userId: user?.userId,
+        name: subredditName,
+        title: subredditTitle,
+        description: subredditDescription,
+        is_privated: subredditPrivacy,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-       
-        navigate(`/r/${data.name}`);
+      if (response) {
+        navigate(`/r/${response.name}`);
       } else {
-        const data = await response.json();
-        setError(data.message || 'Failed to create subreddit.');
+        setError(response.message || 'Failed to create subreddit.');
       }
     } catch (error) {
       console.error('Error creating subreddit:', error);
@@ -166,20 +147,6 @@ const CreateSubreddit = () => {
             >
               {subredditDescription.length}/500
             </div>
-          </div>
-
-          {/* Privacy Options */}
-          <div className="form-section privacy-options">
-            <p className='label'>Set subreddit visibility</p>
-            <label className="toggle-label">
-              <span>{subredditPrivacy ? 'Private' : 'Public'}</span>
-              <div
-                className={`toggle-switch ${subredditPrivacy ? 'active' : ''}`}
-                onClick={() => setSubredditPrivacy(!subredditPrivacy)}
-              >
-                <div className="toggle-knob"></div>
-              </div>
-            </label>
           </div>
 
           {/* Submit Button */}

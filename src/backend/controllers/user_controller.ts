@@ -139,10 +139,9 @@ export const getUserComments = async (req: Request, res: Response) => {
 // PUT /me - update user profile
 export const updateUserProfile = async (req: Request, res: Response) => {
     try {
-        const { userId, username, email, password, profilePic } = req.body;
-
+        const { userId, username, email, password, newPassword, currentPassword, profilePic } = req.body;
         let imagePath: string | null = null;
-
+        
         if (profilePic) {
             const matches = profilePic.match(/^data:(.+);base64,(.+)$/);
             if (!matches || matches.length !== 3) {
@@ -156,24 +155,32 @@ export const updateUserProfile = async (req: Request, res: Response) => {
             const fileName = `${userId}.${extension}`;
             const savePath = path.join(__dirname, '../../../public/uploads', fileName);
             imagePath = `/uploads/${fileName}`;
-
+            
             const uploadDir = path.join(__dirname, '../../../public/uploads');
             if (!fs.existsSync(uploadDir)) {
                 fs.mkdirSync(uploadDir, { recursive: true });
             }
-
+            
             fs.writeFileSync(savePath, Buffer.from(base64Data, 'base64'));
         }
-
+        
         if (!userId) {
             res.status(400).json({ message: 'User ID is required' });
             return;
         }
-
+        
         const user = await User.findByPk(userId);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
+        }
+
+        if (currentPassword) {
+            const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+            if (!isCurrentPasswordValid) {
+                res.status(401).json({ message: 'Current password is incorrect' });
+                return;
+            }
         }
 
         if (username && username.trim() !== "") {
@@ -184,16 +191,18 @@ export const updateUserProfile = async (req: Request, res: Response) => {
             user.email = email;
         }
 
-        if (password && password.trim() !== "") {
-            const hashedPassword = await bcrypt.hash(password, 10);
+        const passwordToUpdate = newPassword || password; // Prioritize newPassword
+        if (passwordToUpdate && passwordToUpdate.trim() !== "") {
+            console.log('Updating password with:', passwordToUpdate);
+            const hashedPassword = await bcrypt.hash(passwordToUpdate, 10);
             user.password = hashedPassword;
+            console.log('Password hashed and updated');
         }
 
         console.log('Image path:', imagePath);
         if (imagePath) {
             user.profile_pic = imagePath;
         }
-
         await user.save();
         res.status(200).json({ message: 'User profile updated successfully', user });
 
@@ -332,7 +341,7 @@ export const verifyPassword = async (req: Request, res: Response) => {
         const { password: password } = req.body;
         const userId = req.body.userId;
         console.log('User ID:', userId);
-        console.log('Password:', req.body);
+        console.log('Password:', password);
         if (!userId || !password) {
             res.status(400).json({ message: 'User ID and password are required' })
             return;

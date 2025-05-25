@@ -2,10 +2,12 @@ import React, { useState, useEffect, use } from 'react';
 import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import { AiOutlinePlusCircle } from 'react-icons/ai';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import Loading from './Loading';
 import '../styles/subreddit.css';
 import '../styles/main.css';
+import { fetchFromAPI } from '../../api/auth';
+import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 
 interface Post {
     post_id: string;
@@ -52,6 +54,7 @@ const SubredditPage = () => {
     const [subreddit, setSubreddit] = useState<Subreddit | null>(null);
     const [isMember, setIsMember] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
     const [bannerPic, setBannerPic] = useState<string>(() => {
         return `/banner_${Math.floor(Math.random() * 3) + 1}.jpg`;
     });
@@ -63,56 +66,36 @@ const SubredditPage = () => {
                 setIsLoggedIn(true);
 
                 // Fetch user data
-                const userResponse = await fetch('http://localhost:5000/api/me', {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                const userData = await userResponse.json();
-                setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profile_pic });
+                const userResponse = await fetchFromAPI('/me', 'GET');
+                setUser({ user_id: userResponse.user_id, username: userResponse.username, profilePic: userResponse.profile_pic });
 
                 // Fetch joined subreddits
-                const joinedSubredditsResponse = await fetch('http://localhost:5000/api/users/subreddits', {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                const joinedSubredditsData = await joinedSubredditsResponse.json();
-                setJoinedSubreddits(joinedSubredditsData);
+                const joinedSubredditsResponse = await fetchFromAPI('/users/subreddits', 'GET');
+                setJoinedSubreddits(joinedSubredditsResponse);
             }
 
             // Fetch all users
-            const usersResponse = await fetch('http://localhost:5000/api/user/all');
-            const usersData = await usersResponse.json();
+            const usersResponse = await fetchFromAPI('/user/all', 'GET');
             const userMap = new Map();
-            usersData.forEach((user: User) => {
+            usersResponse.forEach((user: User) => {
                 userMap.set(user.user_id, user);
             });
             setUsers(userMap);
 
             // Fetch subreddit data
-            const subredditResponse = await fetch(`http://localhost:5000/api/subreddits/r/${subredditName}`);
-            const subredditData = await subredditResponse.json();
-            if (subredditData) {
-                setSubreddit(subredditData);
+            const subredditResponse = await fetchFromAPIWithoutAuth(`/subreddits/r/${subredditName}`, 'GET');
+            if (subredditResponse) {
+                setSubreddit(subredditResponse);
 
                 // Fetch posts for the subreddit
-                const postsResponse = await fetch(`http://localhost:5000/api/subreddits/${subredditData.subreddit_id}/posts`);
-                const postsData = await postsResponse.json();
-                setPosts(postsData);
+                const postsResponse = await fetchFromAPIWithoutAuth(`/subreddits/${subredditResponse.subreddit_id}/posts`, 'GET');
+                setPosts(postsResponse);
 
                 // Check membership status
                 if (token) {
-                    const membershipResponse = await fetch('http://localhost:5000/api/users/subreddits', {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    });
-                    const membershipData = await membershipResponse.json();
-                    const isUserMember = membershipData.some(
-                        (joinedSubreddit: Subreddit) => joinedSubreddit.subreddit_id === subredditData.subreddit_id
+                    const membershipResponse = await fetchFromAPI('/users/subreddits', 'GET');
+                    const isUserMember = membershipResponse.some(
+                        (joinedSubreddit: Subreddit) => joinedSubreddit.subreddit_id === membershipResponse.subreddit_id
                     );
                     setIsMember(isUserMember);
                 }
@@ -133,14 +116,8 @@ const SubredditPage = () => {
 
     const handleJoinSubreddit = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/subreddits/${subreddit?.subreddit_id}/join`, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            if (response.ok) {
+            const response = await fetchFromAPI(`/subreddits/${subreddit?.subreddit_id}/join`, 'POST');
+            if (response) {
                 setIsMember(true);
                 fetchData();
             } else {
@@ -154,13 +131,8 @@ const SubredditPage = () => {
     const handleLeaveSubreddit = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:5000/api/subreddits/${subreddit?.subreddit_id}/leave`, {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-            if (response.ok) {
+            const response = await fetchFromAPI(`/subreddits/${subreddit?.subreddit_id}/leave`, 'POST');
+            if (response) {
                 setIsMember(false);
                 fetchData();
             } else {
@@ -172,13 +144,13 @@ const SubredditPage = () => {
     };
 
     const handleCreatePost = () => {
-        window.location.href = '/create-post';
+        navigate('/create-post'); 
     };
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         setIsLoggedIn(false);
-        window.location.href = '/';
+        navigate('/'); 
     };
 
     const toggleDropdown = () => {
@@ -195,69 +167,8 @@ const SubredditPage = () => {
 
     return (
         <div className="subreddit-wrapper">
-            {/* Navbar */}
-            <nav className="navbar">
-                <div className="navbar-left">
-                    <div className="logo">
-                        <a className="app-title" href="/">MiniRed</a>
-                    </div>
-                </div>
-                <div className="navbar-center">
-                    <input className="search-input" type="text" placeholder="Search Reddit" />
-                </div>
-                <div className="navbar-right">
-                    {isLoggedIn ? (
-                        <>
-                            <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
-                            <div className="profile-menu">
-                                <img
-                                    src={user?.profilePic ? "http://localhost:5173"+user?.profilePic : "/default.png"}
-                                    className="profile-pic"
-                                    onClick={toggleDropdown}
-                                    alt={user?.username}
-                                />
-                                {isDropdownOpen && (
-                                    <div className="dropdown-menu enhanced-dropdown">
-                                        <a href="/profile" className="dropdown-item">{user?.username}</a>
-                                        <a href="/edit" className="dropdown-item">Edit</a>
-                                        <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-                            <div className="auth-buttons">
-                                <a className="nav-link login-button" href="/login">Login</a>
-                                <a className="nav-link register-button" href="/register">Register</a>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </nav>
-
             {/* Main content */}
             <div className="main-content">
-                {/* Left Sidebar */}
-                <div className="left-sidebar subreddit">
-                    <h2 className="title">Menu</h2>
-                    <ul>
-                        <li>
-                            <FaHome className="icon" /> {/* Home icon */}
-                            <a href="/">Home</a>
-                        </li>
-                        <li>
-                            <FaCompass className="icon" /> {/* Explore icon */}
-                            <a href="/explore">Explore</a>
-                        </li>
-                        <li>
-                            <FaFire className="icon" /> {/* Popular icon */}
-                            <a href="/popular">Popular</a>
-                        </li>
-                    </ul>
-                </div>
-
                 {/* Subreddit Header */}
                 <div className="main-feed">
                     <div className="subreddit-page-wrapper">

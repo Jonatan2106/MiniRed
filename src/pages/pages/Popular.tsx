@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
-import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
-import { AiOutlinePlusCircle } from "react-icons/ai";
 import '../styles/popular.css';
 import '../styles/main.css';
 import Loading from './Loading';
+import { fetchFromAPI } from '../../api/auth';
+import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 
 interface Post {
     post_id: string;
@@ -32,12 +31,10 @@ interface User {
 }
 
 const Popular = () => {
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const [posts, setPosts] = useState<Post[]>([]);
     const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [user, setUser] = useState<User>();
-    const [isDropdownOpen, setDropdownOpen] = useState(false);
     const [users, setUsers] = useState<Map<string, User>>(new Map());
     const [isLoading, setIsLoading] = useState(true);
 
@@ -46,34 +43,16 @@ const Popular = () => {
             try {
                 const token = localStorage.getItem('token');
                 if (token) {
-                    setIsLoggedIn(true);
-                    const userResponse = await fetch('http://localhost:5000/api/me', {
-                        method: 'GET',
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    });
-                    const userData = await userResponse.json();
-                    setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profile_pic });
+                    const subredditsResponse = await fetchFromAPI('/users/subreddits', 'GET');
+                    setJoinedSubreddits(subredditsResponse);
                 }
 
-                const postsResponse = await fetch('http://localhost:5000/api/posts/by-votes');
-                const postsData = await postsResponse.json();
-                setPosts(postsData);
+                const postsResponse = await fetchFromAPIWithoutAuth('/posts/by-votes', 'GET');
+                setPosts(postsResponse);
 
-                const subredditsResponse = await fetch('http://localhost:5000/api/users/subreddits', {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                });
-                const subredditsData = await subredditsResponse.json();
-                setJoinedSubreddits(subredditsData);
-
-                const usersResponse = await fetch('http://localhost:5000/api/user/all');
-                const usersData = await usersResponse.json();
+                const usersResponse = await fetchFromAPIWithoutAuth('/user/all', 'GET');
                 const userMap = new Map();
-                usersData.forEach((user: User) => {
+                usersResponse.forEach((user: User) => {
                     userMap.set(user.user_id, user);
                 });
                 setUsers(userMap);
@@ -88,20 +67,6 @@ const Popular = () => {
         fetchData();
     }, []);
 
-    const handleCreatePost = () => {
-        window.location.href = '/create-post';
-    };
-
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        setIsLoggedIn(false);
-        window.location.href = '/';
-    };
-
-    const toggleDropdown = () => {
-        setDropdownOpen((prev) => !prev);
-    };
-
     if (isLoading) {
         return <Loading />;
     }
@@ -112,66 +77,8 @@ const Popular = () => {
 
     return (
         <div className="home-wrapper">
-            {/* Navbar */}
-            <nav className="navbar">
-                <div className="navbar-left">
-                    <div className="logo">
-                        <a className="app-title" href="/">MiniRed</a>
-                    </div>
-                </div>
-                <div className="navbar-center">
-                    <h1 className="popular-title">Popular Pages</h1>
-                </div>
-                <div className="navbar-right">
-                    {isLoggedIn ? (
-                        <>
-                            <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
-                            <div className="profile-menu">
-                                <img
-                                    src={user?.profilePic ? "http://localhost:5173"+user?.profilePic : "/default.png"}
-                                    className="profile-pic"
-                                    onClick={toggleDropdown}
-                                    alt={user?.username}
-                                />
-                                {isDropdownOpen && (
-                                    <div className="dropdown-menu enhanced-dropdown">
-                                        <a href="/profile" className="dropdown-item">{user?.username}</a>
-                                        <a href="/edit" className="dropdown-item">Edit</a>
-                                        <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <div className="auth-buttons">
-                            <a className="nav-link login-button" href="/login">Login</a>
-                            <a className="nav-link register-button" href="/register">Register</a>
-                        </div>
-                    )}
-                </div>
-            </nav>
-
             {/* Main content */}
             <div className="main-content">
-                {/* Left Sidebar */}
-                <div className="left-sidebar home">
-                    <h2 className="title">Menu</h2>
-                    <ul>
-                        <li>
-                            <FaHome className="icon" />
-                            <a href="/">Home</a>
-                        </li>
-                        <li>
-                            <FaCompass className="icon" />
-                            <a href="/explore">Explore</a>
-                        </li>
-                        <li>
-                            <FaFire className="icon" />
-                            <a href="/popular">Popular</a>
-                        </li>
-                    </ul>
-                </div>
-
                 {/* Feed */}
                 <div className="feed">
                     {posts.map((post) => (
@@ -214,13 +121,7 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
 
         const token = localStorage.getItem('token');
         if (token) {
-            fetch(`http://localhost:5000/api/posts/${post.post_id}/votes`, {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            })
-                .then((response) => response.json())
+            fetchFromAPI(`/posts/${post.post_id}/votes`, 'GET')
                 .then((data) => {
                     if (Array.isArray(data) && data.length > 0) {
                         const vote = data.find((v: any) => v.user_id === current_user.user_id);
@@ -235,8 +136,7 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
     }, [post.post_id]);
 
     const fetchVoteCount = () => {
-        fetch(`http://localhost:5000/api/posts/${post.post_id}/votes/count`)
-            .then((response) => response.json())
+        fetchFromAPIWithoutAuth(`/posts/${post.post_id}/votes/count`, 'GET')
             .then((data) => {
                 setVoteCount({
                     upvotes: data.upvotes,
@@ -248,14 +148,12 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
     };
 
     const fetchCommentCount = () => {
-        fetch(`http://localhost:5000/api/posts/${post.post_id}/comments/count`)
-            .then((response) => response.json())
+        fetchFromAPIWithoutAuth(`/posts/${post.post_id}/comments/count`, 'GET')
             .then((data) => setCommentCount(data.commentCount))
             .catch((error) => console.error('Error fetching comment count:', error));
     };
 
     return (
-
         <div className="post-card">
             <a href={`/post/${post.post_id}`} className="post-link">
                 <div className="post-content">

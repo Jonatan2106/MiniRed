@@ -4,6 +4,7 @@ import Loading from './Loading';
 import "../styles/editprofile.css";
 import "../styles/main.css";
 import { User } from "../../../models/user";
+import { fetchFromAPI } from "../../api/auth";
 
 const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -58,13 +59,7 @@ const EditProfile = () => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
-      fetch("http://localhost:5000/api/me", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((res) => res.json())
+      fetchFromAPI(`/me`, 'GET')
         .then((data) => {
           setUser(data);
           setFormData({
@@ -113,15 +108,8 @@ const EditProfile = () => {
           return;
         }
         // Verify current password
-        const verifyRes = await fetch("http://localhost:5000/api/verify-password", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ password: currentPassword }),
-        });
-        if (!verifyRes.ok) {
+        const verifyRes = await fetchFromAPI(`/verify-password`, 'POST', { password: currentPassword });
+        if (!verifyRes) {
           setModalError("Current password is incorrect.");
           return;
         }
@@ -135,46 +123,28 @@ const EditProfile = () => {
 
       // Username uniqueness check
       if (popupType === "username") {
-        const checkRes = await fetch(`http://localhost:5000/api/check-username?username=${encodeURIComponent(inputValue)}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          }
-        });
-        const checkData = await checkRes.json();
-        if (!checkRes.ok || checkData.exists) {
+        const checkRes = await fetchFromAPI(`/check-username?username=${encodeURIComponent(inputValue)}`, 'GET');
+        if (checkRes.exists) {
           setModalError("Username is already taken.");
           return;
         }
       }
 
-      const payload: { [key: string]: any } = {};
+      const payload: { [key: string]: any } = { currentPassword: currentPassword };
 
-      if (popupType && popupType !== 'delete') {
-        if (popupType === 'propic' && image) {
-          payload.profilePic = await toBase64(image);
-        } else if (popupType !== 'propic') {
-          payload[popupType] = inputValue;
-        }
+      if (popupType === 'propic' && image) {
+        payload.profilePic = await toBase64(image);
+      } else if (popupType === 'username') {
+        payload.username = inputValue;
+      } else if (popupType === 'email') {
+        payload.email = inputValue;
+      } else if (popupType === 'password') {
+        payload.newPassword = inputValue;
       }
 
-      const response = await fetch("http://localhost:5000/api/me", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetchFromAPI(`/me`, 'PUT', payload);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update profile.");
-      }
-
-      const updatedUser = await response.json();
-      setUser(updatedUser.user || updatedUser);
+      setUser(response.user || response);
       setFormData((prev) => ({
         ...prev,
         ...payload,
@@ -182,6 +152,7 @@ const EditProfile = () => {
       closePopup();
       setError(null);
       setCurrentPassword('');
+      alert("Profile updated successfully!");
     } catch (err: any) {
       console.error("Error updating profile:", err.message);
       setModalError(err.message || "Unexpected error");
@@ -204,18 +175,9 @@ const EditProfile = () => {
         return;
       }
 
-      const res = await fetch("http://localhost:5000/api/me", {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.ok) {
-        localStorage.removeItem("token");
-        window.location.href = "/";
-      }
-
+      const res = await fetchFromAPI(`/me`, 'DELETE');
+      localStorage.removeItem("token");
+      window.location.href = "/";
     } catch (err: any) {
       console.error("Error deleting profile:", err.message);
       setError(err.message || "Unexpected error");
@@ -230,23 +192,14 @@ const EditProfile = () => {
     setImage(null);
   };
 
-  // When opening a popup, always refresh user data and reset modal state
   const openPopup = async (type: typeof popupType) => {
     resetModalState();
     setPopupType(type);
-    // Always fetch latest user data when opening username/email/password popup
     if (type === 'username' || type === 'email' || type === 'password') {
-      const token = localStorage.getItem("token");
-      if (token) {
-        const res = await fetch("http://localhost:5000/api/me", {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setUser(data);
-        if (type === 'username') setInputValue(data.username);
-        if (type === 'email') setInputValue(data.email);
-      }
+      const res = await fetchFromAPI(`/me`, 'GET');
+      setUser(res);
+      if (type === 'username') setInputValue(res.username);
+      if (type === 'email') setInputValue(res.email);
     }
   };
 
@@ -255,44 +208,7 @@ const EditProfile = () => {
 
   return (
     <div className="home-wrapper">
-      <nav className="navbar">
-        <div className="navbar-left">
-          <div className="logo">
-            <a className="app-title" href="/">MiniRed</a>
-          </div>
-        </div>
-        <div className="navbar-right">
-          {isLoggedIn && (
-            <div className="profile-menu">
-              <img
-                src={
-                  profile_pic ? `http://localhost:5173${profile_pic}` : "/default.png"
-                }
-                className="profile-pic"
-                onClick={toggleDropdown}
-              />
-              {isDropdownOpen && (
-                <div className="dropdown-menu">
-                  <a href="/profile" className="dropdown-item">{user?.username}</a>
-                  <a href="/edit" className="dropdown-item">Edit</a>
-                  <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </nav>
-
       <div className="main-content">
-        <div className="left-sidebar">
-          <h2 className="title">Menu</h2>
-          <ul>
-            <li><FaHome className="icon" /><a href="/">Home</a></li>
-            <li><FaCompass className="icon" /><a href="/explore">Explore</a></li>
-            <li><FaFire className="icon" /><a href="/popular">Popular</a></li>
-          </ul>
-        </div>
-
         <div className="edit-profile-wrapper">
           <h3>Edit Profile</h3>
           <div className="profile-form">

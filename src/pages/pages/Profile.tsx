@@ -4,6 +4,7 @@ import { AiOutlinePlusCircle } from "react-icons/ai";
 import Loading from './Loading';
 import '../styles/profile.css';
 import '../styles/main.css';
+import { fetchFromAPI } from '../../api/auth';
 
 interface Post {
   post_id: string;
@@ -90,13 +91,7 @@ const Profile = () => {
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
-      fetch('http://localhost:5000/api/me', {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((response) => response.json())
+      fetchFromAPI('/me', 'GET')
         .then((data) => {
           setUser({ username: data.username, profilePic: data.profile_pic, user_id: data.user_id });
           const calculatedPostKarma = calculatePostKarma(posts, data.user_id);
@@ -107,34 +102,17 @@ const Profile = () => {
         .catch((error) => console.error('Error fetching user data:', error));
     }
 
-    fetch('http://localhost:5000/api/user/me/posts', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      }
-    })
-      .then(response => response.json())
+    fetchFromAPI('/user/me/posts', 'GET')
       .then(data => setPosts(data))
       .catch(() => console.error('Error fetching posts'));
 
-    fetch('http://localhost:5000/api/user/me/comments', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
+    fetchFromAPI('/user/me/comments', 'GET')
       .then(async (commentsData) => {
         // Fetch posts for each comment
         const commentsWithPosts = await Promise.all(
           commentsData.map(async (comment: Comment) => {
-            const postResponse = await fetch(`http://localhost:5000/api/posts/${comment.post_id}`, {
-              method: 'GET',
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-            const post = await postResponse.json();
+            const postResponse = await fetchFromAPI(`/posts/${comment.post_id}`, 'GET')
+            const post = await postResponse;
             return { ...comment, post }; // Merge post into comment
           })
         );
@@ -142,25 +120,13 @@ const Profile = () => {
       })
       .catch(() => console.error('Error fetching comments'));
 
-    fetch('http://localhost:5000/api/users/subreddits', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      }
-    })
-      .then(response => response.json())
+    fetchFromAPI('/users/subreddits', 'GET')
       .then(data => setJoinedSubreddits(data))
       .catch(() => console.error('Error fetching joined communities'));
 
-      fetch('http://localhost:5000/api/posts:id', {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        }
-      })
-        .then(response => response.json())
-        .then(data => setPosts(data))
-        .catch(() => console.error('Error fetching posts'));
+    fetchFromAPI('/posts:id', 'PUT')
+      .then(data => setPosts(data))
+      .catch(() => console.error('Error fetching posts'));
 
     setIsLoading(false);
   }, []);
@@ -169,23 +135,11 @@ const Profile = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) return;
-    fetch('http://localhost:5000/api/user/me/upvoted', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      }
-    })
-      .then(response => response.json())
+    fetchFromAPI('/user/me/upvoted', 'GET')
       .then(data => setUpVotes(data))
       .catch(() => console.error('Error fetching upvoted posts'));
 
-    fetch('http://localhost:5000/api/user/me/downvoted', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      }
-    })
-      .then(response => response.json())
+    fetchFromAPI('/user/me/downvoted', 'GET')
       .then(data => setDownVotes(data))
       .catch(() => console.error('Error fetching downvoted posts'));
   }, []);
@@ -212,50 +166,27 @@ const Profile = () => {
     return combinedData.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
   };
 
-  const handleCreatePost = () => {
-    window.location.href = '/create-post';
-  };
-
-  const handleCreateSubreddit = () => {
-    window.location.href = '/create-subreddit';
-  };
-
   const handleDeletePost = async (postId: string) => {
     const token = localStorage.getItem('token');
     if (!token) return;
     if (!window.confirm('Are you sure you want to delete this post?')) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/posts/${postId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      // Call the API to delete the post
+      await fetchFromAPI(`/posts/${postId}`, 'DELETE');
 
-      if (response.ok) {
-        // Hapus post dari state
-        setPosts((prev) => prev.filter((post) => post.post_id !== postId));
-        // Hapus semua comment yang terkait post ini dari state
-        setComments((prev) => prev.filter((comment) => comment.post_id !== postId));
-        alert('Post deleted successfully!');
-      } else {
-        alert('Failed to delete post.');
-      }
+      // If we get here without an exception, deletion was successful
+      // Update the local state to remove the deleted post
+      setPosts((prev) => prev.filter((post) => post.post_id !== postId));
+
+      // Remove any comments related to the deleted post
+      setComments((prev) => prev.filter((comment) => comment.post_id !== postId));
+
+      alert('Post deleted successfully!');
     } catch (error) {
       console.error('Error deleting post:', error);
       alert('Error deleting post.');
     }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
-    window.location.href = '/';
-  };
-
-  const toggleDropdown = () => {
-    setDropdownOpen((prev) => !prev);
   };
 
   const handleOpenEditModal = (post: Post) => {
@@ -267,54 +198,51 @@ const Profile = () => {
   };
 
   const handleUpdatePost = async () => {
-    try {
-      if (!currentEditingPost) return;
-      
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setEditModalError("You must be logged in to update your post.");
-        return;
-      }
+  try {
+    if (!currentEditingPost) return;
 
-      // Only validate content since we're not changing the title
-      if (!editPostContent.trim()) {
-        setEditModalError("Post content cannot be empty.");
-        return;
-      }
-
-      const response = await fetch(`http://localhost:5000/api/posts/${currentEditingPost.post_id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          content: editPostContent,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update post.");
-      }
-
-      // Update the post in local state
-      const updatedPost = await response.json();
-      setPosts(prev => 
-        prev.map(post => 
-          post.post_id === currentEditingPost.post_id ? updatedPost : post
-        )
-      );
-
-      // Close the modal
-      setIsEditPostModalOpen(false);
-      setCurrentEditingPost(null);
-      
-    } catch (err: any) {
-      console.error("Error updating post:", err.message);
-      setEditModalError(err.message || "Unexpected error");
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setEditModalError("You must be logged in to update your post.");
+      return;
     }
-  };
+
+    // Only validate content since we're not changing the title
+    if (!editPostContent.trim()) {
+      setEditModalError("Post content cannot be empty.");
+      return;
+    }
+
+    // Properly format the update data
+    const updateData = {
+      title: editPostTitle, // Include title even if unchanged
+      content: editPostContent
+    };
+
+    // Send the update request with proper payload
+    const response = await fetchFromAPI(`/posts/${currentEditingPost.post_id}`, 'PUT', updateData);
+    
+    // Update the post in local state
+    setPosts(prev =>
+      prev.map(post =>
+        post.post_id === currentEditingPost.post_id 
+          ? { ...post, content: editPostContent } 
+          : post
+      )
+    );
+
+    // Close the modal
+    setIsEditPostModalOpen(false);
+    setCurrentEditingPost(null);
+    
+    // Show success message
+    alert('Post updated successfully!');
+
+  } catch (err: any) {
+    console.error("Error updating post:", err.message);
+    setEditModalError(err.message || "Failed to update post");
+  }
+};
 
   if (isLoading) {
     return <Loading />;
@@ -322,82 +250,8 @@ const Profile = () => {
 
   return (
     <div className="home-wrapper">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="navbar-left">
-          <div className="logo">
-            <a className="app-title" href="/">MiniRed</a>
-          </div>
-        </div>
-
-        <div className="navbar-right">
-          {isLoggedIn ? (
-            <>
-              <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
-              <div className="profile-menu">
-                <img
-                  src={user?.profilePic ? "http://localhost:5173" + user?.profilePic : "/default.png"}
-                  className="profile-pic"
-                  onClick={toggleDropdown}
-                  alt={user?.username}
-                />
-                {isDropdownOpen && (
-                  <div className="dropdown-menu enhanced-dropdown">
-                    <a href="/profile" className="dropdown-item">{user?.username}</a>
-                    <a href="/edit" className="dropdown-item">Edit</a>
-                    <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <button className="create-post-btn" onClick={handleCreatePost}>Create Post</button>
-              <a className="nav-link" href="/login">Login</a>
-              <a className="nav-link" href="/register">Register</a>
-            </>
-          )}
-        </div>
-      </nav>
-
       {/* Main content */}
       <div className="main-content">
-        {/* Left Sidebar */}
-        <div className="left-sidebar home">
-          <h2 className="title">Navigation</h2>
-          <ul>
-            <li>
-              <FaHome className="icon" /> {/* Home icon */}
-              <a href="/">Home</a>
-            </li>
-            <li>
-              <FaCompass className="icon" /> {/* Explore icon */}
-              <a href="/explore">Explore</a>
-            </li>
-            <li>
-              <FaFire className="icon" /> {/* Popular icon */}
-              <a href="/popular">Popular</a>
-            </li>
-          </ul>
-          <h2 className="title">Communities</h2>
-          <ul>
-            <li>
-              <AiOutlinePlusCircle className="icon" />
-              <a href="/create-subreddit">Create a subreddit</a>
-            </li>
-            {joinedSubreddits.length > 0 ? (
-              joinedSubreddits.map((subreddit) => (
-                <li key={subreddit.subreddit_id}>
-                  <div className="community-icon">{subreddit.name[0].toUpperCase()}</div>
-                  <a href={`/r/${subreddit.name}`}>r/{subreddit.name}</a>
-                </li>
-              ))
-            ) : (
-              <li>No joined communities yet.</li>
-            )}
-          </ul>
-        </div>
-
         {/* Feed */}
         <div className="feed">
           <div className="profile-header">
@@ -706,16 +560,16 @@ const Profile = () => {
             {editModalError && (
               <div className="modal-error">{editModalError}</div>
             )}
-            
+
             <div className="modal-actions">
-              <button 
-                className="cancel-btn" 
+              <button
+                className="cancel-btn"
                 onClick={() => setIsEditPostModalOpen(false)}
               >
                 Cancel
               </button>
-              <button 
-                className="save-btn" 
+              <button
+                className="save-btn"
                 onClick={handleUpdatePost}
               >
                 Save

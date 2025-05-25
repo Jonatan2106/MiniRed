@@ -4,6 +4,8 @@ import { IoIosArrowForward } from "react-icons/io";
 import Loading from './Loading';
 import '../styles/editsubreddit.css';
 import '../styles/main.css';
+import { fetchFromAPI } from '../../api/auth';
+import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 
 const EditSubreddit = () => {
     const { subredditId } = useParams<{ subredditId: string }>();
@@ -18,54 +20,48 @@ const EditSubreddit = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        try {
-            fetch(`http://localhost:5000/api/subreddits/${subredditId}`)
-                .then((response) => response.json())
+            const data = fetchFromAPIWithoutAuth(`/subreddits/${subredditId}`, 'GET')
                 .then((data) => {
                     setSubreddit(data);
                     setTitle(data.title);
                     setName(data.name);
                     setDescription(data.description);
                 })
-                .catch((error) => console.error('Error fetching subreddit:', error));
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-        finally {
+        .catch((error) => {
+            console.error('Error fetching subreddit:', error);
+            alert('Failed to load subreddit data');
+        })
+        .finally(() => {
             setIsLoading(false);
-        }
+        });
     }, [subredditId]);
 
     const handleUpdate = (updatedName: string, updatedTitle: string, updatedDescription: string) => {
-        try {
-            setIsLoading(true);
-            const token = localStorage.getItem('token');
-            fetch(`http://localhost:5000/api/subreddits/${subredditId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    name: updatedName,
-                    title: updatedTitle,
-                    description: updatedDescription,
-                }),
+        setIsLoading(true);
+        fetchFromAPI(`/subreddits/${subredditId}`, 'PUT', {
+            name: updatedName,
+            title: updatedTitle,
+            description: updatedDescription,
+        })
+
+            .then((response) => {
+                console.log('Update response:', response);
+
+                // Update local state with the updated data
+                setSubreddit(response);
+                setTitle(response.title || updatedTitle);
+                setName(response.name || updatedName);
+                setDescription(response.description || updatedDescription);
+
+                alert('Subreddit updated successfully!');
             })
-                .then((response) => {
-                    if (response.ok) {
-                        
-                    } else {
-                        alert('Failed to update subreddit.');
-                    }
-                })
-                .catch((error) => console.error('Error updating subreddit:', error));
-        } catch (error) {
-            console.error('Error updating subreddit:', error);
-        }
-        finally {
-            setIsLoading(false);
-        }
+            .catch((error) => {
+                console.error('Error updating subreddit:', error);
+                alert(error.message || 'Failed to update subreddit');
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     };
 
     const handleCardClick = (field: string, value: string) => {
@@ -75,6 +71,11 @@ const EditSubreddit = () => {
     };
 
     const handleSave = async () => {
+        if (!modalValue.trim()) {
+            alert('Please enter a value');
+            return;
+        }
+
         let updatedName = name;
         let updatedTitle = title;
         let updatedDescription = description;

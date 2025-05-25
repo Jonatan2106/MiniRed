@@ -1,10 +1,11 @@
 import React, { useState, useEffect, use } from 'react';
-import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
-import { AiOutlinePlusCircle } from "react-icons/ai";
+import Loading from './Loading';
+import { fetchFromAPI } from '../../api/auth';
+import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
+import { useNavigate } from 'react-router-dom';
 import '../styles/home.css';
 import '../styles/main.css';
-import Loading from './Loading';
 
 interface Post {
   post_id: string;
@@ -43,8 +44,8 @@ interface CommentCount {
 const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
   const [allSubreddits, setAllSubreddits] = useState<Subreddit[]>([]);
+  const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
   const [filteredSubreddits, setFilteredSubreddits] = useState<Subreddit[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User>();
@@ -53,59 +54,37 @@ const Home = () => {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
-  // Inside the Home component
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
           setIsLoggedIn(true);
-          const userResponse = await fetch('http://localhost:5000/api/me', {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const userData = await userResponse.json();
-          setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profile_pic });
+          const userResponse = await fetchFromAPI('/me', 'GET');
+          setUser({ user_id: userResponse.user_id, username: userResponse.username, profilePic: userResponse.profile_pic });
+          
+          const subredditsResponse = await fetchFromAPI('/users/subreddits', 'GET');
+          setJoinedSubreddits(subredditsResponse);
         }
 
-        const postsResponse = await fetch('http://localhost:5000/api/posts');
-        const postsData = await postsResponse.json();
-        setPosts(postsData);
-        setSearchResults(postsData);
+        const postsResponse = await fetchFromAPIWithoutAuth('/posts', 'GET');
+        setPosts(postsResponse);
+        setSearchResults(postsResponse);
 
+        const allSubredditsResponse = await fetchFromAPIWithoutAuth('/subreddits', 'GET');
+        console.log('Fetched Subreddits:', allSubredditsResponse);
 
-        const allSubredditsResponse = await fetch('http://localhost:5000/api/subreddits', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-
-        const allSubredditsData = await allSubredditsResponse.json();
-        console.log('Fetched Subreddits:', allSubredditsData);
-
-        if (Array.isArray(allSubredditsData)) {
-          setAllSubreddits(allSubredditsData); // Set all subreddits for filtering
+        if (Array.isArray(allSubredditsResponse)) {
+          setAllSubreddits(allSubredditsResponse);
         } else {
-          console.error('Invalid data format:', allSubredditsData);
+          console.error('Invalid data format:', allSubredditsResponse);
         }
 
-        const subredditsResponse = await fetch('http://localhost:5000/api/users/subreddits', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-        const subredditsData = await subredditsResponse.json();
-        setJoinedSubreddits(subredditsData);
-
-        const usersResponse = await fetch('http://localhost:5000/api/user/all');
-        const usersData = await usersResponse.json();
+        const usersResponse = await fetchFromAPIWithoutAuth('/user/all', 'GET');
         const userMap = new Map();
-        usersData.forEach((user: User) => {
+        usersResponse.forEach((user: User) => {
           userMap.set(user.user_id, user);
         });
         setUsers(userMap);
@@ -113,12 +92,12 @@ const Home = () => {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
       } finally {
-        setIsLoading(false); // Ensure loading is stopped in all cases
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, []); // Fetch data on component mount and when allSubreddits or posts change
+  }, []);
 
   const useDebounce = (value: string, delay: number) => {
     const [debouncedValue, setDebouncedValue] = useState(value);
@@ -143,25 +122,22 @@ const Home = () => {
   }, [debouncedQuery]);
 
   const handleCreatePost = () => {
-    window.location.href = '/create-post';
+    navigate('/create-post');
   };
 
   const handleSearch = () => {
     const trimmedQuery = query.trim().toLowerCase();
 
     if (trimmedQuery === '') {
-      // Reset to show all posts and subreddits if the query is empty
       setSearchResults(posts);
       setFilteredSubreddits(allSubreddits);
       return;
     }
 
-    // Filter posts based on the query matching the title
     const filteredPosts = posts.filter((post) =>
       post.title.toLowerCase().includes(trimmedQuery)
     );
 
-    // Filter subreddits based on the query matching the name
     const filteredSubreddits = allSubreddits.filter((subreddit) =>
       subreddit.name.toLowerCase().includes(trimmedQuery)
     );
@@ -173,7 +149,7 @@ const Home = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
-    window.location.href = '/';
+    navigate('/');
   };
 
   const toggleDropdown = () => {
@@ -181,7 +157,7 @@ const Home = () => {
   };
 
   if (isLoading) {
-    return <Loading />; // Show loading screen
+    return <Loading />;
   }
 
   if (error) {
@@ -190,90 +166,8 @@ const Home = () => {
 
   return (
     <div className="home-wrapper">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="navbar-left">
-          <div className="logo">
-            <a className="app-title" href="/">MiniRed</a>
-          </div>
-        </div>
-        <div className="navbar-center">
-          <input
-            className="search-input"
-            type="text"
-            placeholder="Search Reddit"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button className="search-button" onClick={handleSearch}>
-            Search
-          </button>
-          {query && (
-            <button
-              className="clear-button"
-              onClick={() => {
-                setQuery('');
-                setSearchResults(posts);
-                setFilteredSubreddits(allSubreddits);
-              }}
-            >
-              Clear
-            </button>
-          )}
-        </div>
-        <div className="navbar-right">
-          {isLoggedIn ? (
-            <>
-              <button className="create-post-btn" onClick={handleCreatePost}><AiOutlinePlusCircle className="icon" />Create Post</button>
-              <div className="profile-menu">
-                <img
-                  src={user?.profilePic ? "http://localhost:5173"+user?.profilePic : "/default.png"}
-                  className="profile-pic"
-                  onClick={toggleDropdown}
-                  alt={user?.username}
-                />
-                {isDropdownOpen && (
-                  <div className="dropdown-menu enhanced-dropdown">
-                    <a href="/profile" className="dropdown-item">{user?.username}</a>
-                    <a href="/edit" className="dropdown-item">Edit</a>
-                    <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-
-            <>
-              <div className="auth-buttons">
-                <a className="nav-link login-button" href="/login">Login</a>
-                <a className="nav-link register-button" href="/register">Register</a>
-              </div>
-            </>
-          )}
-        </div>
-      </nav>
-
       {/* Main content */}
       <div className="main-content">
-        {/* Left Sidebar */}
-        <div className="left-sidebar home">
-          <h2 className="title">Menu</h2>
-          <ul>
-            <li>
-              <FaHome className="icon" /> {/* Home icon */}
-              <a href="/">Home</a>
-            </li>
-            <li>
-              <FaCompass className="icon" /> {/* Explore icon */}
-              
-              <a href="/explore">Explore</a>
-            </li>
-            <li>
-              <FaFire className="icon" /> {/* Popular icon */}
-              <a href="/popular">Popular</a>
-            </li>
-          </ul>
-        </div>
 
         {/* Feed */}
         <div className="feed">
@@ -362,17 +256,11 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
 
   useEffect(() => {
     fetchCommentCount();
-    fetchVoteCount(); // fetch vote counts
+    fetchVoteCount();
 
     const token = localStorage.getItem('token');
     if (token) {
-      fetch(`http://localhost:5000/api/posts/${post.post_id}/votes`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then(response => response.json())
+      fetchFromAPI(`/posts/${post.post_id}/votes`, 'GET')
         .then(data => {
           if (Array.isArray(data) && data.length > 0) {
             let voteUser = null;
@@ -389,13 +277,12 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
         .catch(error => {
           console.error('Error fetching user vote:', error);
         })
-        .finally(() => setIsLoading(false)); // Stop loading after fetching user vote
+        .finally(() => setIsLoading(false));
     }
   }, [post.post_id]);
 
   const fetchVoteCount = () => {
-    fetch(`http://localhost:5000/api/posts/${post.post_id}/votes/count`)
-      .then((response) => response.json())
+    fetchFromAPIWithoutAuth(`/posts/${post.post_id}/votes/count`, 'GET')
       .then((data) => {
         setVoteCount({
           upvotes: data.upvotes,
@@ -407,51 +294,38 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
   };
 
   const fetchCommentCount = () => {
-    fetch(`http://localhost:5000/api/posts/${post.post_id}/comments/count`)
-      .then((response) => response.json())
+    fetchFromAPIWithoutAuth(`/posts/${post.post_id}/comments/count`, 'GET')
       .then((data) => setCommentCount(data.commentCount))
       .catch((error) => console.error('Error fetching comment count:', error));
   };
 
   const handleVote = async (type: 'upvote' | 'downvote') => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (userVote === type) {
+      // If the user clicks the same vote again, cancel/delete the vote
+      await handleCancelVote();
+      return;
+    }
+
+    // Cast the new vote
+    const voteType = type === 'upvote' ? true : false;
+
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        window.location.href = '/login';
-        return;
-      }
+      // Using fetchFromAPI instead of fetch
+      const data = await fetchFromAPI(`/posts/${post.post_id}/votes`, 'POST', { vote_type: voteType });
 
-      if (userVote === type) {
-        // If the user clicks the same vote again, cancel/delete the vote
-        await handleCancelVote();
-      } else {
-        // Otherwise, cast the new vote
-        const voteType = type === 'upvote' ? true : false;
-
-        const response = await fetch(`http://localhost:5000/api/posts/${post.post_id}/votes`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({ vote_type: voteType }),
-        });
-
-        const data = await response.json();
-        // console.log(data); // Log the response to ensure we're getting the expected structure
-
-        if (response.ok) {
-          fetchVoteCount(); // Refresh vote counts
-          setUserVote(type); // Set the user vote locally
-
-          // Correctly using vote_id from the response
-          setVoteId(data.vote.vote_id || null); // Use vote_id (not voteId)
-        } else {
-          alert(data.message || 'Failed to vote.');
-        }
-      }
+      // Update UI state
+      fetchVoteCount();
+      setUserVote(type);
+      setVoteId(data.vote.vote_id || null);
     } catch (error) {
       console.error('Error voting:', error);
+      alert(error instanceof Error ? error.message : 'Failed to vote.');
     }
   };
 
@@ -459,33 +333,33 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
   const handleCancelVote = async () => {
     if (!voteId) return;
 
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/login';
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        window.location.href = '/login';  
-        return;
-      }
+      // Use fetchFromAPI instead of fetch
+      await fetchFromAPI(`/votes/${voteId}`, 'DELETE');
 
-      const response = await fetch(`http://localhost:5000/api/votes/${voteId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        console.log('Vote successfully deleted');
-        fetchVoteCount(); // Refresh vote counts
-        setUserVote(null); // Remove the user's vote
-        setVoteId(null); // Reset the voteId
-      } else {
-        const errorData = await response.json();
-        console.error('Failed to cancel vote:', errorData.message);
-        alert(errorData.message || 'Failed to cancel vote.');
-      }
-
+      // Update UI state
+      fetchVoteCount();
+      setUserVote(null);
+      setVoteId(null);
+      console.log('Vote successfully deleted');
     } catch (error) {
-      console.error('Error canceling vote:', error);
+      // Handle "Unexpected end of JSON input" error that happens with empty responses
+      if (error instanceof Error && error.message.includes('JSON')) {
+        // Consider this a success even with JSON parsing error
+        fetchVoteCount();
+        setUserVote(null);
+        setVoteId(null);
+        console.log('Vote successfully deleted (empty response)');
+      } else {
+        console.error('Error canceling vote:', error);
+        // Don't alert to avoid disrupting user experience
+      }
     }
   };
 

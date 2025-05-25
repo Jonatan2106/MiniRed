@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { fetchFromAPI } from '../../api/api';
+import { fetchFromAPI } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { IoEyeOffSharp, IoEyeSharp  } from "react-icons/io5";
 import '../styles/register.css';

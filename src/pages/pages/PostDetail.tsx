@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchFromAPI } from '../../api/api';
+import { fetchFromAPI } from '../../api/auth';
 import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import Loading from './Loading';
 import '../styles/postdetail.css';
 import '../styles/main.css';
+import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 
 interface Post {
   post_id: string;
@@ -82,11 +83,11 @@ const PostDetail = () => {
 
   const fetchPostAndComments = async () => {
     try {
-      const postResponse = await fetchFromAPI(`/posts/${id}`);
+      const postResponse = await fetchFromAPIWithoutAuth(`/posts/${id}`, 'GET');
       console.log(postResponse.image)
       setPost(postResponse);
 
-      const commentsResponse = await fetchFromAPI(`/posts/${id}/comments`);
+      const commentsResponse = await fetchFromAPIWithoutAuth(`/posts/${id}/comments`, 'GET');
 
       const rawComments = commentsResponse;
 
@@ -106,21 +107,14 @@ const PostDetail = () => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 
     try {
-      const response = await fetch(`/api/posts/${id}/comments`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content: newComment, parent_comment_id: null }),
-      });
+      const response = await fetchFromAPI(`/posts/${id}/comments`, 'POST', { content: newComment, parent_comment_id: null });
 
-      if (response.ok) {
+      if (response) {
         setNewComment('');
         await fetchPostAndComments();
       } else {
@@ -139,21 +133,13 @@ const PostDetail = () => {
 
     const token = localStorage.getItem('token');
     if (!token) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 
     try {
-      const response = await fetch(`/api/posts/${id}/comments`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content, parent_comment_id: parentCommentId }),
-      });
-
-      if (response.ok) {
+      const response = await fetchFromAPI(`/api/posts/${id}/comments`, 'POST', { content, parent_comment_id: parentCommentId });
+      if (response) {
         const newReply = await response.json();
         console.log("API Response for new reply:", newReply);
 

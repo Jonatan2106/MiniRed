@@ -105,15 +105,6 @@ html,
     gap: 1rem;
 }
 
-.create-post-btn {
-    background-color: #FF4500;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    cursor: pointer;
-}
-
 .nav-link {
     color: #D7DADC;
     text-decoration: none;
@@ -164,16 +155,16 @@ html,
 }
 
 .create-post-btn {
+    background-color: #FF4500;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    cursor: pointer;
     justify-content: center;
     align-items: center;
     display: flex;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background-color: #FF4500;
-    color: white;
-    border: none;
-    border-radius: 9999px;
-    cursor: pointer;
 }
 
 .create-post-btn .icon {

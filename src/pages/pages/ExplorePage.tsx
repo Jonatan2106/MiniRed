@@ -4,6 +4,8 @@ import { AiOutlinePlusCircle } from "react-icons/ai";
 import '../styles/explore.css';
 import '../styles/main.css';
 import Loading from './Loading';
+import { fetchFromAPI } from '../../api/auth';
+import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 
 interface Subreddit {
   subreddit_id: string;
@@ -53,46 +55,26 @@ const ExplorePage = () => {
         const token = localStorage.getItem('token');
         if (token) {
           setIsLoggedIn(true);
-          const userResponse = await fetch('http://localhost:5000/api/me', {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          const userData = await userResponse.json();
-          setUser({ user_id: userData.user_id, username: userData.username, profilePic: userData.profile_pic });
+          const userResponse = await fetchFromAPI('/me', 'GET');
+          setUser({ user_id: userResponse.user_id, username: userResponse.username, profilePic: userResponse.profile_pic });
         }
 
-        const allSubredditsResponse = await fetch('http://localhost:5000/api/subreddits', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        const allSubredditsResponse = await fetchFromAPI('/subreddits', 'GET');
+        console.log('Fetched Subreddits:', allSubredditsResponse);
 
-        const allSubredditsData = await allSubredditsResponse.json();
-        console.log('Fetched Subreddits:', allSubredditsData);
-
-        if (Array.isArray(allSubredditsData)) {
-          setAllSubreddits(allSubredditsData); // Set all subreddits for filtering
-          setFilteredSubreddits(allSubredditsData); // Default to showing all subreddits
+        if (Array.isArray(allSubredditsResponse)) {
+          setAllSubreddits(allSubredditsResponse); // Set all subreddits for filtering
+          setFilteredSubreddits(allSubredditsResponse); // Default to showing all subreddits
         } else {
-          console.error('Invalid data format:', allSubredditsData);
+          console.error('Invalid data format:', allSubredditsResponse);
         }
 
-        const subredditsResponse = await fetch('http://localhost:5000/api/users/subreddits', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-        const subredditsData = await subredditsResponse.json();
-        setJoinedSubreddits(subredditsData);
+        const subredditsResponse = await fetchFromAPI('/users/subreddits', 'GET');
+        setJoinedSubreddits(subredditsResponse);
 
-        const usersResponse = await fetch('http://localhost:5000/api/user/all');
-        const usersData = await usersResponse.json();
+        const usersResponse = await fetchFromAPIWithoutAuth('/user/all', 'GET');
         const userMap = new Map();
-        usersData.forEach((user: User) => {
+        usersResponse.forEach((user: User) => {
           userMap.set(user.user_id, user);
         });
         setUsers(userMap);
@@ -143,86 +125,8 @@ const ExplorePage = () => {
 
   return (
     <div className="home-wrapper">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="navbar-left">
-          <div className="logo">
-            <a className="app-title" href="/">MiniRed</a>
-          </div>
-        </div>
-        <div className="navbar-center">
-          <input
-            className="search-input"
-            type="text"
-            placeholder="Search Subreddits"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button className="search-button" onClick={handleSearch}>
-            Search
-          </button>
-          {query && (
-            <button
-              className="clear-button"
-              onClick={() => {
-                setQuery('');
-                setFilteredSubreddits(allSubreddits);
-              }}
-            >
-              Clear
-            </button>
-          )}
-        </div>
-        <div className="navbar-right">
-          {isLoggedIn ? (
-            <>
-              <button className="create-post-btn"><AiOutlinePlusCircle className="icon" />Create Post</button>
-              <div className="profile-menu">
-                <img
-                  src={user?.profilePic ? "http://localhost:5173"+user?.profilePic : "/default.png"}
-                  className="profile-pic"
-                  onClick={toggleDropdown}
-                  alt={user?.username}
-                />
-                {isDropdownOpen && (
-                  <div className="dropdown-menu enhanced-dropdown">
-                    <a href="/profile" className="dropdown-item">{user?.username}</a>
-                    <a href="/edit" className="dropdown-item">Edit</a>
-                    <a onClick={handleLogout} className="dropdown-item logout">Logout</a>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <div className="auth-buttons">
-              <a className="nav-link login-button" href="/login">Login</a>
-              <a className="nav-link register-button" href="/register">Register</a>
-            </div>
-          )}
-        </div>
-      </nav>
-
       {/* Main content */}
       <div className="main-content">
-        {/* Left Sidebar */}
-        <div className="left-sidebar home">
-          <h2 className="title">Menu</h2>
-          <ul>
-            <li>
-              <FaHome className="icon" />
-              <a href="/">Home</a>
-            </li>
-            <li>
-              <FaCompass className="icon" />
-              <a href="/explore">Explore</a>
-            </li>
-            <li>
-              <FaFire className="icon" />
-              <a href="/popular">Popular</a>
-            </li>
-          </ul>
-        </div>
-
         {/* Feed */}
         <div className="feed">
           {/* Display matching subreddits */}

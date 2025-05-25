@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import Loading from './Loading';
 import '../styles/createpost.css';
+import { fetchFromAPI } from '../../api/auth';
 
 interface Subreddit {
     subreddit_id: string;
@@ -24,14 +25,8 @@ const CreatePost = () => {
     useEffect(() => {
         const fetchJoinedSubreddits = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('http://localhost:5000/api/users/subreddits', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                const data = await response.json();
-                setSubreddits(data);
+                const response = await fetchFromAPI('/users/subreddits', 'GET');
+                setSubreddits(response);
             } catch (error) {
                 console.error('Error fetching joined subreddits:', error);
             }
@@ -56,8 +51,6 @@ const CreatePost = () => {
             imageBase64 = await toBase64(image);
         }
 
-        const token = localStorage.getItem('token');
-
         const postData = {
             title,
             content,
@@ -66,32 +59,17 @@ const CreatePost = () => {
         };
 
         try {
-            const response = await fetch('http://localhost:5000/api/posts', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(postData),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                navigate(
-                    selectedSubreddit !== 'none'
-                        ? `/r/${subreddits.find((sub) => sub.subreddit_id === selectedSubreddit)?.name}`
-                        : '/'
-                );
-            } else {
-                const errorData = await response.json();
-                setError(errorData.message || 'Failed to create post.');
-            }
-        } catch (error) {
+            const data = await fetchFromAPI('/posts', 'POST', postData);
+            navigate(
+                selectedSubreddit !== 'none'
+                    ? `/r/${subreddits.find((sub) => sub.subreddit_id === selectedSubreddit)?.name}`
+                    : '/'
+            );
+        } catch (error: any) {
             console.error('Error creating post:', error);
-            setError('An error occurred while creating the post.');
+            setError(error.message || 'An error occurred while creating the post.');
         }
     };
-
     const toBase64 = (file: File): Promise<string> =>
         new Promise((resolve, reject) => {
             const reader = new FileReader();
