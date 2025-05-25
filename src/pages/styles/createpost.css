@@ -1,6 +1,6 @@
 .create-post-wrapper {
-    max-width: 800px;
-    margin: 4rem auto;
+    width: 124.5%;
+    margin: 0 auto;
     padding: 2rem;
     background-color: #1a1a1b;
     border-radius: 12px;
@@ -12,12 +12,17 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #343536;
+    padding-bottom: 1rem;
 }
 
 .create-post-header h1 {
-    font-size: 1.8rem;
+    font-size: 2rem;
     color: #FF4500;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Back Button */
@@ -25,19 +30,31 @@
     background-color: #FF4500;
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 1rem;
     cursor: pointer;
     font-weight: bold;
-    top: 6,5rem;
-    right: 35rem;
     padding: 0.8rem 2rem;
-    max-width: fit-content;
+    transition: all 0.2s ease;
 }
 
 .post-page-back-button:hover {
     background-color: #FF5700;
-    box-shadow: 0px 2px 6px 1px rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 69, 0, 0.4);
+}
+
+/* Form Layout */
+.form-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+    .form-layout {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 .create-post-form {
@@ -49,113 +66,178 @@
 .form-section {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.8rem;
+}
+
+.form-section label {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #D7DADC;
 }
 
 .subreddit-select,
 .title-input,
-.content-textarea,
-.image-input {
-    padding: 0.8rem;
-    border: 1px solid #444;
-    border-radius: 6px;
+.content-textarea {
+    padding: 1rem;
+    border: 2px solid #343536;
+    border-radius: 8px;
     background-color: #272729;
     color: #D7DADC;
     font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.subreddit-select:focus,
+.title-input:focus,
+.content-textarea:focus {
+    border-color: #FF4500;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.2);
+}
+
+.subreddit-select {
+    height: 55px;
+    cursor: pointer;
+}
+
+.subreddit-select option {
+    background-color: #272729;
+    color: #D7DADC;
+    padding: 1rem;
 }
 
 .title-input {
-    max-width: 97%;
+    width: 93.5%;
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 .content-textarea {
     resize: vertical;
-    min-height: 150px;
+    min-height: 200px;
+    line-height: 1.5;
+    font-size: 1rem;
 }
 
 .character-counter {
     font-size: 0.9rem;
     color: #999;
     text-align: right;
-    margin-top: 0.2rem;
+    margin-top: 0.5rem;
+    transition: color 0.3s ease;
 }
 
-.image-label {
-    display: block;
-    font-size: 0.9rem;
+/* Drag-and-Drop Area */
+.drag-drop-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 2rem;
+    border: 3px dashed #444;
+    border-radius: 12px;
+    background-color: #1e1e1f;
     color: #B1B1B1;
     cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+    min-height: 150px;
+}
+
+.drag-drop-area:hover {
+    background-color: #272729;
+    border-color: #FF4500;
+}
+
+.drag-drop-area.has-image {
+    padding: 1rem;
+    border: 3px solid #FF4500;
+    background-color: rgba(255, 69, 0, 0.1);
+}
+
+.drag-drop-area p {
+    font-size: 1rem;
+    text-align: center;
+    color: #B1B1B1;
+    max-width: 80%;
+    margin: 1rem auto;
+}
+
+.image-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    border: 1px solid #444;
+    object-fit: contain;
+}
+
+.remove-image-button {
+    padding: 0.6rem 1.2rem;
+    background-color: #FF4500;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.remove-image-button:hover {
+    background-color: #FF5700;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 69, 0, 0.4);
 }
 
 .image-input {
     display: none;
 }
 
-.form-actions {
-    display: flex;
-    justify-content: center;
-    margin-top: 1.5rem;
-}
-
-.submit-button {
-    padding: 0.8rem 1.5rem;
-    background-color: #FF4500;
-    color: white;
-    border: none;
-    border-radius: 9999px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    width: 100%;
-}
-
-.submit-button:hover {
-    background-color: #D7DADC;
-    color: #FF5700;
-}
-
-.error-message {
-    color: #FF4500;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
 /* Preview Pane */
 .preview-pane {
-    margin-top: 2rem;
+    margin-top: 0;
     padding: 1.5rem;
-    background-color: #1a1a1b;
+    background-color: #1e1e1f;
     border-radius: 12px;
-    border: 1px solid #343536;
+    border: 2px solid #343536;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    position: sticky;
+    top: 2rem;
+    max-height: 89.5%;
+    overflow-y: auto;
 }
 
 /* Subreddit Preview */
 .subreddit-preview {
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background-color: #1e1e1f; /* Slightly lighter background for contrast */
+    background-color: #272729;
     border-radius: 12px;
     border: 1px solid #444;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
     display: flex;
     flex-direction: column;
     gap: 1rem;
     color: #D7DADC;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .subreddit-header {
     display: flex;
     align-items: center;
     gap: 1rem;
-    max-height: 120px;
-    padding-top: 20px;
+    padding: 1rem 0;
 }
 
 .subreddit-icon {
-    font-size: 2rem;
+    font-size: 1.5rem;
     background-color: #FF4500;
     color: #fff;
     display: flex;
@@ -165,8 +247,7 @@
     font-weight: bold;
     width: 50px;
     height: 50px;
-    margin-left: 30px;
-    margin-top: -20px;
+    flex-shrink: 0;
 }
 
 .subreddit-title {
@@ -179,14 +260,14 @@
 .subreddit-name {
     font-size: 1rem;
     color: #999;
-    margin-top: 0.2rem;
+    margin-top: 0.5rem;
 }
 
 /* Markdown Preview */
 .markdown-preview {
     padding: 1.5rem;
     background-color: #1a1a1b;
-    border-radius: 8px;
+    border-radius: 12px;
     border: 1px solid #444;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
@@ -195,12 +276,15 @@
     font-size: 1.2rem;
     font-weight: bold;
     color: #FF4500;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     text-transform: uppercase;
+    border-bottom: 1px solid #343536;
+    padding-bottom: 0.5rem;
+    text-align: center;
 }
 
 .preview-title {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     font-weight: bold;
     color: #FF4500;
     margin-bottom: 1rem;
@@ -212,86 +296,107 @@
     color: #D7DADC;
 }
 
-/* Image Preview */
-.image-preview {
-    margin-top: 1rem;
+.markdown-content a {
+    color: #FF4500;
+    text-decoration: none;
+}
+
+.markdown-content a:hover {
+    text-decoration: underline;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+    color: #FF4500;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+    margin-left: 2rem;
+}
+
+.markdown-content blockquote {
+    border-left: 3px solid #FF4500;
+    padding-left: 1rem;
+    margin-left: 1rem;
+    font-style: italic;
+    color: #999;
+}
+
+.markdown-content code {
+    background-color: #343536;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.markdown-content pre {
+    background-color: #343536;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+/* Form Actions */
+.form-actions {
     display: flex;
     justify-content: center;
-    align-items: center;
-    background-color: #272729;
-    border-radius: 8px;
-    padding: 1rem;
-    border: 1px solid #444;
+    margin-top: 2rem;
+    grid-column: 1 / -1;
 }
 
-.image-preview img {
-    max-width: 100%;
-    max-height: 300px;
-    border-radius: 6px;
-    border: 1px solid #444;
-}
-
-/* Drag-and-Drop Area */
-.drag-drop-area {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    padding: 1.5rem;
-    border: 2px dashed #444;
-    border-radius: 8px;
-    background-color: #1a1a1b;
-    color: #B1B1B1;
-    cursor: pointer;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.drag-drop-area:hover {
-    background-color: #272729;
-    border-color: #FF4500;
-}
-
-.drag-drop-area.has-image {
-    padding: 1rem;
-    border: 2px solid #FF4500;
-}
-
-.drag-drop-area p {
-    font-size: 0.9rem;
-    text-align: center;
-    color: #B1B1B1;
-}
-
-.image-preview {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.image-preview img {
-    max-width: 100%;
-    max-height: 200px;
-    border-radius: 6px;
-    border: 1px solid #444;
-}
-
-.remove-image-button {
-    padding: 0.5rem 1rem;
+.submit-button {
+    padding: 1rem 2rem;
     background-color: #FF4500;
     color: white;
     border: none;
-    border-radius: 9999px;
-    font-size: 0.9rem;
+    border-radius: 8px;
+    font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 400px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.remove-image-button:hover {
-    background-color: #FF5700;
+.submit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
 }
 
-.image-input {
-    display: none;
+.submit-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(255, 69, 0, 0.4);
+}
+
+/* Error Message */
+.error-message {
+    color: #FF4500;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-align: center;
+    background-color: rgba(255, 69, 0, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #FF4500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .create-post-wrapper {
+        padding: 1rem;
+    }
+
+    .preview-pane {
+        position: static;
+        margin-top: 2rem;
+    }
 }

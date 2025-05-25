@@ -1,8 +1,8 @@
-import Loading from './Loading';
-
 import React, { useState, useEffect } from 'react';
 import { fetchFromAPI } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
+import { FaHome, FaUser, FaEdit, FaTrash, FaArrowUp, FaArrowDown, FaCommentAlt } from 'react-icons/fa';
+import Loading from './Loading';
 
 import '../styles/profile.css';
 import '../styles/main.css';
@@ -238,17 +238,15 @@ const Profile = () => {
   }
 
   return (
-    <div className="home-wrapper">
-      {/* Main content */}
-      <div className="main-content">
-        {/* Feed */}
-        <div className="feed">
+    <div className="profile-page-container">
+      {/* Main Content Area */}
+      <div className="profile-content-wrapper">
+        {/* Profile Header Card */}
+        <div className="profile-card">
           <div className="profile-header">
             <div className="profile-avatar">
               <img
-                src={
-                  user?.profilePic ? "http://localhost:5173" + user?.profilePic : "/default.png"
-                }
+                src={user?.profilePic ? "http://localhost:5173" + user?.profilePic : "/default.png"}
                 alt={user?.username}
                 className="avatar"
               />
@@ -259,277 +257,342 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Profile Stats */}
-          <div className="profile-stats">
-            <div className="profile-stat-item">
-              <h3>{postKarma}</h3>
-              <p>Total Post</p>
-            </div>
-            <div className="profile-stat-item">
-              <h3>{commentKarma}</h3>
-              <p>Total Comment</p>
+          {/* Stats Cards */}
+          <div className="profile-stats-container">
+            <div className="profile-stats">
+              <div className="profile-stat-item">
+                <div className="stat-icon"><FaUser /></div>
+                <h3>{postKarma}</h3>
+                <p>Posts</p>
+              </div>
+              <div className="profile-stat-item">
+                <div className="stat-icon"><FaCommentAlt /></div>
+                <h3>{commentKarma}</h3>
+                <p>Comments</p>
+              </div>
+              <div className="profile-stat-item">
+                <div className="stat-icon"><FaArrowUp /></div>
+                <h3>{upvoted.length}</h3>
+                <p>Upvotes</p>
+              </div>
+              <div className="profile-stat-item">
+                <div className="stat-icon"><FaArrowDown /></div>
+                <h3>{Downvoted.length}</h3>
+                <p>Downvotes</p>
+              </div>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="profile-tabs">
-            <button
-              className={`tab ${activeTab === 'Overview' ? 'active' : ''}`}
-              onClick={() => handleTabClick('Overview')}
-            >
-              Overview
-            </button>
-            <button
-              className={`tab ${activeTab === 'Posts' ? 'active' : ''}`}
-              onClick={() => handleTabClick('Posts')}
-            >
-              Posts
-            </button>
-            <button
-              className={`tab ${activeTab === 'Comments' ? 'active' : ''}`}
-              onClick={() => handleTabClick('Comments')}
-            >
-              Comments
-            </button>
-            <button
-              className={`tab ${activeTab === 'Upvoted' ? 'active' : ''}`}
-              onClick={() => handleTabClick('Upvoted')}
-            >
-              Upvoted
-            </button>
-            <button
-              className={`tab ${activeTab === 'Downvoted' ? 'active' : ''}`}
-              onClick={() => handleTabClick('Downvoted')}
-            >
-              Downvoted
-            </button>
+          {/* Activity Navigation Tabs */}
+          <div className="profile-tabs-container">
+            <div className="profile-tabs">
+              <button
+                className={`tab ${activeTab === 'Overview' ? 'active' : ''}`}
+                onClick={() => handleTabClick('Overview')}
+              >
+                Overview
+              </button>
+              <button
+                className={`tab ${activeTab === 'Posts' ? 'active' : ''}`}
+                onClick={() => handleTabClick('Posts')}
+              >
+                Posts
+              </button>
+              <button
+                className={`tab ${activeTab === 'Comments' ? 'active' : ''}`}
+                onClick={() => handleTabClick('Comments')}
+              >
+                Comments
+              </button>
+              <button
+                className={`tab ${activeTab === 'Upvoted' ? 'active' : ''}`}
+                onClick={() => handleTabClick('Upvoted')}
+              >
+                Upvoted
+              </button>
+              <button
+                className={`tab ${activeTab === 'Downvoted' ? 'active' : ''}`}
+                onClick={() => handleTabClick('Downvoted')}
+              >
+                Downvoted
+              </button>
+            </div>
           </div>
+        </div>
 
-          {/* Profile Content */}
-          <div className="profile-content">
-            {activeTab === 'Overview' && (
-              <div>
-                {getOverviewData().length > 0 ? (
-                  getOverviewData().map((item, index) => (
-                    <div
-                      key={index}
-                      className={`overview-item ${item.type}-item`}
-                      onClick={() => {
-                        if (item.type === 'post') {
-                          navigate(`/post/${item.post_id}`);
-                        } else if (item.type === 'comment') {
-                          navigate(`/post/${item.post_id}`);
-                        } else if (item.type === 'upvoted' && item.kategori_type === 'POST' && item.post) {
-                          navigate(`/post/${item.post.post_id}`);
-                        } else if (item.type === 'downvoted' && item.kategori_type === 'POST' && item.post) {
-                          navigate(`/post/${item.post.post_id}`);
-                        }
-                      }}
-                    >
+        {/* Content Sections */}
+        <div className="profile-tab-content">
+          {/* Overview Tab Content */}
+          {activeTab === 'Overview' && (
+            <div className="content-section">
+              <h2 className="section-title">Activity Overview</h2>
+              {getOverviewData().length > 0 ? (
+                getOverviewData().map((item, index) => (
+                  <div
+                    key={index}
+                    className={`overview-item ${item.type}-item`}
+                    onClick={() => {
+                      if (item.type === 'post') {
+                        navigate(`/post/${item.post_id}`);
+                      } else if (item.type === 'comment') {
+                        navigate(`/post/${item.post_id}`);
+                      } else if (item.type === 'upvoted' && item.kategori_type === 'POST' && item.post) {
+                        navigate(`/post/${item.post.post_id}`);
+                      } else if (item.type === 'downvoted' && item.kategori_type === 'POST' && item.post) {
+                        navigate(`/post/${item.post.post_id}`);
+                      }
+                    }}
+                  >
+                    <div className="item-type-indicator">
+                      {item.type === 'post' && <FaUser className="indicator-icon post-icon" />}
+                      {item.type === 'comment' && <FaCommentAlt className="indicator-icon comment-icon" />}
+                      {item.type === 'upvoted' && <FaArrowUp className="indicator-icon upvote-icon" />}
+                      {item.type === 'downvoted' && <FaArrowDown className="indicator-icon downvote-icon" />}
+                    </div>
 
+                    <div className="item-content">
                       {item.type === 'post' && (
                         <>
-                          <p>
-                            Post Title: <span className="font-semibold">{item.title}</span>
-                          </p>
-                          <p>{item.content}</p>
+                          <h3 className="item-title">{item.title}</h3>
+                          <p className="item-body">{item.content}</p>
                         </>
                       )}
                       {item.type === 'comment' && (
                         <>
-                          {/* <h2>Recent Commen</h2> */}
-                          <p>
-                            Commented: <span className="font-semibold">{item.content}</span>
+                          <p className="item-body">
+                            <span className="action-label">Commented:</span> {item.content}
                           </p>
-                          <p>
-                            On Post: <span className="font-semibold">{item.post?.content}</span>
+                          <p className="item-context">
+                            on post: <span className="context-highlight">{item.post?.content}</span>
                           </p>
                         </>
                       )}
                       {item.type === 'upvoted' && item.kategori_type === 'POST' && item.post && (
-                        <p>
-                          Upvoted on Post: <span className="font-semibold">{item.post.title}</span>
-                        </p>
+                        <>
+                          <p className="item-body">
+                            <span className="action-label">Upvoted:</span> {item.post.title}
+                          </p>
+                        </>
                       )}
                       {item.type === 'downvoted' && item.kategori_type === 'POST' && item.post && (
-                        <p>
-                          Downvoted on Post: <span className="font-semibold">{item.post.title}</span>
-                        </p>
+                        <>
+                          <p className="item-body">
+                            <span className="action-label">Downvoted:</span> {item.post.title}
+                          </p>
+                        </>
                       )}
-                      <p className="text-sm">
+                      <p className="activity-date">
                         {new Date(item.created_at).toLocaleString()}
                       </p>
                     </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No activity available.</p>
-                )}
-              </div>
-            )}
-            {activeTab === 'Posts' && (
-              <div>
-                {posts.length > 0 ? (
-                  posts.map((post) => (
-                    <div
-                      key={post.post_id}
-                      className="post-item"
-                      onClick={() => {
-                        navigate(`/post/${post.post_id}`);
-                      }}
-                      style={{ position: 'relative' }}
-                    >
-                      <p>
-                        Post Title: <span className="font-semibold">{post.title}</span>
-                      </p>
-                      <p>{post.content}</p>
-                      <p className="text-sm">
-                        Posted on {new Date(post.created_at).toLocaleString()}
-                      </p>
-                      {/* Kebab Menu */}
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <div className="empty-icon">📋</div>
+                  <p>No activity yet. Start posting or interacting with content!</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Posts Tab Content */}
+          {activeTab === 'Posts' && (
+            <div className="content-section">
+              <h2 className="section-title">Your Posts</h2>
+              {posts.length > 0 ? (
+                posts.map((post) => (
+                  <div
+                    key={post.post_id}
+                    className="post-item"
+                    onClick={() => {
+                      navigate(`/post/${post.post_id}`);
+                    }}
+                  >
+                    <div className="post-header">
+                      <h3 className="post-title">{post.title}</h3>
+                      
                       {user?.user_id === post.user_id && (
                         <div
-                          className="kebab-menu"
-                          onMouseEnter={() => setOpenMenuPostId(post.post_id)}
-                          onMouseLeave={() => setOpenMenuPostId(null)}
+                          className="post-actions"
                           onClick={e => e.stopPropagation()}
                         >
-                          <button>⋮</button>
-                          {openMenuPostId === post.post_id && (
-                            <div className="menu-options">
-                              <button onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenEditModal(post);
-                              }}>
-                                Edit
-                              </button>
-                              <button
-                                style={{ color: 'white' }}
-                                onClick={() => handleDeletePost(post.post_id)}
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
+                          <button 
+                            className="action-button edit-button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenEditModal(post);
+                            }}
+                          >
+                            <FaEdit /> Edit
+                          </button>
+                          <button
+                            className="action-button delete-button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeletePost(post.post_id);
+                            }}
+                          >
+                            <FaTrash /> Delete
+                          </button>
                         </div>
                       )}
                     </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No posts available.</p>
-                )}
-              </div>
-            )}
+                    
+                    <p className="post-content">{post.content}</p>
+                    <p className="post-date">
+                      Posted on {new Date(post.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <div className="empty-icon">📝</div>
+                  <p>You haven't created any posts yet.</p>
+                  <a href="/create-post" className="empty-action-button">Create a Post</a>
+                </div>
+              )}
+            </div>
+          )}
 
-
-            {activeTab === 'Comments' && (
-              <div>
-                {comments.length > 0 ? (
-                  comments.map((comment) => (
-                    <div
-                      key={comment.comment_id}
-                      className="comment-item"
-                      onClick={() => {
-                        navigate(`/post/${comment.post_id}`);
-                      }}
-                    >
-                      <p>Commented : {comment.content}</p>
-                      <p>
-                        On <span className="font-semibold">Post: {comment.post?.content}</span>
-                      </p>
-                      <p className="text-sm">
-                        {new Date(comment.created_at).toLocaleString()}
-                      </p>
+          {/* Comments Tab Content */}
+          {activeTab === 'Comments' && (
+            <div className="content-section">
+              <h2 className="section-title">Your Comments</h2>
+              {comments.length > 0 ? (
+                comments.map((comment) => (
+                  <div
+                    key={comment.comment_id}
+                    className="comment-item"
+                    onClick={() => {
+                      navigate(`/post/${comment.post_id}`);
+                    }}
+                  >
+                    <div className="comment-content">
+                      <p className="comment-text">{comment.content}</p>
+                      <div className="comment-context">
+                        <span className="context-label">On post:</span>
+                        <span className="context-title">{comment.post?.content}</span>
+                      </div>
                     </div>
-                  ))
-                ) : (
-                  <p>No comments available.</p>
-                )}
-              </div>
-            )}
+                    <p className="comment-date">
+                      {new Date(comment.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <div className="empty-icon">💬</div>
+                  <p>You haven't made any comments yet.</p>
+                </div>
+              )}
+            </div>
+          )}
 
-            {activeTab === 'Upvoted' && (
-              <div>
-                {upvoted.length > 0 ? (
-                  upvoted.map((vote) => (
-                    <div
-                      key={vote.vote_id}
-                      className="vote-item"
-                      onClick={() => {
-                        if (vote.kategori_type === "POST" && vote.post) {
-                          navigate(`/post/${vote.post.post_id}`);
-                        } else if (vote.kategori_type === "COMMENT" && vote.comment) {
-                          navigate(`/post/${vote.comment.post_id}`);
-                        }
-                      }}
-                    >
+          {/* Upvoted Tab Content */}
+          {activeTab === 'Upvoted' && (
+            <div className="content-section">
+              <h2 className="section-title">Content You've Upvoted</h2>
+              {upvoted.length > 0 ? (
+                upvoted.map((vote) => (
+                  <div
+                    key={vote.vote_id}
+                    className="vote-item"
+                    onClick={() => {
+                      if (vote.kategori_type === "POST" && vote.post) {
+                        navigate(`/post/${vote.post.post_id}`);
+                      } else if (vote.kategori_type === "COMMENT" && vote.comment) {
+                        navigate(`/post/${vote.comment.post_id}`);
+                      }
+                    }}
+                  >
+                    <div className="vote-icon upvote">
+                      <FaArrowUp />
+                    </div>
+                    <div className="vote-content">
                       {vote.kategori_type === "POST" && vote.post ? (
-                        <p>
-                          Upvoted on <span className="font-semibold">Post: {vote.post.title}</span>
-                        </p>
+                        <>
+                          <span className="vote-type">Post</span>
+                          <p className="vote-text">{vote.post.title}</p>
+                        </>
                       ) : vote.kategori_type === "COMMENT" && vote.comment ? (
-                        <p>
-                          Upvoted on <span className="font-semibold">Comment: {vote.comment.content}</span>
-                        </p>
+                        <>
+                          <span className="vote-type">Comment</span>
+                          <p className="vote-text">{vote.comment.content}</p>
+                        </>
                       ) : null}
-                      <p className="text-sm">
-                        {new Date(vote.created_at).toLocaleString()}
-                      </p>
                     </div>
-                  ))
-                ) : (
-                  <p>No upvoted items yet.</p>
-                )}
-              </div>
-            )}
+                    <p className="vote-date">
+                      {new Date(vote.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <div className="empty-icon">👍</div>
+                  <p>You haven't upvoted any content yet.</p>
+                </div>
+              )}
+            </div>
+          )}
 
-            {activeTab === 'Downvoted' && (
-              <div>
-                {Downvoted.length > 0 ? (
-                  Downvoted.map((vote) => (
-                    <div
-                      key={vote.vote_id}
-                      className="vote-item"
-                      onClick={() => {
-                        if (vote.kategori_type === "POST" && vote.post) {
-                          navigate(`/post/${vote.post.post_id}`);
-                        } else if (vote.kategori_type === "COMMENT" && vote.comment) {
-                          navigate(`/post/${vote.comment.post_id}`);
-                        }
-                      }}
-                    >
+          {/* Downvoted Tab Content */}
+          {activeTab === 'Downvoted' && (
+            <div className="content-section">
+              <h2 className="section-title">Content You've Downvoted</h2>
+              {Downvoted.length > 0 ? (
+                Downvoted.map((vote) => (
+                  <div
+                    key={vote.vote_id}
+                    className="vote-item"
+                    onClick={() => {
+                      if (vote.kategori_type === "POST" && vote.post) {
+                        navigate(`/post/${vote.post.post_id}`);
+                      } else if (vote.kategori_type === "COMMENT" && vote.comment) {
+                        navigate(`/post/${vote.comment.post_id}`);
+                      }
+                    }}
+                  >
+                    <div className="vote-icon downvote">
+                      <FaArrowDown />
+                    </div>
+                    <div className="vote-content">
                       {vote.kategori_type === "POST" && vote.post ? (
-                        <p>
-                          Downvoted on <span className="font-semibold">Post: {vote.post.title}</span>
-                        </p>
+                        <>
+                          <span className="vote-type">Post</span>
+                          <p className="vote-text">{vote.post.title}</p>
+                        </>
                       ) : vote.kategori_type === "COMMENT" && vote.comment ? (
-                        <p>
-                          Downvoted on <span className="font-semibold">Comment: {vote.comment.content}</span>
-                        </p>
+                        <>
+                          <span className="vote-type">Comment</span>
+                          <p className="vote-text">{vote.comment.content}</p>
+                        </>
                       ) : null}
-                      <p className="text-sm">
-                        {new Date(vote.created_at).toLocaleString()}
-                      </p>
                     </div>
-                  ))
-                ) : (
-                  <p>No downvoted items yet.</p>
-                )}
-              </div>
-            )}
-
-          </div>
+                    <p className="vote-date">
+                      {new Date(vote.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <div className="empty-icon">👎</div>
+                  <p>You haven't downvoted any content yet.</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
-
-        {/* Right Sidebar */}
       </div>
 
+      {/* Edit Post Modal */}
       {isEditPostModalOpen && currentEditingPost && (
         <div className="overlay" onClick={() => setIsEditPostModalOpen(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Edit Post</h3>
             </div>
-            <p className="modal-subtext">Update your post content.</p>
+            <p className="modal-subtext">Update your post content below.</p>
 
             {/* Show title as read-only */}
             <div className="modal-field">
@@ -538,13 +601,16 @@ const Profile = () => {
             </div>
 
             {/* Allow editing only the content */}
-            <textarea
-              className="modal-input"
-              placeholder="Post Content"
-              value={editPostContent}
-              onChange={(e) => setEditPostContent(e.target.value)}
-              rows={5}
-            />
+            <div className="modal-field">
+              <label>Post Content:</label>
+              <textarea
+                className="modal-input"
+                placeholder="Post Content"
+                value={editPostContent}
+                onChange={(e) => setEditPostContent(e.target.value)}
+                rows={5}
+              />
+            </div>
 
             {editModalError && (
               <div className="modal-error">{editModalError}</div>
@@ -561,7 +627,7 @@ const Profile = () => {
                 className="save-btn"
                 onClick={handleUpdatePost}
               >
-                Save
+                Save Changes
               </button>
             </div>
           </div>
