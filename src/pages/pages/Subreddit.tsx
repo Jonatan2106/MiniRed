@@ -193,7 +193,7 @@ const SubredditPage = () => {
                                             {user?.user_id === subreddit?.user_id ? (
                                                 <button
                                                     className="subreddit-page-edit-button"
-                                                    onClick={() => window.location.href = `/edit-subreddit/${subreddit?.subreddit_id}`}
+                                                    onClick={() => navigate(`/edit-subreddit/${subreddit?.subreddit_id}`)}
                                                 >
                                                     Edit Subreddit
                                                 </button>
@@ -255,13 +255,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
 
         const token = localStorage.getItem('token');
         if (token) {
-            fetch(`http://localhost:5000/api/posts/${post.post_id}/votes`, {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            })
-                .then(response => response.json())
+            fetchFromAPI(`/posts/${post.post_id}/votes`, 'GET')
                 .then(data => {
                     if (Array.isArray(data) && data.length > 0) {
                         const vote = data[0]; // Assuming one vote per post per user
@@ -276,8 +270,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
     }, [post.post_id]);
 
     const fetchVoteCount = () => {
-        fetch(`http://localhost:5000/api/posts/${post.post_id}/votes/count`)
-            .then((response) => response.json())
+        fetchFromAPIWithoutAuth(`/posts/${post.post_id}/votes/count`, 'GET')
             .then((data) => {
                 setVoteCount({
                     upvotes: data.upvotes,
@@ -289,8 +282,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
     };
 
     const fetchCommentCount = () => {
-        fetch(`http://localhost:5000/api/posts/${post.post_id}/comments/count`)
-            .then((response) => response.json())
+        fetchFromAPIWithoutAuth(`/posts/${post.post_id}/comments/count`, 'GET')
             .then((data) => setCommentCount(data.commentCount))
             .catch((error) => console.error('Error fetching comment count:', error));
     };
@@ -310,19 +302,11 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
                 // Otherwise, cast the new vote
                 const voteType = type === 'upvote' ? true : false;
 
-                const response = await fetch(`http://localhost:5000/api/posts/${post.post_id}/votes`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({ vote_type: voteType }),
-                });
-
-                const data = await response.json();
+                const response = await fetchFromAPI(`/posts/${post.post_id}/votes`, 'POST', { vote_type: voteType });
+                const data = await response;
                 // console.log(data); // Log the response to ensure we're getting the expected structure
 
-                if (response.ok) {
+                if (response) {
                     fetchVoteCount(); // Refresh vote counts
                     setUserVote(type); // Set the user vote locally
 
@@ -348,20 +332,15 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
                 return;
             }
 
-            const response = await fetch(`http://localhost:5000/api/votes/${voteId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+            const response = await fetchFromAPI(`/votes/${voteId}`, 'DELETE')
 
-            if (response.ok) {
+            if (response) {
                 console.log('Vote successfully deleted');
                 fetchVoteCount(); // Refresh vote counts
                 setUserVote(null); // Remove the user's vote
                 setVoteId(null); // Reset the voteId
             } else {
-                const errorData = await response.json();
+                const errorData = await response;
                 console.error('Failed to cancel vote:', errorData.message);
                 alert(errorData.message || 'Failed to cancel vote.');
             }

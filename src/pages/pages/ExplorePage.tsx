@@ -6,6 +6,7 @@ import '../styles/main.css';
 import Loading from './Loading';
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface Subreddit {
   subreddit_id: string;
@@ -48,6 +49,7 @@ const ExplorePage = () => {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const debouncedQuery = useDebounce(query, 300);
+    const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -108,7 +110,7 @@ const ExplorePage = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
-    window.location.href = '/';
+    navigate('/');
   };
 
   const toggleDropdown = () => {

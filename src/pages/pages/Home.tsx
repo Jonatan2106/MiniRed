@@ -253,6 +253,7 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
   const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
   const [voteId, setVoteId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCommentCount();
@@ -302,7 +303,7 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
   const handleVote = async (type: 'upvote' | 'downvote') => {
     const token = localStorage.getItem('token');
     if (!token) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 
@@ -335,7 +336,7 @@ const PostCard = ({ post, users, current_user }: { post: Post; users: Map<string
 
     const token = localStorage.getItem('token');
     if (!token) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 

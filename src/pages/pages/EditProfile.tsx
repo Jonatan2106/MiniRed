@@ -5,6 +5,8 @@ import "../styles/editprofile.css";
 import "../styles/main.css";
 import { User } from "../../../models/user";
 import { fetchFromAPI } from "../../api/auth";
+import { useNavigate } from 'react-router-dom';
+
 
 const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +27,7 @@ const EditProfile = () => {
   const [profile_pic, setProfilePic] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [modalError, setModalError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const closePopup = () => {
     setPopupType(null);
@@ -86,7 +89,8 @@ const EditProfile = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
-    window.location.href = "/";
+    
+      navigate('/');
   };
 
   const toggleDropdown = () => {
@@ -177,7 +181,7 @@ const EditProfile = () => {
 
       const res = await fetchFromAPI(`/me`, 'DELETE');
       localStorage.removeItem("token");
-      window.location.href = "/";
+      navigate('/');
     } catch (err: any) {
       console.error("Error deleting profile:", err.message);
       setError(err.message || "Unexpected error");

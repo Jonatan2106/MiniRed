@@ -5,6 +5,7 @@ import Loading from './Loading';
 import '../styles/profile.css';
 import '../styles/main.css';
 import { fetchFromAPI } from '../../api/auth';
+import { useNavigate } from 'react-router-dom';
 
 interface Post {
   post_id: string;
@@ -72,7 +73,7 @@ const Profile = () => {
   const [postKarma, setPostKarma] = useState<number>(0);
   const [commentKarma, setCommentKarma] = useState<number>(0);
   const [openMenuPostId, setOpenMenuPostId] = useState<string | null>(null);
-
+  const navigate = useNavigate();
   const [isEditPostModalOpen, setIsEditPostModalOpen] = useState(false);
   const [currentEditingPost, setCurrentEditingPost] = useState<Post | null>(null);
   const [editPostContent, setEditPostContent] = useState('');
@@ -327,13 +328,13 @@ const Profile = () => {
                       className={`overview-item ${item.type}-item`}
                       onClick={() => {
                         if (item.type === 'post') {
-                          window.location.href = `/post/${item.post_id}`;
+                          navigate(`/post/${item.post_id}`);
                         } else if (item.type === 'comment') {
-                          window.location.href = `/post/${item.post_id}`;
+                          navigate(`/post/${item.post_id}`);
                         } else if (item.type === 'upvoted' && item.kategori_type === 'POST' && item.post) {
-                          window.location.href = `/post/${item.post.post_id}`;
+                          navigate(`/post/${item.post.post_id}`);
                         } else if (item.type === 'downvoted' && item.kategori_type === 'POST' && item.post) {
-                          window.location.href = `/post/${item.post.post_id}`;
+                          navigate(`/post/${item.post.post_id}`);
                         }
                       }}
                     >
@@ -385,7 +386,7 @@ const Profile = () => {
                       key={post.post_id}
                       className="post-item"
                       onClick={() => {
-                        window.location.href = `/post/${post.post_id}`;
+                        navigate(`/post/${post.post_id}`);
                       }}
                       style={{ position: 'relative' }}
                     >
@@ -440,7 +441,7 @@ const Profile = () => {
                       key={comment.comment_id}
                       className="comment-item"
                       onClick={() => {
-                        window.location.href = `/post/${comment.post_id}`;
+                        navigate(`/post/${comment.post_id}`);
                       }}
                     >
                       <p>Commented : {comment.content}</p>
@@ -467,9 +468,9 @@ const Profile = () => {
                       className="vote-item"
                       onClick={() => {
                         if (vote.kategori_type === "POST" && vote.post) {
-                          window.location.href = `/post/${vote.post.post_id}`;
+                          navigate(`/post/${vote.post.post_id}`);
                         } else if (vote.kategori_type === "COMMENT" && vote.comment) {
-                          window.location.href = `/post/${vote.comment.post_id}`;
+                          navigate(`/post/${vote.comment.post_id}`);
                         }
                       }}
                     >
@@ -502,9 +503,9 @@ const Profile = () => {
                       className="vote-item"
                       onClick={() => {
                         if (vote.kategori_type === "POST" && vote.post) {
-                          window.location.href = `/post/${vote.post.post_id}`;
+                          navigate(`/post/${vote.post.post_id}`);
                         } else if (vote.kategori_type === "COMMENT" && vote.comment) {
-                          window.location.href = `/post/${vote.comment.post_id}`;
+                          navigate(`/post/${vote.comment.post_id}`);
                         }
                       }}
                     >

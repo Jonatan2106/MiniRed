@@ -58,13 +58,7 @@ const PostDetail = () => {
       const token = localStorage.getItem('token');
       if (token) {
         setIsLoggedIn(true);
-        fetch('http://localhost:5000/api/me', {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-          .then((response) => response.json())
+        fetchFromAPI('/me', 'GET')
           .then((data) => {
             setUser({ user_id: data.user_id, username: data.username, profilePic: data.profilePic });
           })
@@ -94,10 +88,10 @@ const PostDetail = () => {
       const cleanedComments = rawComments.map((c: any) => c.comment ? c.comment : c);
 
       const nested = nestComments(cleanedComments);
-      setComments(nested); 
+      setComments(nested);
     } catch (error) {
       console.error('Error fetching post or comments', error);
-      setComments([]); 
+      setComments([]);
     }
   };
 
@@ -314,6 +308,7 @@ const Comment = ({
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   const [voteId, setVoteId] = useState<string | null>(null);
+    const navigate = useNavigate();
 
   useEffect(() => {
     try {
@@ -326,8 +321,7 @@ const Comment = ({
 
   const fetchVoteCount = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/comments/${comment.comment_id}/votes/count`);
-      const data = await response.json();
+      const data = await fetchFromAPIWithoutAuth(`/comments/${comment.comment_id}/votes/count`, 'GET');
       setVoteCount(data.score); // Update the vote count
     } catch (error) {
       console.error('Error fetching vote count:', error);
@@ -339,23 +333,21 @@ const Comment = ({
     if (!token) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/api/comments/${comment.comment_id}/votes`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
+      const data = await fetchFromAPI(`/comments/${comment.comment_id}/votes`, 'GET');
+
       if (Array.isArray(data) && data.length > 0) {
         let voteUser = null;
-            for (const vote of data) {
-              if (vote.user_id == currentUser?.user_id) {
-                voteUser = vote;
-                break;
-              }
-            }
-        setUserVote(voteUser.vote_type ? 'upvote' : 'downvote');
-        setVoteId(voteUser.vote_id || null);
+        for (const vote of data) {
+          if (vote.user_id == currentUser?.user_id) {
+            voteUser = vote;
+            break;
+          }
+        }
+
+        if (voteUser) {
+          setUserVote(voteUser.vote_type ? 'upvote' : 'downvote');
+          setVoteId(voteUser.vote_id || null);
+        }
       }
     } catch (error) {
       console.error('Error fetching user vote:', error);
@@ -365,7 +357,7 @@ const Comment = ({
   const handleVote = async (type: 'upvote' | 'downvote') => {
     const token = localStorage.getItem('token');
     if (!token) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 
@@ -377,82 +369,57 @@ const Comment = ({
         // Cast a new vote
         const voteType = type === 'upvote' ? true : false;
 
-        const response = await fetch(`http://localhost:5000/api/comments/${comment.comment_id}/votes`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ vote_type: voteType }),
+        const data = await fetchFromAPI(`/comments/${comment.comment_id}/votes`, 'POST', {
+          vote_type: voteType
         });
 
-        const data = await response.json();
-        if (response.ok) {
-          fetchVoteCount(); // Refresh the vote count
-          setUserVote(type); // Update the user's vote locally
-          setVoteId(data.vote.vote_id || null); // Store the vote ID
-        } else {
-          showAlert(data.message || 'Failed to vote.');
-        }
+        fetchVoteCount(); // Refresh the vote count
+        setUserVote(type); // Update the user's vote locally
+        setVoteId(data.vote.vote_id || null); // Store the vote ID
       }
     } catch (error) {
       console.error('Error voting:', error);
+      showAlert('Failed to vote.');
     }
   };
 
   const handleEditComment = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/comments/${comment.comment_id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content: editedContent }), // Use the updated content
+      await fetchFromAPI(`/comments/${comment.comment_id}`, 'PUT', {
+        content: editedContent
       });
 
-      if (response.ok) {
-        showAlert('Comment updated successfully.');
-        setShowEditPopup(false);
-        fetchPostAndComments(); // Refresh comments
-      } else {
-        showAlert('Failed to update comment.');
-      }
+      showAlert('Comment updated successfully.');
+      setShowEditPopup(false);
+      fetchPostAndComments(); // Refresh comments
     } catch (error) {
       console.error('Error editing comment:', error);
+      showAlert('Failed to update comment.');
     }
   };
 
   const handleDeleteComment = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/comments/${comment.comment_id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await fetchFromAPI(`/comments/${comment.comment_id}`, 'DELETE');
 
-      if (response.ok) {
-        showAlert('Comment deleted successfully.');
-        setShowDeletePopup(false);
-        fetchPostAndComments(); // Refresh comments
-      } else {
-        showAlert('Failed to delete comment.');
-      }
+      showAlert('Comment deleted successfully.');
+      setShowDeletePopup(false);
+      fetchPostAndComments(); // Refresh comments
     } catch (error) {
       console.error('Error deleting comment:', error);
+      showAlert('Failed to delete comment.');
     }
   };
 
@@ -462,27 +429,18 @@ const Comment = ({
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        window.location.href = '/login';
+        navigate('/login');
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/votes/${voteId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await fetchFromAPI(`/votes/${voteId}`, 'DELETE');
 
-      if (response.ok) {
-        fetchVoteCount(); // Refresh the vote count
-        setUserVote(null); // Reset the user's vote
-        setVoteId(null); // Clear the vote ID
-      } else {
-        const errorData = await response.json();
-        showAlert(errorData.message || 'Failed to cancel vote.');
-      }
+      fetchVoteCount(); // Refresh the vote count
+      setUserVote(null); // Reset the user's vote
+      setVoteId(null); // Clear the vote ID
     } catch (error) {
       console.error('Error canceling vote:', error);
+      showAlert('Failed to cancel vote.');
     }
   };
 

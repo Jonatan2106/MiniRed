@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
-import { AiOutlinePlusCircle } from 'react-icons/ai';
 import Loading from './Loading';
 import '../styles/viewprofile.css';
 import '../styles/home.css';
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
+import { useNavigate } from 'react-router-dom';
 
 interface User {
     user_id: string;
@@ -55,6 +54,7 @@ const ViewProfile = () => {
     const [commentKarma, setCommentKarma] = useState<number>(0);
     const [joinedCommunities, setJoinedCommunities] = useState<Subreddit[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -202,7 +202,7 @@ const ViewProfile = () => {
     const handleLogout = () => {
         localStorage.removeItem('token');
         setIsLoggedIn(false);
-        window.location.href = '/';
+        navigate('/');
     };
 
     const toggleDropdown = () => {
