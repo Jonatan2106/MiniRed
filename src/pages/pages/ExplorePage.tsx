@@ -48,7 +48,7 @@ const ExplorePage = () => {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const debouncedQuery = useDebounce(query, 300);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,8 +64,8 @@ const ExplorePage = () => {
         console.log('Fetched Subreddits:', allSubredditsResponse);
 
         if (Array.isArray(allSubredditsResponse)) {
-          setAllSubreddits(allSubredditsResponse); 
-          setFilteredSubreddits(allSubredditsResponse); 
+          setAllSubreddits(allSubredditsResponse);
+          setFilteredSubreddits(allSubredditsResponse);
         } else {
           console.error('Invalid data format:', allSubredditsResponse);
         }
@@ -83,7 +83,7 @@ const ExplorePage = () => {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again later.');
       } finally {
-        setIsLoading(false); 
+        setIsLoading(false);
       }
     };
 
@@ -117,7 +117,7 @@ const ExplorePage = () => {
   };
 
   if (isLoading) {
-    return <Loading />; 
+    return <Loading />;
   }
 
   if (error) {

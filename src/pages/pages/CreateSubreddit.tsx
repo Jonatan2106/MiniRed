@@ -35,13 +35,13 @@ const CreateSubreddit = () => {
       })
       .catch((error) => console.error('Error fetching user data:', error))
       .finally(() => setIsLoading(false));
-    
-  }, []); 
+
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    
+
     if (!subredditName || !subredditTitle || !subredditDescription) {
       setError('All fields are required.');
       return;
@@ -49,7 +49,8 @@ const CreateSubreddit = () => {
 
     try {
       setIsLoading(true);
-      const response = await fetchFromAPI('/subreddits', 'POST', {userId: user?.userId,
+      const response = await fetchFromAPI('/subreddits', 'POST', {
+        userId: user?.userId,
         name: subredditName,
         title: subredditTitle,
         description: subredditDescription,

@@ -22,20 +22,20 @@ const EditSubreddit = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-            const data = fetchFromAPIWithoutAuth(`/subreddits/${subredditId}`, 'GET')
-                .then((data) => {
-                    setSubreddit(data);
-                    setTitle(data.title);
-                    setName(data.name);
-                    setDescription(data.description);
-                })
-        .catch((error) => {
-            console.error('Error fetching subreddit:', error);
-            alert('Failed to load subreddit data');
-        })
-        .finally(() => {
-            setIsLoading(false);
-        });
+        const data = fetchFromAPIWithoutAuth(`/subreddits/${subredditId}`, 'GET')
+            .then((data) => {
+                setSubreddit(data);
+                setTitle(data.title);
+                setName(data.name);
+                setDescription(data.description);
+            })
+            .catch((error) => {
+                console.error('Error fetching subreddit:', error);
+                alert('Failed to load subreddit data');
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     }, [subredditId]);
 
     const handleUpdate = (updatedName: string, updatedTitle: string, updatedDescription: string) => {

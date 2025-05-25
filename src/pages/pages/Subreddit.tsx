@@ -138,13 +138,13 @@ const SubredditPage = () => {
     };
 
     const handleCreatePost = () => {
-        navigate('/create-post'); 
+        navigate('/create-post');
     };
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         setIsLoggedIn(false);
-        navigate('/'); 
+        navigate('/');
     };
 
     const toggleDropdown = () => {
@@ -241,18 +241,18 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
     const [voteCount, setVoteCount] = useState<{ upvotes: number; downvotes: number, score: number }>({ upvotes: 0, downvotes: 0, score: 0 });
     const [commentCount, setCommentCount] = useState<number>(0);
     const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
-    const [voteId, setVoteId] = useState<string | null>(null); 
+    const [voteId, setVoteId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchCommentCount();
-        fetchVoteCount(); 
+        fetchVoteCount();
 
         const token = localStorage.getItem('token');
         if (token) {
             fetchFromAPI(`/posts/${post.post_id}/votes`, 'GET')
                 .then(data => {
                     if (Array.isArray(data) && data.length > 0) {
-                        const vote = data[0]; 
+                        const vote = data[0];
                         setUserVote(vote.vote_type ? 'upvote' : 'downvote');
                         setVoteId(vote.vote_id || null);
                     }
@@ -297,10 +297,10 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
                 const response = await fetchFromAPI(`/posts/${post.post_id}/votes`, 'POST', { vote_type: voteType });
                 const data = await response;
                 if (response) {
-                    fetchVoteCount(); 
-                    setUserVote(type); 
+                    fetchVoteCount();
+                    setUserVote(type);
 
-                    setVoteId(data.vote.vote_id || null); 
+                    setVoteId(data.vote.vote_id || null);
                 } else {
                     alert(data.message || 'Failed to vote.');
                 }
@@ -324,9 +324,9 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
 
             if (response) {
                 console.log('Vote successfully deleted');
-                fetchVoteCount(); 
-                setUserVote(null); 
-                setVoteId(null); 
+                fetchVoteCount();
+                setUserVote(null);
+                setVoteId(null);
             } else {
                 const errorData = await response;
                 console.error('Failed to cancel vote:', errorData.message);

@@ -40,13 +40,13 @@ interface Comment {
     username: string;
     profilePic: string;
   };
-  replies: Comment[]; 
+  replies: Comment[];
 }
 
 const PostDetail = () => {
   const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);  
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState<string>('');
   const [replyContent, setReplyContent] = useState<{ [key: string]: string }>({});
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -310,7 +310,7 @@ const Comment = ({
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   const [voteId, setVoteId] = useState<string | null>(null);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     try {
@@ -374,8 +374,8 @@ const Comment = ({
         });
 
         fetchVoteCount();
-        setUserVote(type); 
-        setVoteId(data.vote.vote_id || null); 
+        setUserVote(type);
+        setVoteId(data.vote.vote_id || null);
       }
     } catch (error) {
       console.error('Error voting:', error);
@@ -397,7 +397,7 @@ const Comment = ({
 
       showAlert('Comment updated successfully.');
       setShowEditPopup(false);
-      fetchPostAndComments(); 
+      fetchPostAndComments();
     } catch (error) {
       console.error('Error editing comment:', error);
       showAlert('Failed to update comment.');
@@ -436,8 +436,8 @@ const Comment = ({
       await fetchFromAPI(`/votes/${voteId}`, 'DELETE');
 
       fetchVoteCount();
-      setUserVote(null); 
-      setVoteId(null); 
+      setUserVote(null);
+      setVoteId(null);
     } catch (error) {
       console.error('Error canceling vote:', error);
       showAlert('Failed to cancel vote.');
@@ -497,7 +497,7 @@ const Comment = ({
           <button
             className={`vote-button ${userVote === 'upvote' ? 'upvoted' : ''} up`}
             onClick={(e) => {
-              e.stopPropagation();  
+              e.stopPropagation();
               handleVote('upvote');
             }}
           >
@@ -510,7 +510,7 @@ const Comment = ({
           <button
             className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
             onClick={(e) => {
-              e.stopPropagation();  
+              e.stopPropagation();
               handleVote('downvote');
             }}
           >

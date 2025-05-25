@@ -15,7 +15,7 @@ const Search = () => {
     try {
       const response = await fetchFromAPIWithoutAuth(`/search?q=${query}`, 'GET');
       setResults(response);
-      setError(null); // Clear any previous errors
+      setError(null);
     } catch (error) {
       console.error('Search failed', error);
       setError('Failed to fetch search results. Please try again.');

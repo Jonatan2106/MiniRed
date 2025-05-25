@@ -1,6 +1,6 @@
 import Loading from './Loading';
 
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
@@ -66,7 +66,7 @@ const Home = () => {
           setIsLoggedIn(true);
           const userResponse = await fetchFromAPI('/me', 'GET');
           setUser({ user_id: userResponse.user_id, username: userResponse.username, profilePic: userResponse.profile_pic });
-          
+
           const subredditsResponse = await fetchFromAPI('/users/subreddits', 'GET');
           setJoinedSubreddits(subredditsResponse);
         }

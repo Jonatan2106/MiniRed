@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { fetchFromAPI } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
-import { IoEyeOffSharp, IoEyeSharp  } from "react-icons/io5";
+import { IoEyeOffSharp, IoEyeSharp } from "react-icons/io5";
 
 import '../styles/login.css';
 
@@ -17,7 +17,7 @@ const Login = () => {
       const response = await fetchFromAPI('/login', 'POST', { username, password });
       const token = response.token;
       localStorage.setItem('token', token);
-      navigate('/'); 
+      navigate('/');
     } catch (error) {
       setError('Login failed. Please check your credentials.');
     }
@@ -49,7 +49,7 @@ const Login = () => {
             className="eye-button"
             onClick={() => setShowPassword(!showPassword)}
           >
-            {showPassword ? <IoEyeSharp className='text-mode'/> : <IoEyeOffSharp  />}
+            {showPassword ? <IoEyeSharp className='text-mode' /> : <IoEyeOffSharp />}
           </button>
         </div>
         <button className="login-button" onClick={handleLogin}>Login</button>

@@ -122,7 +122,7 @@ const ViewProfile = () => {
             posts.map(async (post: any) => {
                 try {
                     const subreddit = await fetchFromAPI(`/subreddits/${post.subreddit_id}`, 'GET');
-                    console.log('Subreddit:', subreddit.name); 
+                    console.log('Subreddit:', subreddit.name);
                     return { ...post, subreddit_name: subreddit.name, subreddit: subreddit };
                 } catch (error) {
                     console.error(`Failed to fetch subreddit for post ${post.post_id}:`, error);
@@ -174,7 +174,7 @@ const ViewProfile = () => {
                 return voteData.score;
             } catch (error) {
                 console.error(`Failed to fetch votes for post ${postId}:`, error);
-                return 0; 
+                return 0;
             }
         });
 
@@ -189,7 +189,7 @@ const ViewProfile = () => {
                 return voteData.score;
             } catch (error) {
                 console.error(`Failed to fetch votes for comment ${commentId}:`, error);
-                return 0; 
+                return 0;
             }
         });
 

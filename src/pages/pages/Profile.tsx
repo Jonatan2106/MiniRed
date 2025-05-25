@@ -41,8 +41,8 @@ interface Vote {
   vote_id: string;
   user_id: string;
   kategori_id: string;
-  kategori_type: "POST" | "COMMENT";  
-  vote_type: boolean; 
+  kategori_type: "POST" | "COMMENT";
+  vote_type: boolean;
   created_at: string;
   post?: Post;
   comment?: Comment;
@@ -51,11 +51,11 @@ interface Vote {
 interface OverviewItem {
   type: 'post' | 'comment' | 'upvoted' | 'downvoted';
   created_at: string;
-  post_id?: string; 
-  title?: string; 
+  post_id?: string;
+  title?: string;
   content?: string;
-  post?: Post; 
-  kategori_type?: 'POST' | 'COMMENT'; 
+  post?: Post;
+  kategori_type?: 'POST' | 'COMMENT';
 }
 
 const Profile = () => {
@@ -113,7 +113,7 @@ const Profile = () => {
           commentsData.map(async (comment: Comment) => {
             const postResponse = await fetchFromAPI(`/posts/${comment.post_id}`, 'GET')
             const post = await postResponse;
-            return { ...comment, post }; 
+            return { ...comment, post };
           })
         );
         setComments(commentsWithPosts);
@@ -193,45 +193,45 @@ const Profile = () => {
   };
 
   const handleUpdatePost = async () => {
-  try {
-    if (!currentEditingPost) return;
+    try {
+      if (!currentEditingPost) return;
 
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setEditModalError("You must be logged in to update your post.");
-      return;
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setEditModalError("You must be logged in to update your post.");
+        return;
+      }
+
+      if (!editPostContent.trim()) {
+        setEditModalError("Post content cannot be empty.");
+        return;
+      }
+
+      const updateData = {
+        title: editPostTitle,
+        content: editPostContent
+      };
+
+      const response = await fetchFromAPI(`/posts/${currentEditingPost.post_id}`, 'PUT', updateData);
+
+      setPosts(prev =>
+        prev.map(post =>
+          post.post_id === currentEditingPost.post_id
+            ? { ...post, content: editPostContent }
+            : post
+        )
+      );
+
+      setIsEditPostModalOpen(false);
+      setCurrentEditingPost(null);
+
+      alert('Post updated successfully!');
+
+    } catch (err: any) {
+      console.error("Error updating post:", err.message);
+      setEditModalError(err.message || "Failed to update post");
     }
-
-    if (!editPostContent.trim()) {
-      setEditModalError("Post content cannot be empty.");
-      return;
-    }
-
-    const updateData = {
-      title: editPostTitle, 
-      content: editPostContent
-    };
-
-    const response = await fetchFromAPI(`/posts/${currentEditingPost.post_id}`, 'PUT', updateData);
-    
-    setPosts(prev =>
-      prev.map(post =>
-        post.post_id === currentEditingPost.post_id 
-          ? { ...post, content: editPostContent } 
-          : post
-      )
-    );
-
-    setIsEditPostModalOpen(false);
-    setCurrentEditingPost(null);
-    
-    alert('Post updated successfully!');
-
-  } catch (err: any) {
-    console.error("Error updating post:", err.message);
-    setEditModalError(err.message || "Failed to update post");
-  }
-};
+  };
 
   if (isLoading) {
     return <Loading />;

@@ -87,8 +87,8 @@ const EditProfile = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
-    
-      navigate('/');
+
+    navigate('/');
   };
 
   const toggleDropdown = () => {
