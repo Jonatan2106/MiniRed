@@ -18,12 +18,12 @@ import searchRouter from './routes/search_routes';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = Number(process.env.PORT) || 5000;
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({ origin: ['http://172.16.202.41:5173', 'http://localhost:5173'] }));
 
 // Sequelize setup
 const sequelize = new Sequelize({
@@ -62,6 +62,11 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+// app.listen(port, () => {
+//   console.log(`Server is running on http://localhost:${port}`);
+// });
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on http://${process.env.DB_HOST}:${port}`);
+  console.log(`You can also access it at http://localhost:${port}`);
 });

@@ -1,5 +1,5 @@
 // src/api/api.ts
-const API_URL = 'http://localhost:5000/api';  // Replace with your backend URL
+const API_URL = 'http://172.16.202.41:5000/api';  // Replace with your backend URL
 
 export const fetchFromAPI = async (endpoint: string, method: string, body: any = null) => {
   const token = localStorage.getItem('token'); // 🔥 get token from storage
