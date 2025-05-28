@@ -9,6 +9,7 @@ import RightSidebar from '../component/RightSidebar';
 
 import '../styles/subreddit.css';
 import '../styles/main.css';
+import LeftSidebar from '../component/LeftSidebar';
 
 interface Post {
     post_id: string;
@@ -162,7 +163,11 @@ const SubredditPage = () => {
     return (
         <div className="subreddit-wrapper">
             {/* Main content */}
-            <div className="main-content">
+            <div className="main-content subreddit-page">
+                <LeftSidebar
+                    isProfilePage={true}
+                    joinedSubreddits={joinedSubreddits}
+                />
                 {/* Subreddit Header */}
                 <div className="main-feed">
                     <div className="subreddit-page-wrapper">
@@ -205,13 +210,13 @@ const SubredditPage = () => {
                             </div>
                         </div>
                     </div>
-
                     {/* Feed */}
                     <div className="feed">
                         {posts.map((post) => (
                             <PostCard key={post.post_id} post={post} current_user={user} />
                         ))}
                     </div>
+
                 </div>
 
                 {/* Right Sidebar */}                {/* Right Sidebar */}
