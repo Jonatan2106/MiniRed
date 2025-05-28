@@ -1,5 +1,5 @@
 .create-post-wrapper {
-    width: 124.5%;
+    width: 150%;
     margin: 0 auto;
     padding: 2rem;
     background-color: #1a1a1b;
@@ -85,6 +85,7 @@
     color: #D7DADC;
     font-size: 1rem;
     transition: all 0.3s ease;
+
 }
 
 .subreddit-select:focus,
@@ -98,6 +99,7 @@
 .subreddit-select {
     height: 55px;
     cursor: pointer;
+    width: 106%;
 }
 
 .subreddit-select option {
@@ -107,7 +109,7 @@
 }
 
 .title-input {
-    width: 93.5%;
+    width: 100%;
     font-size: 1.1rem;
     font-weight: 600;
 }
@@ -117,6 +119,7 @@
     min-height: 200px;
     line-height: 1.5;
     font-size: 1rem;
+    width: 100%;
 }
 
 .character-counter {
@@ -213,6 +216,7 @@
     top: 2rem;
     max-height: 89.5%;
     overflow-y: auto;
+    margin-left: 30px;
 }
 
 /* Subreddit Preview */
@@ -343,40 +347,6 @@
     overflow-x: auto;
 }
 
-/* Form Actions */
-.form-actions {
-    display: flex;
-    justify-content: center;
-    margin-top: 2rem;
-    grid-column: 1 / -1;
-}
-
-.submit-button {
-    padding: 1rem 2rem;
-    background-color: #FF4500;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-    max-width: 400px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.submit-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
-}
-
-.submit-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(255, 69, 0, 0.4);
-}
-
 /* Error Message */
 .error-message {
     color: #FF4500;
@@ -399,4 +369,68 @@
         position: static;
         margin-top: 2rem;
     }
+    
+    .form-actions {
+        padding-bottom: 2rem;
+    }
+}
+
+/* Feed adjustments for this page */
+.feed {
+    flex: 1;
+    padding: 0 1rem;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* Main content adjustments for layout */
+.main-content {
+    display: flex;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem;
+    gap: 1rem;
+    position: relative;
+}
+
+/* Add this new style for the button container */
+.button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    width: 100%;
+}
+
+.submit-button {
+    padding: 1rem 2rem;
+    background-color: #FF4500;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    max-width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.submit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4);
+}
+
+.submit-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(255, 69, 0, 0.4);
+}
+
+/* Form Actions - can be removed since we're using button-container instead */
+.form-actions {
+    display: none; /* Hide this since we're using the button-container */
 }

@@ -1,9 +1,7 @@
 /* LeftSidebar CSS file */
 /* Left Sidebar */
 .left-sidebar {
-    width: 240px;
     background-color: #1a1a1b;
-    padding: 1rem;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
@@ -13,14 +11,12 @@
 }
 
 .left-sidebar.home {
-    width: 240px;
     background-color: #1a1a1b;
-    padding: 3rem;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    margin-left: -23%;
+    margin-left: -18%;
     border-left: 4px solid #FF4500;
 }
 

@@ -1,4 +1,7 @@
 import Loading from './Loading';
+import LeftSidebar from '../component/LeftSidebar';
+import Navbar from '../component/Navbar';
+import RightSidebar from '../component/RightSidebar';
 
 import React, { useState, useEffect } from 'react';
 import { fetchFromAPI } from '../../api/auth';
@@ -155,6 +158,10 @@ const ExplorePage = () => {
     setDropdownOpen((prev) => !prev);
   };
 
+  const handleCreatePost = () => {
+    navigate('/create-post');
+  };
+
   if (isLoading) {
     return <Loading />;
   }
@@ -165,8 +172,26 @@ const ExplorePage = () => {
 
   return (
     <div className="home-wrapper">
-      {/* Main content */}
+      <Navbar 
+        isLoggedIn={isLoggedIn}
+        user={user}
+        shouldHideSearch={false}
+        shouldHideCreate={false}
+        query={query}
+        setQuery={setQuery}
+        isDropdownOpen={isDropdownOpen}
+        toggleDropdown={toggleDropdown}
+        handleLogout={handleLogout}
+        handleCreatePost={handleCreatePost}
+        handleSearch={handleSearch}
+      />
+      
       <div className="main-content">
+        <LeftSidebar 
+          isProfilePage={true} 
+          joinedSubreddits={joinedSubreddits} 
+        />
+        
         {/* Feed */}
         <div className="feed">
           {/* Display matching subreddits */}
@@ -179,24 +204,7 @@ const ExplorePage = () => {
           )}
         </div>
 
-        {/* Right Sidebar */}
-        <div className="right-sidebar">
-          <div className="joined-communities">
-            <h3>Joined Communities</h3>
-            <ul>
-              {joinedSubreddits.length > 0 ? (
-                joinedSubreddits.map((subreddit) => (
-                  <li key={subreddit.subreddit_id} onClick={() => navigate(`/r/${subreddit.name}`)} style={{ cursor: 'pointer' }}>
-                    <div className="community-icon">{subreddit.name[0].toUpperCase()}</div>
-                    <span>r/{subreddit.name}</span>
-                  </li>
-                ))
-              ) : (
-                <li>No joined communities yet.</li>
-              )}
-            </ul>
-          </div>
-        </div>
+        <RightSidebar joinedSubreddits={joinedSubreddits} />
       </div>
     </div>
   );

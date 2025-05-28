@@ -1,5 +1,5 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AiOutlinePlusCircle } from 'react-icons/ai';
 import './Navbar.css';
 
@@ -31,6 +31,22 @@ const Navbar: React.FC<NavbarProps> = ({
   handleSearch
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [showSearch, setShowSearch] = useState(false);
+  
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const isHomePage = currentPath === '/'; 
+    const isExplorePage = currentPath === '/explore';
+    
+    setShowSearch(isHomePage || isExplorePage);
+  }, [location.pathname]);
+  
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
   
   return (
     <nav className="navbar">
@@ -40,29 +56,27 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
       
-      {!shouldHideSearch && (
-      <div className="navbar-center">
-        <input
-          className="search-input"
-          type="text"
-          placeholder="Search Reddit"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <button className="search-button" onClick={handleSearch}>
-          Search
-        </button>
-        {query && (
-          <button
-            className="clear-button"
-            onClick={() => {
-              setQuery('');
-            }}
-          >
-            Clear
-          </button>
-        )}
-      </div>
+      {showSearch && !shouldHideSearch && (
+        <div className="navbar-center">
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Search Reddit"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          {query && (
+            <button
+              className="clear-button"
+              onClick={() => {
+                setQuery('');
+              }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
       )}
       
       <div className="navbar-right">

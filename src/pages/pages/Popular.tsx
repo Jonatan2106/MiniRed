@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 import Loading from './Loading';
+import LeftSidebar from '../component/LeftSidebar';
+import Navbar from '../component/Navbar';
+import RightSidebar from '../component/RightSidebar';
 import '../styles/popular.css';
 import '../styles/main.css';
 import { TiArrowUpOutline, TiArrowDownOutline } from 'react-icons/ti';
@@ -63,6 +66,8 @@ const Popular = () => {
     const [error, setError] = useState<string | null>(null);
     const [user, setUser] = useState<any>();
     const [isLoading, setIsLoading] = useState(true);
+    const [isDropdownOpen, setDropdownOpen] = useState(false);
+    const [query, setQuery] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -98,6 +103,26 @@ const Popular = () => {
         fetchData();
     }, []);
 
+    const toggleDropdown = () => {
+        setDropdownOpen((prev) => !prev);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        setIsLoggedIn(false);
+        navigate('/');
+    };
+
+    const handleCreatePost = () => {
+        navigate('/create-post');
+    };
+
+    const handleSearch = () => {
+        if (query.trim()) {
+            navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+        }
+    };
+
     if (isLoading) {
         return <Loading />;
     }
@@ -108,31 +133,34 @@ const Popular = () => {
 
     return (
         <div className="home-wrapper">
+            <Navbar 
+                isLoggedIn={isLoggedIn}
+                user={user}
+                shouldHideSearch={false}
+                shouldHideCreate={false}
+                query={query}
+                setQuery={setQuery}
+                isDropdownOpen={isDropdownOpen}
+                toggleDropdown={toggleDropdown}
+                handleLogout={handleLogout}
+                handleCreatePost={handleCreatePost}
+                handleSearch={handleSearch}
+            />
+            
             <div className="main-content">
+                <LeftSidebar 
+                    isProfilePage={true} 
+                    joinedSubreddits={joinedSubreddits} 
+                />
+                
                 {/* Feed */}
                 <div className="feed">
                     {posts.map((post) => (
                         <PostCard key={post.post_id} post={post} current_user={user} />
                     ))}
                 </div>
-                {/* Right Sidebar */}
-                <div className="right-sidebar">
-                    <div className="joined-communities">
-                        <h3>Joined Communities</h3>
-                        <ul>
-                            {joinedSubreddits.length > 0 ? (
-                                joinedSubreddits.map((subreddit) => (
-                                    <li key={subreddit.subreddit_id}>
-                                        <div className="community-icon">{subreddit.name[0].toUpperCase()}</div>
-                                        <a onClick={() => navigate(`/r/${subreddit.name}`)} style={{ cursor: 'pointer' }}>r/{subreddit.name}</a>
-                                    </li>
-                                ))
-                            ) : (
-                                <li>No joined communities yet.</li>
-                            )}
-                        </ul>
-                    </div>
-                </div>
+                
+                <RightSidebar joinedSubreddits={joinedSubreddits} />
             </div>
         </div>
     );

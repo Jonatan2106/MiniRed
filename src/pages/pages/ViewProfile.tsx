@@ -1,11 +1,12 @@
 import Loading from './Loading';
+import LeftSidebar from '../component/LeftSidebar';
+import Navbar from '../component/Navbar';
 
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 import { useNavigate } from 'react-router-dom';
-import RightSidebar from '../component/RightSidebar';
 
 import '../styles/viewprofile.css';
 import '../styles/home.css';
@@ -41,6 +42,12 @@ interface Subreddit {
     name: string;
     title: string;
     description: string;
+    created_at: string;
+    user: {
+        user_id: string;
+        username: string;
+        profile_pic: string | null;
+    };
 }
 
 const ViewProfile = () => {
@@ -51,10 +58,11 @@ const ViewProfile = () => {
     const [activeTab, setActiveTab] = useState<'Overview' | 'Posts' | 'Comments'>('Overview');
     const [error, setError] = useState<string | null>(null);
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-    const [currentUser, setCurrentUser] = useState<{ username: string; profilePic: string } | null>(null);
+    const [currentUser, setCurrentUser] = useState<{ username: string; profile_pic: string } | null>(null);
     const [isDropdownOpen, setDropdownOpen] = useState(false);
     const [joinedCommunities, setJoinedCommunities] = useState<Subreddit[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [query, setQuery] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -64,7 +72,7 @@ const ViewProfile = () => {
                 const token = localStorage.getItem('token');
                 if (token) {
                     const me = await fetchFromAPI('/me', 'GET');
-                    setCurrentUser({ username: me.username, profilePic: me.profile_pic });
+                    setCurrentUser({ username: me.username, profile_pic: me.profile_pic });
                     setIsLoggedIn(true);
                 }
                 // Fetch bundled profile
@@ -108,6 +116,16 @@ const ViewProfile = () => {
         setDropdownOpen((prev) => !prev);
     };
 
+    const handleCreatePost = () => {
+        navigate('/create-post');
+    };
+
+    const handleSearch = () => {
+        if (query.trim()) {
+            navigate(`/search?q=${encodeURIComponent(query.trim())}`);
+        }
+    };
+
     if (error) {
         return <div className="error-message">{error}</div>;
     }
@@ -118,8 +136,26 @@ const ViewProfile = () => {
 
     return (
         <div className="home-wrapper">
-            {/* Main Content */}
-            <div className="main-content">
+            <Navbar
+                isLoggedIn={isLoggedIn}
+                user={currentUser}
+                shouldHideSearch={false}
+                shouldHideCreate={false}
+                query={query}
+                setQuery={setQuery}
+                isDropdownOpen={isDropdownOpen}
+                toggleDropdown={toggleDropdown}
+                handleLogout={handleLogout}
+                handleCreatePost={handleCreatePost}
+                handleSearch={handleSearch}
+            />
+
+            <div className="main-content view-profile">
+                <LeftSidebar
+                    isProfilePage={true}
+                    joinedSubreddits={joinedCommunities}
+                />
+
                 {/* Profile Content */}
                 <div className="feed">
                     <div className="view-profile-container">
@@ -253,8 +289,8 @@ const ViewProfile = () => {
                             )}
                         </div>
                     </div>
-                </div>                
-           </div>
+                </div>
+            </div>
         </div>
     );
 };
