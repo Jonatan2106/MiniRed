@@ -37,6 +37,7 @@ interface Post {
     vote_type: boolean;
   }>;
   comments?: Array<any>;
+  type?: string; // Add type property for sorting
 }
 
 interface Subreddit {
@@ -59,6 +60,12 @@ interface Subreddit {
       profile_pic: string | null;
     };
   }>;
+  type?: string; // Add type property for sorting
+}
+
+interface ContentItem extends Partial<Post>, Partial<Subreddit> {
+  type: 'post' | 'subreddit';
+  created_at: string;
 }
 
 interface User {
@@ -72,12 +79,12 @@ const Home = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [allSubreddits, setAllSubreddits] = useState<Subreddit[]>([]);
   const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
-  const [filteredSubreddits, setFilteredSubreddits] = useState<Subreddit[]>([]);
+  const [mixedContent, setMixedContent] = useState<ContentItem[]>([]);
+  const [filteredContent, setFilteredContent] = useState<ContentItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<any>();
   const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -97,12 +104,22 @@ const Home = () => {
         }
 
         const postsResponse = await fetchFromAPIWithoutAuth('/posts', 'GET');
-        setPosts(postsResponse);
-        setSearchResults(postsResponse);
-
         const allSubredditsResponse = await fetchFromAPIWithoutAuth('/subreddits', 'GET');
-        setAllSubreddits(allSubredditsResponse);
-        setFilteredSubreddits(allSubredditsResponse);
+        
+        // Add type property to each item
+        const typedPosts = postsResponse.map((post: Post) => ({ ...post, type: 'post' }));
+        const typedSubreddits = allSubredditsResponse.map((subreddit: Subreddit) => ({ ...subreddit, type: 'subreddit' }));
+        
+        setPosts(typedPosts);
+        setAllSubreddits(typedSubreddits);
+
+        // Combine and sort posts and subreddits by creation date
+        const combined = [...typedPosts, ...typedSubreddits].sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        
+        setMixedContent(combined);
+        setFilteredContent(combined);
 
         // Derive joinedSubreddits from /me response (user.joinedSubreddits)
         if (userResponse && userResponse.joinedSubreddits) {
@@ -148,22 +165,25 @@ const Home = () => {
     navigate('/create-post');
   };
 
-  // handleSearch only filters local state, does not fetch
+  // handleSearch filters the mixed content
   const handleSearch = () => {
     const trimmedQuery = query.trim().toLowerCase();
     if (trimmedQuery === '') {
-      setSearchResults(posts);
-      setFilteredSubreddits(allSubreddits);
+      setFilteredContent(mixedContent);
       return;
     }
-    const filteredPosts = posts.filter((post) =>
-      post.title.toLowerCase().includes(trimmedQuery)
-    );
-    const filteredSubreddits = allSubreddits.filter((subreddit) =>
-      subreddit.name.toLowerCase().includes(trimmedQuery)
-    );
-    setSearchResults(filteredPosts);
-    setFilteredSubreddits(filteredSubreddits);
+    
+    const filtered = mixedContent.filter(item => {
+      if (item.type === 'post') {
+        return item.title?.toLowerCase().includes(trimmedQuery);
+      } else if (item.type === 'subreddit') {
+        return item.name?.toLowerCase().includes(trimmedQuery) || 
+               item.description?.toLowerCase().includes(trimmedQuery);
+      }
+      return false;
+    });
+    
+    setFilteredContent(filtered);
   };
 
   const handleLogout = () => {
@@ -210,36 +230,27 @@ const Home = () => {
         
         {/* Feed */}
         <div className="feed">
-          {/* Display matching communities */}
-          {filteredSubreddits.length > 0 && (
-            <>
-              {filteredSubreddits.map((subreddit) => (
-                <SubredditCard key={subreddit.subreddit_id} subreddit={subreddit} />
-              ))}
-            </>
+          {filteredContent.length > 0 ? (
+            filteredContent.map((item) => {
+              if (item.type === 'post') {
+                return <PostCard key={`post-${item.post_id}`} post={item as Post} current_user={user} />;
+              } else if (item.type === 'subreddit') {
+                return <SubredditCard key={`sub-${item.subreddit_id}`} subreddit={item as Subreddit} />;
+              }
+              return null;
+            })
+          ) : (
+            <div className="no-results">
+              {query ? (
+                <p className="text-gray-500">No results found for "{query}".</p>
+              ) : (
+                <p className="text-gray-500">No content available.</p>
+              )}
+            </div>
           )}
-
-          {/* Display matching posts */}
-          {searchResults.length > 0 && (
-            <>
-              {searchResults.map((post) => (
-                <PostCard key={post.post_id} post={post} current_user={user} />
-              ))}
-            </>
-          )}
-
-          {/* No results message */}
-          {query && filteredSubreddits.length === 0 && searchResults.length === 0 && (
-            <p className="text-gray-500">No results found for "{query}".</p>
-          )}
-
-          {/* Default posts when no query */}
-          {!query && searchResults.length === 0 && (
-            posts.map((post) => (
-              <PostCard key={post.post_id} post={post} current_user={user} />
-            ))
-          )}
-        </div>        {/* Right Sidebar */}
+        </div>
+        
+        {/* Right Sidebar */}
         <RightSidebar joinedSubreddits={joinedSubreddits} />
       </div>
     </div>
@@ -382,7 +393,8 @@ const PostCard = ({ post, current_user }: { post: Post; current_user: any }) => 
                 }
               }}
             >
-              {subredditName !== "unknown" ? `r/${subredditName}` : ""}</span>
+              {subredditName !== "unknown" ? `r/${subredditName}` : ""}
+            </span>
           </div>
           <h2>{post.title}</h2>
           <p>

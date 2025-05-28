@@ -321,7 +321,7 @@
 .input-container, .password-input-container {
   position: relative;
   margin-bottom: 1rem;
-  width: 100%; /* Add this to ensure full width */
+  width: 85%; 
 }
 
 .input-icon {
