@@ -1,7 +1,7 @@
 import React from 'react';
 import { FaHome, FaCompass, FaFire } from 'react-icons/fa';
 import { AiOutlinePlusCircle } from 'react-icons/ai';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './LeftSidebar.css';
 
 interface LeftSidebarProps {
@@ -11,6 +11,7 @@ interface LeftSidebarProps {
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({ isProfilePage, joinedSubreddits }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <>
@@ -18,13 +19,25 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isProfilePage, joinedSubreddi
         <div className="left-sidebar home">
           <h2 className="title">Menu</h2>
           <ul>
-            <li onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+            <li
+              className={location.pathname === '/' ? 'active' : ''}
+              onClick={() => navigate('/')}
+              style={{ cursor: 'pointer' }}
+            >
               <FaHome className="icon" /><span>Home</span>
             </li>
-            <li onClick={() => navigate('/explore')} style={{ cursor: 'pointer' }}>
+            <li
+              className={location.pathname === '/explore' ? 'active' : ''}
+              onClick={() => navigate('/explore')}
+              style={{ cursor: 'pointer' }}
+            >
               <FaCompass className="icon" /><span>Explore</span>
             </li>
-            <li onClick={() => navigate('/popular')} style={{ cursor: 'pointer' }}>
+            <li
+              className={location.pathname === '/popular' ? 'active' : ''}
+              onClick={() => navigate('/popular')}
+              style={{ cursor: 'pointer' }}
+            >
               <FaFire className="icon" /><span>Popular</span>
             </li>
           </ul>
