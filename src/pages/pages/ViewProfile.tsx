@@ -135,11 +135,11 @@ const ViewProfile = () => {
                         {/* Profile Stats */}
                         <div className="view-profile-stats">
                             <div className='view-profile-stat-item'>
-                                <h3>{posts.reduce((acc, post) => acc + Math.max(0, (post.votes?.filter(v => v.vote_type === true).length || 0) - (post.votes?.filter(v => v.vote_type === false).length || 0)), 0)}</h3>
+                                <h3>{posts.length}</h3>
                                 <p>Post Karma</p>
                             </div>
                             <div className='view-profile-stat-item'>
-                                <h3>{comments.reduce((acc, comment) => acc + Math.max(0, (comment.votes?.filter(v => v.vote_type === true).length || 0) - (comment.votes?.filter(v => v.vote_type === false).length || 0)), 0)}</h3>
+                                <h3>{comments.length}</h3>
                                 <p>Comment Karma</p>
                             </div>
                         </div>
