@@ -5,6 +5,7 @@ import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
+import RightSidebar from '../component/RightSidebar';
 
 import '../styles/subreddit.css';
 import '../styles/main.css';
@@ -24,6 +25,12 @@ interface Subreddit {
     name: string;
     title: string;
     description: string;
+    created_at: string;
+    user: {
+        user_id: string;
+        username: string;
+        profile_pic: string | null;
+    };
 }
 
 interface User {
@@ -207,24 +214,8 @@ const SubredditPage = () => {
                     </div>
                 </div>
 
-                {/* Right Sidebar */}
-                <div className="right-sidebar subreddit">
-                    <div className="joined-communities">
-                        <h3>Joined Communities</h3>
-                        <ul>
-                            {joinedSubreddits.length > 0 ? (
-                                joinedSubreddits.map((subreddit) => (
-                                    <li key={subreddit.subreddit_id}>
-                                        <div className="community-icon">{subreddit.name[0].toUpperCase()}</div>
-                                        <a href={`/r/${subreddit.name}`}>r/{subreddit.name}</a>
-                                    </li>
-                                ))
-                            ) : (
-                                <li>No joined communities yet.</li>
-                            )}
-                        </ul>
-                    </div>
-                </div>
+                {/* Right Sidebar */}                {/* Right Sidebar */}
+                <RightSidebar joinedSubreddits={joinedSubreddits} />
             </div>
         </div>
     );

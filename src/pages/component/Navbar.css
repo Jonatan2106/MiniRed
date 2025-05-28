@@ -1,0 +1,230 @@
+/* Navbar CSS file */
+/* Navbar */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #1a1a1b;
+    padding: 0.75rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.navbar-left .logo {
+    font-weight: bold;
+    font-size: 1.75rem;
+    color: #FF4500;
+    text-shadow: 0 0 3px rgba(255, 69, 0, 0.3);
+}
+
+.app-title {
+    text-decoration: none;
+    color: #FF4500;
+    transition: all 0.3s ease;
+}
+
+.app-title:hover {
+    color: #FF5700;
+    transform: scale(1.05);
+}
+
+/* Search Bar Container */
+.navbar-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+/* Search Input */
+.navbar-center .search-input {
+    background-color: #272729;
+    border: 1px solid #444;
+    border-radius: 9999px;
+    padding: 0.6rem 1.5rem;
+    margin: .5rem 1rem;
+    width: 300px;
+    color: white;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.navbar-center .search-input:focus {
+    outline: none;
+    border-color: #FF4500;
+    box-shadow: 0 0 8px rgba(255, 69, 0, 0.8);
+}
+
+/* Search Button */
+.navbar-center .search-button {
+    background-color: #FF4500;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.navbar-center .search-button:hover {
+    background-color: #FF5700;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(255, 87, 0, 0.4);
+}
+
+/* Clear Button */
+.navbar-center .clear-button {
+    background-color: transparent;
+    color: #FF4500;
+    border: 1px solid #FF4500;
+    padding: 0.6rem 1rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.navbar-center .clear-button:hover {
+    background-color: #FF4500;
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(255, 69, 0, 0.4);
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.create-post-btn {
+    background-color: #FF4500;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.create-post-btn .icon {
+    font-size: 1.5rem;
+    color: #D7DADC;
+    flex-shrink: 0;
+}
+
+.nav-link {
+    color: #D7DADC;
+    text-decoration: none;
+}
+
+.nav-link:hover {
+    text-decoration: underline;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.auth-buttons .login-button {
+    background-color: transparent;
+    color: #FF4500;
+    border: 2px solid #FF4500;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.auth-buttons .login-button:hover {
+    background-color: #FF4500;
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+.auth-buttons .register-button {
+    background-color: #FF4500;
+    color: #FFFFFF;
+    border: 2px solid #FF4500;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.auth-buttons .register-button:hover {
+    background-color: transparent;
+    border-color: #E03D00;
+    color: #FF4500;
+    text-decoration: none;
+}
+
+/* Profile menu styling */
+.profile-menu {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    object-fit: cover;
+    border: 2px solid #FF4500;
+    transition: all 0.3s ease;
+}
+
+.profile-pic:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 3px #FF4500;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #1a1a1b;
+    border-radius: 8px;
+    width: 150px;
+    z-index: 101;
+    margin-top: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 12px 16px;
+    color: #D7DADC;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: #272729;
+    color: #FF4500;
+}
+
+.logout {
+    border-top: 1px solid #343536;
+    color: #FF4500;
+}
+
+.logout:hover {
+    background-color: rgba(255, 69, 0, 0.1);
+} 

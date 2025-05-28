@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/auth';
 import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 import { useNavigate } from 'react-router-dom';
+import RightSidebar from '../component/RightSidebar';
 
 import '../styles/viewprofile.css';
 import '../styles/home.css';
@@ -252,27 +253,8 @@ const ViewProfile = () => {
                             )}
                         </div>
                     </div>
-                </div>
-
-                {/* Right Sidebar */}
-                <div className="right-sidebar">
-                    <div className="joined-communities">
-                        <h3>Joined Communities</h3>
-                        <ul>
-                            {joinedCommunities.length > 0 ? (
-                                joinedCommunities.map((community) => (
-                                    <li key={community.subreddit_id}>
-                                        <div className="community-icon">{community.name[0].toUpperCase()}</div>
-                                        <a href={`/r/${community.name}`}>r/{community.name}</a>
-                                    </li>
-                                ))
-                            ) : (
-                                <li>No joined communities yet.</li>
-                            )}
-                        </ul>
-                    </div>
-                </div>
-            </div>
+                </div>                
+           </div>
         </div>
     );
 };

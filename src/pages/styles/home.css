@@ -122,7 +122,9 @@ ul {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    width: 100%;
+    width: 180%;
+    padding-left: 8%;
+    /* max-width: fit-content; */
 }
 
 .post-card {
@@ -227,79 +229,7 @@ ul {
 }
 
 /* Right Sidebar */
-.right-sidebar {
-    flex: 0 0 260px; /* Slightly wider for balance */
-    width: 260px;
-    background-color: #1a1a1b;
-    border-radius: 12px;
-    padding: 1.2rem 0.7rem;
-    height: fit-content;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.18);
-    border-left: 3px solid #FF4500;
-    /* margin-left: 0.5rem; Reduce margin */
-    /* margin-right: -0; */
-    position: sticky;
-    top: 2rem;
-}
-
-.joined-communities h3 {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #D7DADC;
-    margin-bottom: 1rem;
-    text-align: center;
-    border-bottom: 2px solid #FF4500;
-    padding-bottom: 0.5rem;
-}
-
-.joined-communities ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.joined-communities li {
-    margin: 0.8rem 0;
-    background-color: #272729;
-    border-radius: 6px;
-    padding: 0.8rem 1rem;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.joined-communities li:hover {
-    background-color: #333;
-    transform: scale(1.02);
-    /* Slightly enlarge on hover */
-}
-
-.joined-communities a {
-    color: #D7DADC;
-    text-decoration: none;
-    font-size: 1rem;
-    font-weight: bold;
-    flex: 1;
-}
-
-.joined-communities a:hover {
-    color: #FF4500;
-    text-decoration: underline;
-}
-
-.joined-communities .community-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #FF4500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 1.2rem;
-}
+/* Right sidebar styling moved to RightSidebar.css */
 
 .profile-menu {
     position: relative;

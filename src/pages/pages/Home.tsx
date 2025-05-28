@@ -1,4 +1,7 @@
 import Loading from './Loading';
+import LeftSidebar from '../component/LeftSidebar';
+import Navbar from '../component/Navbar';
+import RightSidebar from '../component/RightSidebar';
 
 import React, { useState, useEffect } from 'react';
 import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
@@ -183,7 +186,28 @@ const Home = () => {
 
   return (
     <div className="home-wrapper">
+      {/* Add Navbar component */}
+      <Navbar 
+        isLoggedIn={isLoggedIn}
+        user={user}
+        shouldHideSearch={false}
+        shouldHideCreate={false}
+        query={query}
+        setQuery={setQuery}
+        isDropdownOpen={isDropdownOpen}
+        toggleDropdown={toggleDropdown}
+        handleLogout={handleLogout}
+        handleCreatePost={handleCreatePost}
+        handleSearch={handleSearch}
+      />
+      
       <div className="main-content">
+        {/* Add LeftSidebar component */}
+        <LeftSidebar 
+          isProfilePage={true} 
+          joinedSubreddits={joinedSubreddits} 
+        />
+        
         {/* Feed */}
         <div className="feed">
           {/* Display matching communities */}
@@ -215,36 +239,8 @@ const Home = () => {
               <PostCard key={post.post_id} post={post} current_user={user} />
             ))
           )}
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="right-sidebar">
-          <div className="joined-communities">
-            <h3>Joined Communities</h3>
-            <ul>
-              {joinedSubreddits.length > 0 ? (
-                joinedSubreddits.map((subreddit) => (
-                  <li key={subreddit.subreddit_id}>
-                    <div className="community-icon">{subreddit.name[0].toUpperCase()}</div>
-                    <span
-                      style={{ color: '#FF4500', fontWeight: 600, cursor: 'pointer', textDecoration: 'none' }}
-                      onClick={() => navigate(`/r/${subreddit.name}`)}
-                      tabIndex={0}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' || e.key === ' ') navigate(`/r/${subreddit.name}`);
-                      }}
-                      aria-label={`Go to r/${subreddit.name}`}
-                    >
-                      r/{subreddit.name}
-                    </span>
-                  </li>
-                ))
-              ) : (
-                <li>No joined communities yet.</li>
-              )}
-            </ul>
-          </div>
-        </div>
+        </div>        {/* Right Sidebar */}
+        <RightSidebar joinedSubreddits={joinedSubreddits} />
       </div>
     </div>
   );
