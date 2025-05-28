@@ -5,11 +5,12 @@ import { User } from '../../../models/user';
 import { Comment } from '../../../models/comment';
 import { Post } from '../../../models/post';
 import { generateToken } from '../utils/jwt_helper';
-import { Vote } from '../../../models/vote'; // Assuming you have a Vote model defined
-import { Subreddit } from '../../../models/subreddit';
+import { Vote } from '../../../models/vote';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Subreddit } from '../../../models/subreddit';
+import { SubredditMember } from '../../../models/subreddit_member';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +23,7 @@ export const registerUser = async (req: Request, res: Response) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const newUser = await User.create({ user_id, username, email, password: hashedPassword });
-        res.status(201).json({ message: 'User registered successfully!', user: newUser });
+        res.status(201).json({ message: 'User registered successfully!' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to register user' });
@@ -62,13 +63,153 @@ export const loginUser = async (req: Request, res: Response) => {
 
 // GET /me - Get the logged-in user's details
 export const getCurrentUser = async (req: Request, res: Response) => {
-    const user = await User.findByPk(req.body.userId);
-    res.json(user);  // Assuming user info is in req.body (from middleware)
+    const user = await User.findByPk(req.body.userId, {
+        attributes: ['user_id', 'username', 'email', 'profile_pic', 'created_at'],
+        include: [
+            {
+                model: Post,
+                attributes: ['post_id', 'title', 'content', 'created_at'],
+                order: [['created_at', 'DESC']],
+                include: [
+                    {
+                        model: Vote,
+                        attributes: ['vote_id', 'vote_type', 'kategori_type'],
+                        required: false
+                    }
+                ]
+            },
+            {
+                model: Comment,
+                attributes: ['comment_id', 'content', 'created_at', 'post_id'],
+                order: [['created_at', 'DESC']],
+                include: [
+                    {
+                        model: Vote,
+                        attributes: ['vote_id', 'vote_type', 'kategori_type'],
+                        required: false
+                    },
+                    {
+                        model: Post,
+                        attributes: ['post_id', 'title', 'content', 'created_at'],
+                        required: false
+                    }
+                ]
+            },
+            {
+                model: SubredditMember,
+                as: 'joinedSubreddits',
+                include: [
+                    {
+                        model: Subreddit,
+                        attributes: ['subreddit_id', 'name', 'title', 'description']
+                    }
+                ]
+            }
+        ]
+    });
+    if (!user) {
+        res.status(404).json({ message: 'User not found' });
+        return;
+    }
+
+    // Fetch upvoted and downvoted content
+    const upvoted = await Vote.findAll({
+        where: { user_id: req.body.userId, vote_type: true },
+        include: [
+            {
+                model: Post,
+                required: false,
+                attributes: ['post_id', 'title', 'content', 'created_at'],
+            },
+            {
+                model: Comment,
+                required: false,
+                attributes: ['comment_id', 'content', 'created_at', 'post_id'],
+                include: [
+                    {
+                        model: Post,
+                        attributes: ['post_id', 'title', 'content', 'created_at'],
+                        required: false
+                    }
+                ]
+            },
+        ],
+        order: [['created_at', 'DESC']],
+    });
+    const downvoted = await Vote.findAll({
+        where: { user_id: req.body.userId, vote_type: false },
+        include: [
+            {
+                model: Post,
+                required: false,
+                attributes: ['post_id', 'title', 'content', 'created_at'],
+            },
+            {
+                model: Comment,
+                required: false,
+                attributes: ['comment_id', 'content', 'created_at', 'post_id'],
+                include: [
+                    {
+                        model: Post,
+                        attributes: ['post_id', 'title', 'content', 'created_at'],
+                        required: false
+                    }
+                ]
+            },
+        ],
+        order: [['created_at', 'DESC']],
+    });
+
+    // Convert user to plain object and add upvoted/downvoted
+    const userObj = user.toJSON();
+    userObj.upvoted = upvoted;
+    userObj.downvoted = downvoted;
+
+    res.json(userObj);
 };
 
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
-        const posts = await User.findAll();
+        const posts = await User.findAll({
+            attributes: ['user_id', 'username', 'email', 'profile_pic', 'created_at'],
+            include: [
+                {
+                    model: Post,
+                    attributes: ['post_id', 'title', 'content', 'created_at'],
+                    order: [['created_at', 'DESC']],
+                    include: [
+                        {
+                            model: Vote,
+                            attributes: ['vote_id', 'vote_type', 'kategori_type'],
+                            required: false
+                        }
+                    ]
+                },
+                {
+                    model: Comment,
+                    attributes: ['comment_id', 'content', 'created_at'],
+                    order: [['created_at', 'DESC']],
+                    include: [
+                        {
+                            model: Vote,
+                            attributes: ['vote_id', 'vote_type', 'kategori_type'],
+                            required: false
+                        }
+                    ]
+                },
+                {
+                    model: SubredditMember,
+                    as: 'joinedSubreddits',
+                    include: [
+                        {
+                            model: Subreddit,
+                            attributes: ['subreddit_id', 'name', 'title', 'description']
+                        }
+                    ]
+                }
+            ],
+            order: [['created_at', 'DESC']],
+        });
         res.json(posts);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching posts', error: err });
@@ -78,7 +219,45 @@ export const getAllUsers = async (req: Request, res: Response) => {
 // GET /user/:id - get detail user
 export const getUserById = async (req: Request, res: Response) => {
     try {
-        const user = await User.findByPk(req.params.id);
+        const user = await User.findByPk(req.params.id, {
+            attributes: ['user_id', 'username', 'email', 'profile_pic', 'created_at'],
+            include: [
+                {
+                    model: Post,
+                    attributes: ['post_id', 'title', 'content', 'created_at'],
+                    order: [['created_at', 'DESC']],
+                    include: [
+                        {
+                            model: Vote,
+                            attributes: ['vote_id', 'vote_type', 'kategori_type'],
+                            required: false
+                        }
+                    ]
+                },
+                {
+                    model: Comment,
+                    attributes: ['comment_id', 'content', 'created_at'],
+                    order: [['created_at', 'DESC']],
+                    include: [
+                        {
+                            model: Vote,
+                            attributes: ['vote_id', 'vote_type', 'kategori_type'],
+                            required: false
+                        }
+                    ]
+                },
+                {
+                    model: SubredditMember,
+                    as: 'joinedSubreddits',
+                    include: [
+                        {
+                            model: Subreddit,
+                            attributes: ['subreddit_id', 'name', 'title', 'description']
+                        }
+                    ]
+                }
+            ],
+        });
         if (user) {
             res.json(user);
         } else {
@@ -141,7 +320,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     try {
         const { userId, username, email, password, newPassword, currentPassword, profilePic } = req.body;
         let imagePath: string | null = null;
-        
+
         if (profilePic) {
             const matches = profilePic.match(/^data:(.+);base64,(.+)$/);
             if (!matches || matches.length !== 3) {
@@ -155,20 +334,20 @@ export const updateUserProfile = async (req: Request, res: Response) => {
             const fileName = `${userId}.${extension}`;
             const savePath = path.join(__dirname, '../../../public/uploads', fileName);
             imagePath = `/uploads/${fileName}`;
-            
+
             const uploadDir = path.join(__dirname, '../../../public/uploads');
             if (!fs.existsSync(uploadDir)) {
                 fs.mkdirSync(uploadDir, { recursive: true });
             }
-            
+
             fs.writeFileSync(savePath, Buffer.from(base64Data, 'base64'));
         }
-        
+
         if (!userId) {
             res.status(400).json({ message: 'User ID is required' });
             return;
         }
-        
+
         const user = await User.findByPk(userId);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
@@ -383,5 +562,76 @@ export const checkUsername = async (req: Request, res: Response) => {
     } catch (error) {
         console.error('Error checking username:', error);
         res.status(500).json({ message: 'Failed to check username' });
+    }
+};
+
+// GET /user/:username - Get bundled user profile by username
+export const getUserByUsername = async (req: Request, res: Response) => {
+    try {
+        const { username } = req.params;
+        const user = await User.findOne({
+            where: { username },
+            attributes: ['user_id', 'username', 'email', 'profile_pic', 'created_at'],
+            include: [
+                {
+                    model: Post,
+                    attributes: ['post_id', 'title', 'content', 'image', 'created_at'],
+                    order: [['created_at', 'DESC']],
+                    include: [
+                        {
+                            model: Vote,
+                            attributes: ['vote_id', 'vote_type', 'kategori_type'],
+                            required: false
+                        }
+                    ]
+                },
+                {
+                    model: Comment,
+                    attributes: ['comment_id', 'content', 'created_at'],
+                    order: [['created_at', 'DESC']],
+                    include: [
+                        {
+                            model: Vote,
+                            attributes: ['vote_id', 'vote_type', 'kategori_type'],
+                            required: false
+                        },
+                        {
+                            model: Post,
+                            attributes: ['post_id', 'title'], // include post title
+                            required: false
+                        }
+                    ]
+                },
+                {
+                    model: SubredditMember,
+                    as: 'joinedSubreddits',
+                    include: [
+                        {
+                            model: Subreddit,
+                            attributes: ['subreddit_id', 'name', 'title', 'description']
+                        }
+                    ]
+                }
+            ],
+            order: [['created_at', 'DESC']],
+        });
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
+            return;
+        }
+        // Convert to plain object
+        const userObj = user.toJSON();
+        // For each comment, flatten post_id and post title
+        if (userObj.comments) {
+            userObj.comments = userObj.comments.map((c: any) => ({
+                ...c,
+                post_id: c.post ? c.post.post_id : undefined,
+                post_title: c.post ? c.post.title : undefined
+            }));
+        }
+        res.json(userObj);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to fetch bundled user profile' });
     }
 };

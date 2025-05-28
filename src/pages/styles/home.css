@@ -1,62 +1,159 @@
-/* Main content layout */
-.main-content {
-    display: flex;
-    margin-top: 1rem;
-    padding: 0 1rem;
+/* Base styles */
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #121212;
+    color: #E0E0E0;
+    line-height: 1.6;
+    width: 100%;
+    overflow-x: hidden;
 }
 
-/* Feed */
-.feed {
-    flex: 1;
-    margin: 0 1rem;
-}
-
-.post-card {
-    background-color: #1a1a1b;
-    border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    cursor: pointer;
-    width:  300%;
-}
-
-/* Post Link Styling */
-.post-link {
+a {
     color: inherit;
     text-decoration: none;
-    margin-bottom: 15px;
 }
 
-.home-wrapper .post-link:hover {
-    color: #FF4500;
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
-.post-card:hover {
-    background-color: #272727;
-    transform: scale(1.02);
+/* Main wrapper */
+.home-wrapper {
+    width: 100%; /* Fix overflow */
+    min-height: 100vh;
+    background: #0b0b0b;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
 }
 
-/* Post Header */
-.post-header {
+/* Navbar */
+.navbar {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 1rem;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: #1a1a1b;
+    border-bottom: 1px solid #FF4500;
 }
 
-.username {
+.navbar-logo {
+    font-size: 1.5rem;
     font-weight: bold;
     color: #FF4500;
 }
 
-.timestamp {
-    color: #B1B1B1;
-    font-size: 0.9rem;
+.navbar-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* Post Title */
+.navbar-center .search-input {
+    width: 400px;
+    padding: 0.5rem;
+    border: 1px solid #FF4500;
+    border-radius: 4px;
+    background-color: #121212;
+    color: #E0E0E0;
+    transition: width 0.4s ease;
+}
+
+.navbar-center .search-input:focus {
+    width: 500px;
+    outline: none;
+}
+
+.navbar-center .search-button,
+.navbar-center .clear-button {
+    background-color: #FF4500;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.navbar-center .search-button:hover,
+.navbar-center .clear-button:hover {
+    background-color: #FF5700;
+}
+
+/* Main content layout */
+.main-content {
+    display: flex;
+    margin-top: 2rem;
+    padding: 0 0.5rem; /* Reduce horizontal padding */
+    max-width: 100vw; /* Increase max width for wider layout */
+    /* width: 98vw; Use more of the viewport */
+    margin-left: auto;
+    margin-right: auto;
+    gap: 0.7rem; /* Slightly reduce gap */
+    box-sizing: border-box;
+}
+
+/* Left Sidebar */
+.left-sidebar {
+    flex: 0 0 220px; /* Slightly wider for balance */
+    width: 100%;
+    background-color: #1a1a1b;
+    border-radius: 12px;
+    padding: 1.2rem 0.7rem;
+    height: fit-content;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.18);
+    border-right: 3px solid #FF4500;
+    /* margin-right: 0.5rem; */
+    margin-left: -5%;
+    position: sticky;
+    top: 2rem;
+}
+
+/* Feed */
+.feed {
+    flex: 2.5;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.post-card {
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.post-card {
+    background-color: #232324;
+    border-radius: 10px;
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: box-shadow 0.2s, background 0.2s;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    width: 100%;
+    /* max-width: 100vw; */
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+.post-card:hover {
+    background-color: #29292b;
+    border: 1.5px solid #FF4500;
+    box-shadow: 0 4px 16px rgba(255,69,0,0.10);
+}
+
 .post-card h2 {
     font-size: 1.5rem;
     font-weight: bold;
@@ -67,6 +164,40 @@
 .post-card p {
     font-size: 1rem;
     color: #B1B1B1;
+}
+
+/* Post Header */
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+.username {
+    font-weight: bold;
+    color: #FF4500;
+    font-size: 1rem;
+    margin-right: 0.5rem;
+}
+
+.subreddit-link {
+    color: #FF4500;
+    font-weight: bold;
+    font-size: 1rem;
+    margin-left: 0.5rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+.subreddit-link:hover {
+    text-decoration: underline;
+    color: #ff6a1a;
+}
+
+.timestamp {
+    color: #B1B1B1;
+    font-size: 0.9rem;
+    margin-left: 0.5rem;
 }
 
 /* Post Footer */
@@ -97,15 +228,18 @@
 
 /* Right Sidebar */
 .right-sidebar {
-    flex: 0 0 300px;
-    width: 500px;
+    flex: 0 0 260px; /* Slightly wider for balance */
+    width: 260px;
     background-color: #1a1a1b;
-    border-radius: 8px;
-    padding: 1.5rem;
+    border-radius: 12px;
+    padding: 1.2rem 0.7rem;
     height: fit-content;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-left: 4px solid #FF4500;
-    margin-left: 87%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.18);
+    border-left: 3px solid #FF4500;
+    /* margin-left: 0.5rem; Reduce margin */
+    /* margin-right: -0; */
+    position: sticky;
+    top: 2rem;
 }
 
 .joined-communities h3 {
@@ -292,191 +426,53 @@ img {
 }
 
 /* Responsive */
+@media (max-width: 1400px) {
+    .main-content {
+        max-width: 100vw;
+        width: 100vw;
+        padding: 0 0.2rem;
+    }
+    .left-sidebar, .right-sidebar {
+        width: 180px;
+        flex-basis: 180px;
+    }
+}
+
 @media (max-width: 1000px) {
     .main-content {
         flex-direction: column;
+        max-width: 100vw;
+        width: 100vw;
+        padding: 0 0.2rem;
+        gap: 0.3rem;
     }
-
-    .left-sidebar,
-    .right-sidebar {
-        width: 100%;
-        margin-bottom: 1rem;
-    }
-
     .feed {
         margin: 0;
-        padding: 0;
-        height: 100%;
-        font-family: 'Arial', sans-serif;
-        background-color: #030303;
-        color: #D7DADC;
+        width: 100%;
     }
-
-    /* Navbar */
-    .navbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background-color: #1a1a1b;
-        padding: 0.5rem 1rem;
-        position: sticky;
-        top: 0;
-        z-index: 100;
+    .right-sidebar, .left-sidebar {
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        position: static;
+        padding: 1rem 0.5rem;
     }
-
-    .navbar-left .logo {
-        font-weight: bold;
-        font-size: 1.5rem;
-        color: #FF4500;
-    }
-
-    .navbar-center .search-input {
-        background-color: #272729;
-        border: none;
-        border-radius: 20px;
-        padding: 0.5rem 1rem;
-        width: 400px;
-        color: white;
-    }
-
-    .navbar-right {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .create-post-btn {
-        background-color: #FF4500;
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 9999px;
-        cursor: pointer;
-    }
-
-    .nav-link {
-        color: #D7DADC;
-        text-decoration: none;
-    }
-
-    .nav-link:hover {
-        text-decoration: underline;
-    }
-
-    /* Main content layout */
-    .main-content {
-        display: flex;
-        margin-top: 1rem;
-        padding: 0 1rem;
-    }
-
-    /* Left Sidebar */
-    .left-sidebar {
-        width: 240px;
-        background-color: #1a1a1b;
-        border-radius: 8px;
-        padding: 1rem;
-        height: fit-content;
-    }
-
-    .left-sidebar ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    .left-sidebar li {
-        margin: 0.5rem 0;
-    }
-
-    .left-sidebar a {
-        color: #D7DADC;
-        text-decoration: none;
-    }
-
-    .left-sidebar a:hover {
-        text-decoration: underline;
-    }
-
-    /* Feed */
-    .feed {
-        flex: 1;
-        margin: 0 1rem;
-    }
-
     .post-card {
-        background-color: #1a1a1b;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        transition: all 0.2s ease;
-        display: flex;
-        flex-direction: column;
+        max-width: 100%;
     }
+}
 
-    .post-card h2 {
-        color: #D7DADC;
+@media (max-width: 700px) {
+    .main-content {
+        padding: 0 0.1rem;
+        gap: 0.1rem;
     }
-
-    .post-card p {
-        color: #818384;
+    .post-card {
+        padding: 0.5rem;
+        max-width: 100%;
     }
-
-    .read-more-link {
-        color: #FF4500;
-        text-decoration: none;
-    }
-
-    .read-more-link:hover {
-        text-decoration: underline;
-    }
-
-    /* Right Sidebar */
-    .right-sidebar {
-        width: 300px;
-        background-color: #1a1a1b;
-        border-radius: 8px;
-        padding: 1rem;
-        height: fit-content;
-    }
-
-    .joined-communities ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    .joined-communities li {
-        margin: 0.5rem 0;
-    }
-
-    .joined-communities a {
-        color: #D7DADC;
-        text-decoration: none;
-    }
-
-    .joined-communities a:hover {
-        text-decoration: underline;
-    }
-
-
-    /* Responsive */
-    @media (max-width: 1000px) {
-        .main-content {
-            flex-direction: column;
-        }
-
-        .left-sidebar,
-        .right-sidebar {
-            width: 100%;
-            margin-bottom: 1rem;
-        }
-
-        .feed {
-            margin: 0;
-        }
-
-        .navbar-center .search-input {
-            width: 200px;
-        }
+    .right-sidebar, .left-sidebar {
+        padding: 0.5rem 0.1rem;
     }
 }
 
@@ -568,4 +564,158 @@ img {
 
 .post-card .post-header .username:hover {
     text-decoration: underline;
+}
+
+/* Subreddit Card (distinct from post card) */
+.subreddit-card {
+    background: #18191a;
+    border: 2px solid #FF4500;
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(255,69,0,0.05);
+    transition: box-shadow 0.2s, border 0.2s;
+}
+.subreddit-card:hover {
+    box-shadow: 0 4px 16px rgba(255,69,0,0.12);
+    border: 2px solid #ff6a1a;
+}
+.subreddit-card .subreddit-title {
+    color: #FF4500;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 0.2rem;
+}
+.subreddit-card .subreddit-desc {
+    color: #B1B1B1;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+.subreddit-card .subreddit-meta {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+}
+
+.subreddit-owner {
+  color: #FF4500;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: text-decoration 0.2s;
+}
+.subreddit-owner:hover {
+  text-decoration: underline;
+}
+
+/* Misc */
+button {
+    cursor: pointer;
+}
+
+input, textarea {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background-color: #1a1a1b;
+    color: #E0E0E0;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    width: 100%;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    border-color: #FF4500;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, #FF4500, transparent);
+    margin: 1.5rem 0;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #121212;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #FF4500;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #FF5700;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+    .main-content {
+        max-width: 100vw;
+        width: 100vw;
+        padding: 0 0.2rem;
+    }
+    .left-sidebar, .right-sidebar {
+        width: 180px;
+        flex-basis: 180px;
+    }
+}
+
+@media (max-width: 1000px) {
+    .main-content {
+        flex-direction: column;
+        max-width: 100vw;
+        width: 100vw;
+        padding: 0 0.2rem;
+        gap: 0.3rem;
+    }
+    .feed {
+        margin: 0;
+        width: 100%;
+    }
+    .right-sidebar, .left-sidebar {
+        width: 100%;
+        margin-left: 0;
+        margin-right: 0;
+        position: static;
+        padding: 1rem 0.5rem;
+    }
+    .post-card {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 700px) {
+    .main-content {
+        padding: 0 0.1rem;
+        gap: 0.1rem;
+    }
+    .post-card {
+        padding: 0.5rem;
+        max-width: 100%;
+    }
+    .right-sidebar, .left-sidebar {
+        padding: 0.5rem 0.1rem;
+    }
+}
+
+/* Responsive Search Bar */
+@media (max-width: 768px) {
+    .navbar-center .search-input {
+        width: 200px;
+        font-size: 0.9rem;
+    }
+
+    .navbar-center .search-button,
+    .navbar-center .clear-button {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
 }

@@ -41,6 +41,10 @@ interface Comment {
     profilePic: string;
   };
   replies: Comment[];
+  upvotes?: number;
+  downvotes?: number;
+  score?: number;
+  currentUserVote?: 'upvote' | 'downvote' | null;
 }
 
 const PostDetail = () => {
@@ -56,43 +60,44 @@ const PostDetail = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        setIsLoggedIn(true);
-        fetchFromAPI('/me', 'GET')
-          .then((data) => {
-            setUser({ user_id: data.user_id, username: data.username, profilePic: data.profilePic });
-          })
-          .catch((error) => console.error('Error fetching user data:', error));
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          setIsLoggedIn(true);
+          const data = await fetchFromAPI('/me', 'GET');
+          setUser({ user_id: data.user_id, username: data.username, profilePic: data.profile_pic });
+        } else {
+          setUser(null);
+        }
+        await fetchPost();
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
       }
-
-      fetchPostAndComments();
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-    finally {
-      setIsLoading(false);
-    }
-
+    };
+    fetchData();
   }, [id]);
 
-  const fetchPostAndComments = async () => {
+  // Only fetch the post (with comments bundled)
+  const fetchPost = async () => {
     try {
       const postResponse = await fetchFromAPIWithoutAuth(`/posts/${id}`, 'GET');
-      console.log(postResponse.image)
       setPost(postResponse);
-
-      const commentsResponse = await fetchFromAPIWithoutAuth(`/posts/${id}/comments`, 'GET');
-
-      const rawComments = commentsResponse;
-
-      const cleanedComments = rawComments.map((c: any) => c.comment ? c.comment : c);
-
-      const nested = nestComments(cleanedComments);
-      setComments(nested);
+      // Use comments from the post response
+      if (postResponse.comments) {
+        // If comments are flat, nest them; if already nested, just set
+        const nested = Array.isArray(postResponse.comments) && postResponse.comments.length > 0 && postResponse.comments[0].replies === undefined
+          ? nestComments(postResponse.comments)
+          : postResponse.comments;
+        setComments(nested);
+      } else {
+        setComments([]);
+      }
     } catch (error) {
-      console.error('Error fetching post or comments', error);
+      console.error('Error fetching post', error);
       setComments([]);
     }
   };
@@ -112,7 +117,7 @@ const PostDetail = () => {
 
       if (response) {
         setNewComment('');
-        await fetchPostAndComments();
+        await fetchPost();
       } else {
         showAlert('Failed to add comment');
       }
@@ -142,7 +147,7 @@ const PostDetail = () => {
         const updatedComments = addReplyToComment(comments, parentCommentId, newReply.comment);
         setComments(updatedComments);
         setReplyContent({ ...replyContent, [parentCommentId]: '' });
-        await fetchPostAndComments();
+        await fetchPost();
       } else {
         showAlert('Failed to add reply');
       }
@@ -263,7 +268,7 @@ const PostDetail = () => {
                   replyContent={replyContent}
                   setReplyContent={setReplyContent}
                   handleReply={handleReply}
-                  fetchPostAndComments={fetchPostAndComments}
+                  fetchPostAndComments={fetchPost}
                   currentUser={user}
                   showAlert={showAlert}
                 />
@@ -303,8 +308,9 @@ const Comment = ({
   currentUser: { user_id: string; username: string; profilePic: string } | null;
   showAlert: (msg: string, type?: 'success' | 'error') => void;
 }) => {
-  const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
-  const [voteCount, setVoteCount] = useState<number>(0);
+  // Use backend-provided vote info if available
+  const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(comment.currentUserVote ?? null);
+  const [voteCount, setVoteCount] = useState<number>(typeof comment.score === 'number' ? comment.score : 0);
   const [showMenu, setShowMenu] = useState(false);
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
@@ -312,49 +318,11 @@ const Comment = ({
   const [voteId, setVoteId] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  // Remove per-comment fetches for vote count and user vote
   useEffect(() => {
-    try {
-      fetchVoteCount();
-      fetchUserVote();
-    } catch (error) {
-      console.error('Error fetching vote data:', error);
-    }
-  }, []);
-
-  const fetchVoteCount = async () => {
-    try {
-      const data = await fetchFromAPIWithoutAuth(`/comments/${comment.comment_id}/votes/count`, 'GET');
-      setVoteCount(data.score);
-    } catch (error) {
-      console.error('Error fetching vote count:', error);
-    }
-  };
-
-  const fetchUserVote = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-
-    try {
-      const data = await fetchFromAPI(`/comments/${comment.comment_id}/votes`, 'GET');
-
-      if (Array.isArray(data) && data.length > 0) {
-        let voteUser = null;
-        for (const vote of data) {
-          if (vote.user_id == currentUser?.user_id) {
-            voteUser = vote;
-            break;
-          }
-        }
-
-        if (voteUser) {
-          setUserVote(voteUser.vote_type ? 'upvote' : 'downvote');
-          setVoteId(voteUser.vote_id || null);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user vote:', error);
-    }
-  };
+    setUserVote(comment.currentUserVote ?? null);
+    setVoteCount(typeof comment.score === 'number' ? comment.score : 0);
+  }, [comment.currentUserVote, comment.score]);
 
   const handleVote = async (type: 'upvote' | 'downvote') => {
     const token = localStorage.getItem('token');
@@ -368,12 +336,10 @@ const Comment = ({
         await handleCancelVote();
       } else {
         const voteType = type === 'upvote' ? true : false;
-
         const data = await fetchFromAPI(`/comments/${comment.comment_id}/votes`, 'POST', {
           vote_type: voteType
         });
-
-        fetchVoteCount();
+        setVoteCount(typeof data.score === 'number' ? data.score : 0);
         setUserVote(type);
         setVoteId(data.vote.vote_id || null);
       }
@@ -425,17 +391,14 @@ const Comment = ({
 
   const handleCancelVote = async () => {
     if (!voteId) return;
-
     try {
       const token = localStorage.getItem('token');
       if (!token) {
         navigate('/login');
         return;
       }
-
-      await fetchFromAPI(`/votes/${voteId}`, 'DELETE');
-
-      fetchVoteCount();
+      const data = await fetchFromAPI(`/votes/${voteId}`, 'DELETE');
+      setVoteCount(typeof data.score === 'number' ? data.score : 0);
       setUserVote(null);
       setVoteId(null);
     } catch (error) {

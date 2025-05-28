@@ -37,4 +37,9 @@ export class SubredditMember extends Model {
 
     @BelongsTo(() => Subreddit)
     declare subreddit: Subreddit;
+
+    @BelongsTo(() => User, {
+        foreignKey: 'user_id'
+    })
+    declare user: User;
 }

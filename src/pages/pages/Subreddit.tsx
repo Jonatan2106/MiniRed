@@ -1,6 +1,6 @@
 import Loading from './Loading';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TiArrowDownOutline, TiArrowUpOutline } from "react-icons/ti";
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchFromAPI } from '../../api/auth';
@@ -44,14 +44,13 @@ interface CommentCount {
 
 const SubredditPage = () => {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-    const [posts, setPosts] = useState<Post[]>([]);
+    const [posts, setPosts] = useState<any[]>([]);
     const [joinedSubreddits, setJoinedSubreddits] = useState<Subreddit[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [user, setUser] = useState<{ user_id: string; username: string; profilePic: string } | null>(null);
     const [isDropdownOpen, setDropdownOpen] = useState(false);
-    const [users, setUsers] = useState<Map<string, User>>(new Map());
     const { subredditName } = useParams<{ subredditName: string }>();
-    const [subreddit, setSubreddit] = useState<Subreddit | null>(null);
+    const [subreddit, setSubreddit] = useState<any>(null);
     const [isMember, setIsMember] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
@@ -62,35 +61,29 @@ const SubredditPage = () => {
     const fetchData = async () => {
         try {
             const token = localStorage.getItem('token');
+            let joinedSubs: Subreddit[] = [];
+            let currentUser: any = null;
             if (token) {
                 setIsLoggedIn(true);
-
                 const userResponse = await fetchFromAPI('/me', 'GET');
                 setUser({ user_id: userResponse.user_id, username: userResponse.username, profilePic: userResponse.profile_pic });
-
-                const joinedSubredditsResponse = await fetchFromAPI('/users/subreddits', 'GET');
-                setJoinedSubreddits(joinedSubredditsResponse);
+                if (Array.isArray(userResponse.joinedSubreddits)) {
+                    joinedSubs = userResponse.joinedSubreddits.map((member: any) => member.subreddit || member).filter((sub: any) => !!sub);
+                    setJoinedSubreddits(joinedSubs);
+                } else {
+                    setJoinedSubreddits([]);
+                }
+                currentUser = userResponse;
             }
 
-            const usersResponse = await fetchFromAPI('/user/all', 'GET');
-            const userMap = new Map();
-            usersResponse.forEach((user: User) => {
-                userMap.set(user.user_id, user);
-            });
-            setUsers(userMap);
-
+            // Use the new bundled subreddit API
             const subredditResponse = await fetchFromAPIWithoutAuth(`/subreddits/r/${subredditName}`, 'GET');
             if (subredditResponse) {
                 setSubreddit(subredditResponse);
-
-                const postsResponse = await fetchFromAPIWithoutAuth(`/subreddits/${subredditResponse.subreddit_id}/posts`, 'GET');
-                setPosts(postsResponse);
-
+                setPosts(subredditResponse.posts || []);
                 if (token) {
-                    const membershipResponse = await fetchFromAPI('/users/subreddits', 'GET');
-                    const isUserMember = membershipResponse.some(
-                        (joinedSubreddit: Subreddit) => joinedSubreddit.subreddit_id === membershipResponse.subreddit_id
-                    );
+                    // Check membership from subredditResponse.members
+                    const isUserMember = subredditResponse.members?.some((m: any) => m.user_id === currentUser?.user_id);
                     setIsMember(isUserMember);
                 }
             } else {
@@ -209,7 +202,7 @@ const SubredditPage = () => {
                     {/* Feed */}
                     <div className="feed">
                         {posts.map((post) => (
-                            <PostCard key={post.post_id} post={post} users={users} />
+                            <PostCard key={post.post_id} post={post} current_user={user} />
                         ))}
                     </div>
                 </div>
@@ -237,115 +230,79 @@ const SubredditPage = () => {
     );
 };
 
-const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => {
-    const [voteCount, setVoteCount] = useState<{ upvotes: number; downvotes: number, score: number }>({ upvotes: 0, downvotes: 0, score: 0 });
-    const [commentCount, setCommentCount] = useState<number>(0);
+const PostCard = ({ post, current_user }: { post: any, current_user: any }) => {
     const [userVote, setUserVote] = useState<null | 'upvote' | 'downvote'>(null);
     const [voteId, setVoteId] = useState<string | null>(null);
+    const [upvotes, setUpvotes] = useState<number>(post.upvotes);
+    const [downvotes, setDownvotes] = useState<number>(post.downvotes);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        fetchCommentCount();
-        fetchVoteCount();
-
-        const token = localStorage.getItem('token');
-        if (token) {
-            fetchFromAPI(`/posts/${post.post_id}/votes`, 'GET')
-                .then(data => {
-                    if (Array.isArray(data) && data.length > 0) {
-                        const vote = data[0];
-                        setUserVote(vote.vote_type ? 'upvote' : 'downvote');
-                        setVoteId(vote.vote_id || null);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching user vote:', error);
-                });
+        if (post.votes && current_user) {
+            const voteUser = post.votes.find((vote: any) => vote.user_id === current_user.user_id);
+            if (voteUser) {
+                setUserVote(voteUser.vote_type ? 'upvote' : 'downvote');
+                setVoteId(voteUser.vote_id || null);
+            } else {
+                setUserVote(null);
+                setVoteId(null);
+            }
         }
-    }, [post.post_id]);
-
-    const fetchVoteCount = () => {
-        fetchFromAPIWithoutAuth(`/posts/${post.post_id}/votes/count`, 'GET')
-            .then((data) => {
-                setVoteCount({
-                    upvotes: data.upvotes,
-                    downvotes: data.downvotes,
-                    score: data.score
-                });
-            })
-            .catch((error) => console.error('Error fetching vote count:', error));
-    };
-
-    const fetchCommentCount = () => {
-        fetchFromAPIWithoutAuth(`/posts/${post.post_id}/comments/count`, 'GET')
-            .then((data) => setCommentCount(data.commentCount))
-            .catch((error) => console.error('Error fetching comment count:', error));
-    };
+        setUpvotes(post.upvotes);
+        setDownvotes(post.downvotes);
+    }, [post.votes, post.upvotes, post.downvotes, current_user]);
 
     const handleVote = async (type: 'upvote' | 'downvote') => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+        if (userVote === type) {
+            await handleCancelVote();
+            return;
+        }
+        const voteType = type === 'upvote' ? true : false;
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Please login to vote.');
-                return;
-            }
-
-            if (userVote === type) {
-                await handleCancelVote();
-            } else {
-                const voteType = type === 'upvote' ? true : false;
-
-                const response = await fetchFromAPI(`/posts/${post.post_id}/votes`, 'POST', { vote_type: voteType });
-                const data = await response;
-                if (response) {
-                    fetchVoteCount();
-                    setUserVote(type);
-
-                    setVoteId(data.vote.vote_id || null);
-                } else {
-                    alert(data.message || 'Failed to vote.');
-                }
-            }
+            const data = await fetchFromAPI(`/posts/${post.post_id}/votes`, 'POST', { vote_type: voteType });
+            setUserVote(type);
+            setVoteId(data.vote.vote_id || null);
+            setUpvotes(typeof data.upvotes === 'number' ? data.upvotes : upvotes);
+            setDownvotes(typeof data.downvotes === 'number' ? data.downvotes : downvotes);
         } catch (error) {
-            console.error('Error voting:', error);
+            alert(error instanceof Error ? error.message : 'Failed to vote.');
         }
     };
 
     const handleCancelVote = async () => {
         if (!voteId) return;
-
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
+            return;
+        }
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Please login to cancel your vote.');
-                return;
-            }
-
-            const response = await fetchFromAPI(`/votes/${voteId}`, 'DELETE')
-
-            if (response) {
-                console.log('Vote successfully deleted');
-                fetchVoteCount();
-                setUserVote(null);
-                setVoteId(null);
-            } else {
-                const errorData = await response;
-                console.error('Failed to cancel vote:', errorData.message);
-                alert(errorData.message || 'Failed to cancel vote.');
-            }
-
+            const data = await fetchFromAPI(`/votes/${voteId}`, 'DELETE');
+            setUpvotes(typeof data.upvotes === 'number' ? data.upvotes : upvotes);
+            setDownvotes(typeof data.downvotes === 'number' ? data.downvotes : downvotes);
+            setUserVote(null);
+            setVoteId(null);
         } catch (error) {
-            console.error('Error canceling vote:', error);
+            setUserVote(null);
+            setVoteId(null);
         }
     };
 
+    const username = post.user?.username || 'Unknown User';
+    const userProfileUrl = post.user ? `/u/${post.user.username}` : '#';
+
     return (
         <div className="post-card">
-            {/* Upper part: clickable area */}
             <a href={`/post/${post.post_id}`} className="post-link">
                 <div className="post-content">
                     <div className="post-header">
-                        <a href={`/u/${users.get(post.user_id)?.username || "unknown"}`} className="username">
-                            u/{users.get(post.user_id)?.username || "Unknown User"}
+                        <a href={userProfileUrl} className="username">
+                            u/{username}
                         </a>
                         <span className="timestamp">{new Date(post.created_at).toLocaleString()}</span>
                     </div>
@@ -358,14 +315,12 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
                     </p>
                     {post.image &&
                         <div className="post-image-container">
-                            {post.image && <img src={post.image} alt={post.title} className="post-image" />}
+                            <img src={post.image} alt={post.title} className="post-image" />
                         </div>
                     }
                 </div>
                 <hr className='hr' />
             </a>
-
-            {/* Bottom part: vote and comment section */}
             <div className="post-footer">
                 <div className="vote-section">
                     <button
@@ -377,10 +332,7 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
                     >
                         <TiArrowUpOutline className={`arrow ${userVote === 'upvote' ? 'upvoted-arrow' : ''}`} />
                     </button>
-
-                    {/* Display total upvotes */}
-                    <span className="vote-count">{voteCount.score > 0 ? voteCount.score : 0}</span>
-
+                    <span className="vote-count">{Math.max(0, upvotes - downvotes)}</span>
                     <button
                         className={`vote-button ${userVote === 'downvote' ? 'downvoted' : ''} down`}
                         onClick={(e) => {
@@ -391,14 +343,12 @@ const PostCard = ({ post, users }: { post: Post; users: Map<string, User> }) => 
                         <TiArrowDownOutline className={`arrow ${userVote === 'downvote' ? 'downvoted-arrow' : ''}`} />
                     </button>
                 </div>
-
                 <div className="comment-count">
-                    <span>{commentCount}</span> <span>Comments</span>
+                    <span>{post.commentCount ?? 0}</span> <span>Comments</span>
                 </div>
             </div>
         </div>
     );
-
 };
 
 export default SubredditPage;

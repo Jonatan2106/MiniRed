@@ -27,12 +27,25 @@ const CreatePost = () => {
     useEffect(() => {
         const fetchJoinedSubreddits = async () => {
             try {
-                const response = await fetchFromAPI('/users/subreddits', 'GET');
-                setSubreddits(response);
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    setSubreddits([]);
+                    setIsLoading(false);
+                    return;
+                }
+                const userResponse = await fetchFromAPI('/me', 'GET');
+                if (userResponse && userResponse.joinedSubreddits) {
+                    const joined = userResponse.joinedSubreddits
+                        .map((member: any) => member.subreddit)
+                        .filter((sub: any) => !!sub);
+                    setSubreddits(joined);
+                } else {
+                    setSubreddits([]);
+                }
             } catch (error) {
                 console.error('Error fetching joined subreddits:', error);
-            }
-            finally {
+                setSubreddits([]);
+            } finally {
                 setIsLoading(false);
             }
         };

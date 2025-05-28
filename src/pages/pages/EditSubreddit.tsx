@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { IoIosArrowForward } from "react-icons/io";
 import { fetchFromAPI } from '../../api/auth';
-import { fetchFromAPIWithoutAuth } from '../../api/noAuth';
 
 import '../styles/editsubreddit.css';
 import '../styles/main.css';
@@ -22,7 +21,8 @@ const EditSubreddit = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const data = fetchFromAPIWithoutAuth(`/subreddits/${subredditId}`, 'GET')
+        setIsLoading(true);
+        fetchFromAPI(`/subreddits/${subredditId}`, 'GET')
             .then((data) => {
                 setSubreddit(data);
                 setTitle(data.title);

@@ -23,7 +23,8 @@ const port = Number(process.env.PORT) || 5000;
 // Middleware
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(cors({ origin: ['http://172.16.202.41:5173', 'http://localhost:5173'] }));
+// app.use(cors({ origin: ['http://172.16.202.41:5173', 'http://localhost:5173'] }));
+app.use(cors({ origin: '*' }));
 
 // Sequelize setup
 const sequelize = new Sequelize({

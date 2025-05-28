@@ -12,9 +12,8 @@ import '../styles/home.css';
 interface User {
     user_id: string;
     username: string;
-    profilePic: string;
-    postKarma: number;
-    commentKarma: number;
+    email: string;
+    profile_pic: string | null;
     created_at: string;
 }
 
@@ -22,24 +21,25 @@ interface Post {
     post_id: string;
     title: string;
     content: string;
-    image: string | null;
     created_at: string;
-    subreddit_id: string;
-    subreddit_name?: string;
+    votes?: any[];
+    image?: string;
 }
 
 interface Comment {
     comment_id: string;
     content: string;
     created_at: string;
-    post: Post;
+    votes?: any[];
+    post_id?: string;
+    post_title?: string; // Added post_title for linking to post title
 }
 
 interface Subreddit {
     subreddit_id: string;
     name: string;
-    is_private: boolean;
-    created_at: string;
+    title: string;
+    description: string;
 }
 
 const ViewProfile = () => {
@@ -52,8 +52,6 @@ const ViewProfile = () => {
     const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
     const [currentUser, setCurrentUser] = useState<{ username: string; profilePic: string } | null>(null);
     const [isDropdownOpen, setDropdownOpen] = useState(false);
-    const [postKarma, setPostKarma] = useState<number>(0);
-    const [commentKarma, setCommentKarma] = useState<number>(0);
     const [joinedCommunities, setJoinedCommunities] = useState<Subreddit[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
@@ -62,30 +60,29 @@ const ViewProfile = () => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-
                 const token = localStorage.getItem('token');
                 if (token) {
-                    await fetchCurrentUser(token);
+                    const me = await fetchFromAPI('/me', 'GET');
+                    setCurrentUser({ username: me.username, profilePic: me.profile_pic });
+                    setIsLoggedIn(true);
                 }
-
-                const userData = await fetchUserProfile(username ?? '', token);
-                setUser(userData);
-
-                const [postsData, commentsData, communitiesData] = await Promise.all([
-                    fetchUserPosts(userData.user_id, token),
-                    fetchUserComments(userData.user_id, token),
-                    fetchJoinedCommunities(userData.user_id, token),
-                ]);
-
-                setPosts(postsData);
-                setComments(commentsData);
-                setJoinedCommunities(communitiesData.filter((community) => !community.is_private));
-
-                const postKarma = await calculatePostKarma(postsData.map((post) => post.post_id), token);
-                const commentKarma = await calculateCommentKarma(commentsData.map((comment) => comment.comment_id), token);
-
-                setPostKarma(postKarma);
-                setCommentKarma(commentKarma);
+                // Fetch bundled profile
+                const bundle = await fetchFromAPIWithoutAuth(`/user/${username}`, 'GET');
+                setUser({
+                    user_id: bundle.user_id,
+                    username: bundle.username,
+                    email: bundle.email,
+                    profile_pic: bundle.profile_pic,
+                    created_at: bundle.created_at,
+                });
+                setPosts(bundle.posts || []);
+                setComments(bundle.comments || []);
+                // Flatten joinedSubreddits to just the subreddit object
+                setJoinedCommunities(
+                    (bundle.joinedSubreddits || [])
+                        .map((j: any) => j.subreddit)
+                        .filter((s: any) => !!s)
+                );
             } catch (err) {
                 console.error('Error fetching data:', err);
                 setError('Failed to load user profile.');
@@ -93,109 +90,8 @@ const ViewProfile = () => {
                 setIsLoading(false);
             }
         };
-
         fetchData();
     }, [username]);
-
-    const fetchCurrentUser = async (token: string) => {
-        const response = await fetchFromAPI('/me', 'GET');
-        setCurrentUser({ username: response.username, profilePic: response.profile_pic });
-        setIsLoggedIn(true);
-    };
-
-    const fetchUserProfile = async (username: string, token: string | null): Promise<User> => {
-        const response = await fetchFromAPIWithoutAuth('/user/all', 'GET');
-        if (!response) throw new Error('Failed to fetch user data');
-        const user = response.find((u: User) => u.username === username);
-        if (!user) throw new Error('User not found');
-        return user;
-    };
-
-    const fetchUserPosts = async (userId: string, token: string | null): Promise<Post[]> => {
-        const response = await fetchFromAPI(`/user/${userId}/post`, 'GET');
-
-        if (!response) throw new Error('Failed to fetch user posts');
-
-        const posts = await response;
-
-        const postsWithSubreddit = await Promise.all(
-            posts.map(async (post: any) => {
-                try {
-                    const subreddit = await fetchFromAPI(`/subreddits/${post.subreddit_id}`, 'GET');
-                    console.log('Subreddit:', subreddit.name);
-                    return { ...post, subreddit_name: subreddit.name, subreddit: subreddit };
-                } catch (error) {
-                    console.error(`Failed to fetch subreddit for post ${post.post_id}:`, error);
-                    return { ...post, subreddit_name: 'Unknown Subreddit' };
-                }
-            })
-        );
-
-        return postsWithSubreddit;
-    };
-
-    const fetchUserComments = async (userId: string, token: string | null): Promise<Comment[]> => {
-        try {
-            const comments = await fetchFromAPI(`/user/${userId}/comment`, 'GET');
-
-            const commentsWithPost = await Promise.all(
-                comments.map(async (comment: any) => {
-                    try {
-                        const post = await fetchFromAPI(`/posts/${comment.post_id}`, 'GET');
-                        return { ...comment, post };
-                    } catch (error) {
-                        console.error(`Failed to fetch post for comment ${comment.comment_id}:`, error);
-                        return { ...comment, post: { title: 'Unknown Post' } };
-                    }
-                })
-            );
-
-            return commentsWithPost;
-        } catch (error) {
-            console.error('Failed to fetch user comments:', error);
-            throw new Error('Failed to fetch user comments');
-        }
-    };
-
-    const fetchJoinedCommunities = async (userId: string, token: string | null): Promise<Subreddit[]> => {
-        try {
-            const communities = await fetchFromAPI(`/users/${userId}/subreddits`, 'GET');
-            return communities;
-        } catch (error) {
-            console.error('Failed to fetch joined communities:', error);
-            throw new Error('Failed to fetch joined communities');
-        }
-    };
-
-    const calculatePostKarma = async (postIds: string[], token: string | null): Promise<number> => {
-        const karmaPromises = postIds.map(async (postId) => {
-            try {
-                const voteData = await fetchFromAPI(`/posts/${postId}/votes/count`, 'GET');
-                return voteData.score;
-            } catch (error) {
-                console.error(`Failed to fetch votes for post ${postId}:`, error);
-                return 0;
-            }
-        });
-
-        const karmaValues = await Promise.all(karmaPromises);
-        return karmaValues.reduce((total, score) => total + score, 0);
-    };
-
-    const calculateCommentKarma = async (commentIds: string[], token: string | null): Promise<number> => {
-        const karmaPromises = commentIds.map(async (commentId) => {
-            try {
-                const voteData = await fetchFromAPI(`/comments/${commentId}/votes/count`, 'GET');
-                return voteData.score;
-            } catch (error) {
-                console.error(`Failed to fetch votes for comment ${commentId}:`, error);
-                return 0;
-            }
-        });
-
-        const karmaValues = await Promise.all(karmaPromises);
-        return karmaValues.reduce((total, score) => total + score, 0);
-    };
 
     const handleTabClick = (tab: 'Overview' | 'Posts' | 'Comments') => {
         setActiveTab(tab);
@@ -228,7 +124,7 @@ const ViewProfile = () => {
                     <div className="view-profile-container">
                         {/* Profile Header */}
                         <div className="view-profile-header">
-                            <img src={user?.profilePic || '/default.png'} alt={user?.username} className="view-profile-pic" />
+                            <img src={user?.profile_pic || '/default.png'} alt={user?.username} className="view-profile-pic" />
                             <div className="view-profile-info">
                                 <h1>{user?.username}</h1>
                                 <p>u/{user?.username}</p>
@@ -239,11 +135,11 @@ const ViewProfile = () => {
                         {/* Profile Stats */}
                         <div className="view-profile-stats">
                             <div className='view-profile-stat-item'>
-                                <h3>{postKarma > 0 ? postKarma : 0}</h3>
+                                <h3>{posts.reduce((acc, post) => acc + Math.max(0, (post.votes?.filter(v => v.vote_type === true).length || 0) - (post.votes?.filter(v => v.vote_type === false).length || 0)), 0)}</h3>
                                 <p>Post Karma</p>
                             </div>
                             <div className='view-profile-stat-item'>
-                                <h3>{commentKarma > 0 ? commentKarma : 0}</h3>
+                                <h3>{comments.reduce((acc, comment) => acc + Math.max(0, (comment.votes?.filter(v => v.vote_type === true).length || 0) - (comment.votes?.filter(v => v.vote_type === false).length || 0)), 0)}</h3>
                                 <p>Comment Karma</p>
                             </div>
                         </div>
@@ -270,7 +166,6 @@ const ViewProfile = () => {
                             </button>
                         </div>
 
-
                         {/* Tab Content */}
                         <div className="view-profile-content">
                             {activeTab === 'Overview' && (
@@ -278,11 +173,8 @@ const ViewProfile = () => {
                                     <h2>Recent Posts</h2>
                                     {posts.length > 0 ? (
                                         posts.map((post) => (
-                                            <a href={"http://localhost:5173/post/" + post.post_id} key={post.post_id}>
+                                            <a href={`/post/${post.post_id}`} key={post.post_id}>
                                                 <div className="view-profile-post-item">
-                                                    {post.subreddit_name != "Unknown Subreddit" &&
-                                                        <p className="view-profile-text-sm">Posted in r/{post.subreddit_name}</p>
-                                                    }
                                                     <h3>{post.title}</h3>
                                                     <p>
                                                         {post.content.length > 100
@@ -304,11 +196,11 @@ const ViewProfile = () => {
                                     {comments.length > 0 ? (
                                         comments.map((comment) => (
                                             <div key={comment.comment_id} className="view-profile-comment-item">
-                                                <h3>Commented on:</h3>
-                                                <p className="comment-post-title">
-                                                    {comment.post && comment.post.title ? `${comment.post.title}` : 'Unknown Post'}
-                                                </p>
+                                                <h3>Commented:</h3>
                                                 <p className="comment-content">{comment.content}</p>
+                                                {comment.post_title && (
+                                                    <div className="comment-post-title">on post <span>{comment.post_title}</span></div>
+                                                )}
                                             </div>
                                         ))
                                     ) : (
@@ -320,11 +212,8 @@ const ViewProfile = () => {
                                 <>
                                     {posts.length > 0 ? (
                                         posts.map((post) => (
-                                            <a href={"http://localhost:5173/post/" + post.post_id} key={post.post_id}>
+                                            <a href={`/post/${post.post_id}`} key={post.post_id}>
                                                 <div className="view-profile-post-item">
-                                                    {post.subreddit_name != "Unknown Subreddit" &&
-                                                        <p className="view-profile-text-sm">Posted in r/{post.subreddit_name}</p>
-                                                    }
                                                     <h3>{post.title}</h3>
                                                     <p>
                                                         {post.content.length > 100
@@ -349,11 +238,11 @@ const ViewProfile = () => {
                                     {comments.length > 0 ? (
                                         comments.map((comment) => (
                                             <div key={comment.comment_id} className="view-profile-comment-item">
-                                                <h3>Commented on:</h3>
-                                                <p className="comment-post-title">
-                                                    {comment.post && comment.post.title ? `${comment.post.title}` : 'Unknown Post'}
-                                                </p>
+                                                <h3>Commented:</h3>
                                                 <p className="comment-content">{comment.content}</p>
+                                                {comment.post_title && (
+                                                    <div className="comment-post-title">on post <span>{comment.post_title}</span></div>
+                                                )}
                                             </div>
                                         ))
                                     ) : (

@@ -13,67 +13,68 @@ export const getComment = async (req: Request, res: Response) => {
 
         if (!post) {
             res.status(404).json({ message: "Post not found" });
+            return;
+        }
+
+        let currentUserId = null;
+        if (req.body && req.body.userId) {
+            currentUserId = req.body.userId;
+        } else if (req.headers && req.headers['userid']) {
+            currentUserId = req.headers['userid'];
         }
 
         const comments = await Comment.findAll({
-            where: {
-                post_id: post_id,
-            },
+            where: { post_id },
             include: [
                 {
                     model: User,
                     attributes: ['user_id', 'username'],
                 },
+                {
+                    model: Vote,
+                    attributes: ['vote_id', 'user_id', 'vote_type'],
+                    required: false
+                }
             ],
-            order: [['created_at', 'ASC']], // Order comments by creation date
+            order: [['created_at', 'ASC']],
         });
 
-        // Prepare the final flattened response
-        const flattenedComments: any[] = [];
-
-        // Loop through the comments and flatten the structure
-        for (const comment of comments) {
-            // Fetch the user for the current comment asynchronously
-            const user = await User.findByPk(comment.user_id);
-            const username = user ? user.username : 'Unknown User';
-
-            // Flatten the comment and add it to the array
-            flattenedComments.push({
-                comment: {
-                    comment_id: comment.comment_id,
-                    user_id: comment.user_id,
-                    post_id: comment.post_id,
-                    parent_comment_id: comment.parent_comment_id,
-                    content: comment.content,
-                    created_at: comment.created_at,
-                    updated_at: comment.updated_at,
-                    user: {
-                        user_id: comment.user_id,
-                        username: username,
-                    },
+        const result = comments.map((comment: any) => {
+            const upvotes = comment.votes?.filter((v: any) => v.vote_type === true).length || 0;
+            const downvotes = comment.votes?.filter((v: any) => v.vote_type === false).length || 0;
+            const score = upvotes - downvotes;
+            let currentUserVote = null;
+            if (currentUserId) {
+                const found = comment.votes?.find((v: any) => v.user_id === currentUserId);
+                if (found) {
+                    currentUserVote = found.vote_type ? 'upvote' : 'downvote';
                 }
-            });
-
-            // If the comment is a reply, it should be included on the same level
-            if (comment.parent_comment_id) {
-                flattenedComments.push({
-                    comment_id: comment.comment_id,
-                    user_id: comment.user_id,
-                    post_id: comment.post_id,
-                    parent_comment_id: comment.parent_comment_id,
-                    content: comment.content,
-                    created_at: comment.created_at,
-                    updated_at: comment.updated_at,
-                    user: {
-                        user_id: comment.user_id,
-                        username: username,
-                    },
-                });
             }
-        }
+            return {
+                comment_id: comment.comment_id,
+                user_id: comment.user_id,
+                post_id: comment.post_id,
+                parent_comment_id: comment.parent_comment_id,
+                content: comment.content,
+                created_at: comment.created_at,
+                updated_at: comment.updated_at,
+                user: {
+                    user_id: comment.user?.user_id,
+                    username: comment.user?.username,
+                },
+                upvotes,
+                downvotes,
+                score,
+                votes: comment.votes?.map((vote: any) => ({
+                    vote_id: vote.vote_id,
+                    user_id: vote.user_id,
+                    vote_type: vote.vote_type,
+                })) || [],
+                currentUserVote,
+            };
+        });
 
-        // Respond with the flattened comments
-        res.status(200).json(flattenedComments);
+        res.status(200).json(result);
 
     } catch (error) {
         console.error(error);

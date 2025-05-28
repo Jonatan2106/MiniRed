@@ -58,4 +58,9 @@ export class Vote extends Model {
         constraints: false
     })
     declare comment?: Comment;
+
+    @BelongsTo(() => User, { 
+        foreignKey: 'user_id' 
+    })
+    declare user: User;
 }

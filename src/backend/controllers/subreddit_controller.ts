@@ -3,6 +3,9 @@ import { Subreddit } from '../../../models/subreddit';
 import { SubredditMember } from '../../../models/subreddit_member';
 import { Post } from '../../../models/post'; // Assuming you have a Post model defined
 import { v4 } from 'uuid';
+import { User } from '../../../models/user';
+import { Vote } from '../../../models/vote';
+import { Comment as CommentModel } from '../../../models/comment';
 
 // POST /subreddits - Create a new subreddit/community
 export const createSubreddit = async (req: Request, res: Response) => {
@@ -12,7 +15,7 @@ export const createSubreddit = async (req: Request, res: Response) => {
     const user_id = req.body.userId;
 
     const alreadyExists = await Subreddit.findOne({ where: { name } });
-    if (alreadyExists) {  
+    if (alreadyExists) {
       res.status(400).json({ message: 'Subreddit name already exists' });
     }
     else {
@@ -24,14 +27,14 @@ export const createSubreddit = async (req: Request, res: Response) => {
         description,
         is_privated
       });
-  
+
       await SubredditMember.create({
         subreddit_id,
         user_id,
         joined_at: new Date(),
         is_moderator: true
       });
-  
+
       res.status(201).json(newSubreddit);
     }
   } catch (error) {
@@ -43,8 +46,38 @@ export const createSubreddit = async (req: Request, res: Response) => {
 // GET /subreddits - List all subreddits
 export const getAllSubreddits = async (req: Request, res: Response) => {
   try {
-    const subreddits = await Subreddit.findAll();
-    res.json(subreddits);
+    const subreddits = await Subreddit.findAll({
+      include: [
+        {
+          model: User,
+          attributes: ['user_id', 'username', 'profile_pic']
+        },
+        {
+          model: SubredditMember,
+          attributes: ['subreddit_id', 'user_id', 'is_moderator'],
+          required: false,
+          include: [
+            {
+              model: User,
+              attributes: ['user_id', 'username', 'profile_pic']
+            }
+          ]
+        },
+        {
+          model: Post,
+          attributes: ['post_id'],
+          required: false
+        }
+      ]
+    });
+    // Add postCount for each subreddit
+    const result = subreddits.map((sub: any) => {
+      const subJSON = sub.toJSON();
+      subJSON.postCount = subJSON.posts ? subJSON.posts.length : 0;
+      delete subJSON.posts;
+      return subJSON;
+    });
+    res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to fetch subreddits' });
@@ -54,12 +87,64 @@ export const getAllSubreddits = async (req: Request, res: Response) => {
 // GET /subreddits/:id - Get subreddit details
 export const getSubredditById = async (req: Request, res: Response) => {
   try {
-    const subreddit = await Subreddit.findByPk(req.params.id);
+    const subreddit = await Subreddit.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          attributes: ['user_id', 'username', 'profile_pic']
+        },
+        {
+          model: SubredditMember,
+          attributes: ['subreddit_id', 'user_id', 'is_moderator'],
+          required: false,
+          include: [
+            {
+              model: User,
+              attributes: ['user_id', 'username', 'profile_pic']
+            }
+          ]
+        },
+        {
+          model: Post,
+          required: false,
+          include: [
+            {
+              model: User,
+              attributes: ['user_id', 'username', 'profile_pic']
+            },
+            {
+              model: Vote,
+              attributes: ['vote_id', 'user_id', 'vote_type'],
+              required: false
+            },
+            {
+              model: CommentModel,
+              attributes: ['comment_id'],
+              required: false
+            }
+          ]
+        }
+      ]
+    });
     if (!subreddit) {
       res.status(404).json({ message: 'Subreddit not found' });
-    }
-    else {
-      res.json(subreddit);
+    } else {
+      const subJSON = subreddit.toJSON();
+      // Bundle post info
+      if (subJSON.posts) {
+        subJSON.posts = subJSON.posts.map((post: any) => {
+          const upvotes = post.votes?.filter((v: any) => v.vote_type === true).length || 0;
+          const downvotes = post.votes?.filter((v: any) => v.vote_type === false).length || 0;
+          const commentCount = post.comments?.length || 0;
+          return {
+            ...post,
+            upvotes,
+            downvotes,
+            commentCount
+          };
+        });
+      }
+      res.json(subJSON);
     }
   } catch (error) {
     console.error(error);
@@ -110,13 +195,72 @@ export const deleteSubreddit = async (req: Request, res: Response) => {
 export const getSubredditByName = async (req: Request, res: Response) => {
   try {
     const { name } = req.params;
-
-    const subreddit = await Subreddit.findOne({ where: { name } });
+    const subreddit = await Subreddit.findOne({
+      where: { name },
+      include: [
+        {
+          model: User,
+          attributes: ['user_id', 'username', 'profile_pic']
+        },
+        {
+          model: SubredditMember,
+          attributes: ['subreddit_id', 'user_id', 'is_moderator'],
+          required: false,
+          include: [
+            {
+              model: User,
+              attributes: ['user_id', 'username', 'profile_pic']
+            }
+          ]
+        },
+        {
+          model: Post,
+          required: false,
+          include: [
+            {
+              model: User,
+              attributes: ['user_id', 'username', 'profile_pic']
+            },
+            {
+              model: Vote,
+              attributes: ['vote_id', 'user_id', 'vote_type'],
+              required: false
+            },
+            {
+              model: CommentModel,
+              attributes: ['comment_id'],
+              required: false,
+              include: [
+                {
+                  model: Vote,
+                  attributes: ['vote_id', 'user_id', 'vote_type'],
+                  required: false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    });
     if (!subreddit) {
       res.status(404).json({ message: 'Subreddit not found' });
-    }
-    else {
-      res.status(200).json(subreddit);
+    } else {
+      const subJSON = subreddit.toJSON();
+      // Bundle post info
+      if (subJSON.posts) {
+        subJSON.posts = subJSON.posts.map((post: any) => {
+          const upvotes = post.votes?.filter((v: any) => v.vote_type === true).length || 0;
+          const downvotes = post.votes?.filter((v: any) => v.vote_type === false).length || 0;
+          const commentCount = post.comments?.length || 0;
+          return {
+            ...post,
+            upvotes,
+            downvotes,
+            commentCount
+          };
+        });
+      }
+      res.status(200).json(subJSON);
     }
   } catch (error) {
     console.error(error);
@@ -285,4 +429,4 @@ export const getPostBySubredditId = async (req: Request, res: Response) => {
     console.error('Error fetching posts by subreddit ID:', err);
     res.status(500).json({ message: 'Error fetching posts', error: err });
   }
-};  
+};

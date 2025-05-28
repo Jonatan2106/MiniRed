@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import { Post } from '../../../models/post';
-import { Comment } from '../../../models/comment';
+import { User } from '../../../models/user';
+import { Subreddit } from '../../../models/subreddit';
 import { Vote } from '../../../models/vote';
+import { Comment } from '../../../models/comment';
 import { v4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
@@ -13,8 +15,42 @@ const __dirname = path.dirname(__filename);
 // 1. List all posts
 export const getPosts = async (req: Request, res: Response) => {
   try {
-    const posts = await Post.findAll();
-    res.json(posts);
+    const posts = await Post.findAll({
+      include: [
+        { model: User, attributes: ['user_id', 'username', 'profile_pic'] },
+        { model: Subreddit, attributes: ['subreddit_id', 'name', 'title'] },
+        {
+          model: Vote,
+          attributes: ['vote_id', 'user_id', 'vote_type'],
+          required: false
+        },
+        {
+          model: Comment,
+          attributes: ['comment_id', 'user_id', 'content', 'created_at', 'parent_comment_id'],
+          include: [
+            { model: User, attributes: ['user_id', 'username', 'profile_pic'] },
+            {
+              model: Vote,
+              attributes: ['vote_id', 'user_id', 'vote_type'],
+              required: false
+            }
+          ],
+          required: false
+        }
+      ],
+      order: [['created_at', 'DESC']],
+    });
+
+    // Add upvote/downvote/commentCount for each post
+    const bundledPosts = posts.map(post => {
+      const postJSON = post.toJSON();
+      postJSON.upvotes = postJSON.votes?.filter((v: any) => v.vote_type === true).length || 0;
+      postJSON.downvotes = postJSON.votes?.filter((v: any) => v.vote_type === false).length || 0;
+      postJSON.commentCount = postJSON.comments?.length || 0;
+      return postJSON;
+    });
+
+    res.json(bundledPosts);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching posts', error: err });
   }
@@ -23,12 +59,39 @@ export const getPosts = async (req: Request, res: Response) => {
 // 2. Get a single post by ID
 export const getPostById = async (req: Request, res: Response) => {
   try {
-    const post = await Post.findByPk(req.params.id);
-    if (post) {
-      res.json(post);
-    } else {
-      res.status(404).json({ message: 'Post not found' });
-    }
+    const post = await Post.findByPk(req.params.id, {
+      include: [
+        { model: User, attributes: ['user_id', 'username', 'profile_pic'] },
+        { model: Subreddit, attributes: ['subreddit_id', 'name', 'title'] },
+        {
+          model: Vote,
+          attributes: ['vote_id', 'user_id', 'vote_type'],
+          required: false
+        },
+        {
+          model: Comment,
+          attributes: ['comment_id', 'user_id', 'content', 'created_at', 'parent_comment_id'],
+          include: [
+            { model: User, attributes: ['user_id', 'username', 'profile_pic'] },
+            {
+              model: Vote,
+              attributes: ['vote_id', 'user_id', 'vote_type'],
+              required: false
+            }
+          ],
+          required: false
+        }
+      ]
+    });
+
+    if (!post) return res.status(404).json({ message: 'Post not found' });
+
+    const postJSON = post.toJSON();
+    postJSON.upvotes = postJSON.votes?.filter((v: any) => v.vote_type === true).length || 0;
+    postJSON.downvotes = postJSON.votes?.filter((v: any) => v.vote_type === false).length || 0;
+    postJSON.commentCount = postJSON.comments?.length || 0;
+
+    res.json(postJSON);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching post', error: err });
   }
@@ -87,7 +150,7 @@ export const updatePost = async (req: Request, res: Response) => {
     const post = await Post.findByPk(req.params.id);
     if (post) {
       const { content } = req.body;
-      
+
       post.content = content;
       await post.save();
 
@@ -170,7 +233,7 @@ export const getPostsByVotes = async (req: Request, res: Response) => {
         }
       });
 
-      let score:Number;
+      let score: Number;
       if (upvotes <= 0) {
         score = 0;
       } else {

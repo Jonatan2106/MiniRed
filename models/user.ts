@@ -1,6 +1,7 @@
 import {Table, Column, Model, DataType, HasMany} from "sequelize-typescript";
 import {Post} from "./post";
 import {Comment} from "./comment";
+import {SubredditMember} from "./subreddit_member";
 
 @Table({
     tableName: "user", timestamps: false
@@ -61,4 +62,7 @@ export class User extends Model {
         foreignKey: 'user_id' 
     })
     declare comments: Comment[];
+
+    @HasMany(() => SubredditMember, { foreignKey: 'user_id', as: 'joinedSubreddits' })
+    declare joinedSubreddits: SubredditMember[];
 }

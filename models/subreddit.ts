@@ -1,12 +1,14 @@
-import { Table, Column, Model, DataType, ForeignKey } from "sequelize-typescript";
+import { Table, Column, Model, DataType, ForeignKey, BelongsTo, HasMany } from "sequelize-typescript";
 import { User } from "./user";
+import { SubredditMember } from "./subreddit_member";
+import { Post } from "./post";
 
 @Table({
     tableName: "subreddit",
     timestamps: false
 })
 export class Subreddit extends Model {
-    @Column({ 
+    @Column({
         primaryKey: true,
         allowNull: false,
         type: DataType.UUID
@@ -18,7 +20,7 @@ export class Subreddit extends Model {
         type: DataType.UUID,
         allowNull: false
     })
-    declare user_id: string; // <- This is the creator (owner)
+    declare user_id: string;
 
     @Column({  //url
         type: DataType.STRING,
@@ -26,7 +28,7 @@ export class Subreddit extends Model {
     })
     declare name: string;
 
-    @Column({ 
+    @Column({
         type: DataType.STRING,
         allowNull: false
     })
@@ -50,4 +52,17 @@ export class Subreddit extends Model {
         allowNull: false
     })
     declare is_privated: boolean;
+
+    @BelongsTo(() => User, {
+        foreignKey: 'user_id'
+    })
+    declare user: User;
+
+    @HasMany(() => SubredditMember, { foreignKey: 'subreddit_id' })
+    declare members: SubredditMember[];
+
+    @HasMany(() => Post, {
+        foreignKey: 'subreddit_id'
+    })
+    declare posts: Post[];
 }

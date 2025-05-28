@@ -62,10 +62,12 @@ const AppContent = () => {
         .then((data) => {
           setUser(data);
           setProfilePic(data.profile_pic || '');
-
-          // Fetch joined subreddits if on profile page
-          if (isProfilePage && data.user_id) {
-            fetchJoinedSubreddits(data.user_id);
+          // Fix: Set joinedSubreddits from /me response if available
+          if (Array.isArray(data.joinedSubreddits)) {
+            // Support both [{subreddit: {...}}] and [{...}]
+            setJoinedSubreddits(data.joinedSubreddits.map((member: any) => member.subreddit || member).filter((sub: any) => !!sub));
+          } else {
+            setJoinedSubreddits([]);
           }
         })
         .catch((err) => {
@@ -79,14 +81,14 @@ const AppContent = () => {
     }
   }, []);
 
-  const fetchJoinedSubreddits = async (userId: string) => {
-    try {
-      const communities = await fetchFromAPI(`/users/${userId}/subreddits`, 'GET');
-      setJoinedSubreddits(communities);
-    } catch (error) {
-      console.error('Failed to fetch joined communities:', error);
-    }
-  };
+  // const fetchJoinedSubreddits = async (userId: string) => {
+  //   try {
+  //     const communities = await fetchFromAPI(`/users/${userId}/subreddits`, 'GET');
+  //     setJoinedSubreddits(communities);
+  //   } catch (error) {
+  //     console.error('Failed to fetch joined communities:', error);
+  //   }
+  // };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -204,9 +206,15 @@ const AppContent = () => {
           <div className="left-sidebar home">
             <h2 className="title">Menu</h2>
             <ul>
-              <li><FaHome className="icon" /><a href="/">Home</a></li>
-              <li><FaCompass className="icon" /><a href="/explore">Explore</a></li>
-              <li><FaFire className="icon" /><a href="/popular">Popular</a></li>
+                <li onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+                <FaHome className="icon" /><span>Home</span>
+                </li>
+                <li onClick={() => navigate('/explore')} style={{ cursor: 'pointer' }}>
+                <FaCompass className="icon" /><span>Explore</span>
+                </li>
+                <li onClick={() => navigate('/popular')} style={{ cursor: 'pointer' }}>
+                <FaFire className="icon" /><span>Popular</span>
+                </li>
             </ul>
             <h2 className="title">Communities</h2>
             <ul>

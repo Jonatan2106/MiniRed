@@ -13,15 +13,17 @@ interface Post {
   title: string;
   content: string;
   created_at: string;
+  votes?: Vote[]; // Add votes for karma calculation
 }
 
 interface Comment {
   comment_id: string;
   post_id: string;
-  post: Post;
+  post?: Post;
   user_id: string;
   content: string;
   created_at: string;
+  votes?: Vote[]; // Add votes for karma calculation
 }
 
 interface Subreddit {
@@ -56,6 +58,7 @@ interface OverviewItem {
   content?: string;
   post?: Post;
   kategori_type?: 'POST' | 'COMMENT';
+  comment?: Comment;
 }
 
 const Profile = () => {
@@ -80,12 +83,14 @@ const Profile = () => {
   const [editPostTitle, setEditPostTitle] = useState('');
   const [editModalError, setEditModalError] = useState<string | null>(null);
 
-  const calculatePostKarma = (posts: Post[], userId: string): number => {
-    return posts.filter((post) => post.user_id === userId).length;
+
+  const calculatePostKarma = (posts: Post[]): number => {
+    return posts.length; 
   };
 
-  const calculateCommentKarma = (comments: Comment[], userId: string): number => {
-    return comments.filter((comment) => comment.user_id === userId).length;
+
+  const calculateCommentKarma = (comments: Comment[]): number => {
+    return comments.length;
   };
 
   useEffect(() => {
@@ -94,59 +99,37 @@ const Profile = () => {
       setIsLoggedIn(true);
       fetchFromAPI('/me', 'GET')
         .then((data) => {
+          // Defensive: ensure all fields are arrays
+          const postsArr = Array.isArray(data.posts) ? data.posts : [];
+          const commentsArr = Array.isArray(data.comments) ? data.comments : [];
+          const upvotedArr = Array.isArray(data.upvoted) ? data.upvoted : [];
+          const downvotedArr = Array.isArray(data.downvoted) ? data.downvoted : [];
+          const joinedSubsArr = Array.isArray(data.joinedSubreddits) ? data.joinedSubreddits : [];
+
           setUser({ username: data.username, profilePic: data.profile_pic, user_id: data.user_id });
-          const calculatedPostKarma = calculatePostKarma(posts, data.user_id);
-          const calculatedCommentKarma = calculateCommentKarma(comments, data.user_id);
-          setPostKarma(calculatedPostKarma);
-          setCommentKarma(calculatedCommentKarma);
+          setPosts(postsArr);
+          setComments(commentsArr);
+          setUpVotes(upvotedArr);
+          setDownVotes(downvotedArr);
+          setJoinedSubreddits(joinedSubsArr.map((member: any) => member.subreddit || member).filter((sub: any) => !!sub));
+
+          setPostKarma(calculatePostKarma(postsArr));
+          setCommentKarma(calculateCommentKarma(commentsArr));
+          setIsLoading(false);
         })
-        .catch((error) => console.error('Error fetching user data:', error));
+        .catch((error) => {
+          console.error('Error fetching user data:', error);
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
     }
-
-    fetchFromAPI('/user/me/posts', 'GET')
-      .then(data => setPosts(data))
-      .catch(() => console.error('Error fetching posts'));
-
-    fetchFromAPI('/user/me/comments', 'GET')
-      .then(async (commentsData) => {
-        const commentsWithPosts = await Promise.all(
-          commentsData.map(async (comment: Comment) => {
-            const postResponse = await fetchFromAPI(`/posts/${comment.post_id}`, 'GET')
-            const post = await postResponse;
-            return { ...comment, post };
-          })
-        );
-        setComments(commentsWithPosts);
-      })
-      .catch(() => console.error('Error fetching comments'));
-
-    fetchFromAPI('/users/subreddits', 'GET')
-      .then(data => setJoinedSubreddits(data))
-      .catch(() => console.error('Error fetching joined communities'));
-
-    fetchFromAPI('/posts:id', 'PUT')
-      .then(data => setPosts(data))
-      .catch(() => console.error('Error fetching posts'));
-
-    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    fetchFromAPI('/user/me/upvoted', 'GET')
-      .then(data => setUpVotes(data))
-      .catch(() => console.error('Error fetching upvoted posts'));
-
-    fetchFromAPI('/user/me/downvoted', 'GET')
-      .then(data => setDownVotes(data))
-      .catch(() => console.error('Error fetching downvoted posts'));
-  }, []);
-
-  useEffect(() => {
-    if (user && user.user_id) {
-      setPostKarma(calculatePostKarma(posts, user.user_id));
-      setCommentKarma(calculateCommentKarma(comments, user.user_id));
+    if (user) {
+      setPostKarma(calculatePostKarma(posts));
+      setCommentKarma(calculateCommentKarma(comments));
     }
   }, [posts, comments, user]);
 
@@ -158,11 +141,10 @@ const Profile = () => {
     const combinedData: OverviewItem[] = [
       ...posts.map((post) => ({ ...post, type: 'post' as 'post' })),
       ...comments.map((comment) => ({ ...comment, type: 'comment' as 'comment' })),
-      ...upvoted.map((vote) => ({ ...vote, type: 'upvoted' as 'upvoted' })),
-      ...Downvoted.map((vote) => ({ ...vote, type: 'downvoted' as 'downvoted' })),
+      ...upvoted.map((vote) => ({ ...vote, type: 'upvoted' as 'upvoted', comment: vote.comment })),
+      ...Downvoted.map((vote) => ({ ...vote, type: 'downvoted' as 'downvoted', comment: vote.comment })),
     ];
-
-    return combinedData.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    return combinedData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   };
 
   const handleDeletePost = async (postId: string) => {
@@ -327,66 +309,80 @@ const Profile = () => {
             <div className="content-section">
               <h2 className="section-title">Activity Overview</h2>
               {getOverviewData().length > 0 ? (
-                getOverviewData().map((item, index) => (
-                  <div
-                    key={index}
-                    className={`overview-item ${item.type}-item`}
-                    onClick={() => {
-                      if (item.type === 'post') {
-                        navigate(`/post/${item.post_id}`);
-                      } else if (item.type === 'comment') {
-                        navigate(`/post/${item.post_id}`);
-                      } else if (item.type === 'upvoted' && item.kategori_type === 'POST' && item.post) {
-                        navigate(`/post/${item.post.post_id}`);
-                      } else if (item.type === 'downvoted' && item.kategori_type === 'POST' && item.post) {
-                        navigate(`/post/${item.post.post_id}`);
-                      }
-                    }}
-                  >
-                    <div className="item-type-indicator">
-                      {item.type === 'post' && <FaUser className="indicator-icon post-icon" />}
-                      {item.type === 'comment' && <FaCommentAlt className="indicator-icon comment-icon" />}
-                      {item.type === 'upvoted' && <FaArrowUp className="indicator-icon upvote-icon" />}
-                      {item.type === 'downvoted' && <FaArrowDown className="indicator-icon downvote-icon" />}
-                    </div>
+                getOverviewData().map((item, index) => {
+                  // Determine post context for navigation and display
+                  let postContext = null;
+                  if (item.type === 'upvoted' || item.type === 'downvoted') {
+                    if (item.kategori_type === 'POST' && item.post) {
+                      postContext = item.post;
+                    } else if (item.kategori_type === 'COMMENT' && item.comment) {
+                      postContext = item.comment.post || null;
+                    }
+                  } else if (item.type === 'comment') {
+                    postContext = item.post || null;
+                  }
+                  return (
+                    <div
+                      key={index}
+                      className={`overview-item ${item.type}-item`}
+                      onClick={() => {
+                        if (item.type === 'post') {
+                          navigate(`/post/${item.post_id}`);
+                        } else if (item.type === 'comment') {
+                          navigate(`/post/${item.post_id}`);
+                        } else if ((item.type === 'upvoted' || item.type === 'downvoted') && postContext) {
+                          navigate(`/post/${postContext.post_id}`);
+                        }
+                      }}
+                    >
+                      <div className="item-type-indicator">
+                        {item.type === 'post' && <FaUser className="indicator-icon post-icon" />}
+                        {item.type === 'comment' && <FaCommentAlt className="indicator-icon comment-icon" />}
+                        {item.type === 'upvoted' && <FaArrowUp className="indicator-icon upvote-icon" />}
+                        {item.type === 'downvoted' && <FaArrowDown className="indicator-icon downvote-icon" />}
+                      </div>
 
-                    <div className="item-content">
-                      {item.type === 'post' && (
-                        <>
-                          <h3 className="item-title">{item.title}</h3>
-                          <p className="item-body">{item.content}</p>
-                        </>
-                      )}
-                      {item.type === 'comment' && (
-                        <>
-                          <p className="item-body">
-                            <span className="action-label">Commented:</span> {item.content}
-                          </p>
-                          <p className="item-context">
-                            on post: <span className="context-highlight">{item.post?.content}</span>
-                          </p>
-                        </>
-                      )}
-                      {item.type === 'upvoted' && item.kategori_type === 'POST' && item.post && (
-                        <>
-                          <p className="item-body">
-                            <span className="action-label">Upvoted:</span> {item.post.title}
-                          </p>
-                        </>
-                      )}
-                      {item.type === 'downvoted' && item.kategori_type === 'POST' && item.post && (
-                        <>
-                          <p className="item-body">
-                            <span className="action-label">Downvoted:</span> {item.post.title}
-                          </p>
-                        </>
-                      )}
-                      <p className="activity-date">
-                        {new Date(item.created_at).toLocaleString()}
-                      </p>
+                      <div className="item-content">
+                        {item.type === 'post' && (
+                          <>
+                            <h3 className="item-title">{item.title}</h3>
+                            <p className="item-body">{item.content}</p>
+                          </>
+                        )}
+                        {item.type === 'comment' && (
+                          <>
+                            <p className="item-body">
+                              <span className="action-label">Commented:</span> {item.content}
+                            </p>
+                            <p className="item-context">
+                              on post: <span className="context-highlight">{item.post?.content}</span>
+                            </p>
+                          </>
+                        )}
+                        {(item.type === 'upvoted' || item.type === 'downvoted') && item.kategori_type === 'POST' && item.post && (
+                          <>
+                            <p className="item-body">
+                              <span className="action-label">{item.type === 'upvoted' ? 'Upvoted' : 'Downvoted'} Post:</span> {item.post.title}
+                            </p>
+                          </>
+                        )}
+                        {(item.type === 'upvoted' || item.type === 'downvoted') && item.kategori_type === 'COMMENT' && item.comment && (
+                          <>
+                            <p className="item-body">
+                              <span className="action-label">{item.type === 'upvoted' ? 'Upvoted Comment:' : 'Downvoted Comment:'}</span> {item.comment.content}
+                            </p>
+                            <p className="item-context">
+                              on post: <span className="context-highlight">{item.comment.post?.title || item.comment.post?.content}</span>
+                            </p>
+                          </>
+                        )}
+                        <p className="activity-date">
+                          {new Date(item.created_at).toLocaleString()}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="empty-state">
                   <div className="empty-icon">📋</div>
@@ -494,39 +490,41 @@ const Profile = () => {
             <div className="content-section">
               <h2 className="section-title">Content You've Upvoted</h2>
               {upvoted.length > 0 ? (
-                upvoted.map((vote) => (
-                  <div
-                    key={vote.vote_id}
-                    className="vote-item"
-                    onClick={() => {
-                      if (vote.kategori_type === "POST" && vote.post) {
-                        navigate(`/post/${vote.post.post_id}`);
-                      } else if (vote.kategori_type === "COMMENT" && vote.comment) {
-                        navigate(`/post/${vote.comment.post_id}`);
-                      }
-                    }}
-                  >
-                    <div className="vote-icon upvote">
-                      <FaArrowUp />
+                upvoted.map((vote) => {
+                  const postContext = vote.post || vote.comment?.post || null;
+                  return (
+                    <div
+                      key={vote.vote_id}
+                      className="vote-item"
+                      onClick={() => {
+                        if (postContext) {
+                          navigate(`/post/${postContext.post_id}`);
+                        }
+                      }}
+                    >
+                      <div className="vote-icon upvote">
+                        <FaArrowUp />
+                      </div>
+                      <div className="vote-content">
+                        {vote.kategori_type === "POST" && vote.post ? (
+                          <>
+                            <span className="vote-type">Post</span>
+                            <p className="vote-text">{vote.post.title}</p>
+                          </>
+                        ) : vote.kategori_type === "COMMENT" && vote.comment ? (
+                          <>
+                            <span className="vote-type">Comment</span>
+                            <p className="vote-text">{vote.comment.content}</p>
+                            <p className="vote-context">on post: <span className="context-highlight">{vote.comment.post?.title || vote.comment.post?.content}</span></p>
+                          </>
+                        ) : null}
+                      </div>
+                      <p className="vote-date">
+                        {new Date(vote.created_at).toLocaleString()}
+                      </p>
                     </div>
-                    <div className="vote-content">
-                      {vote.kategori_type === "POST" && vote.post ? (
-                        <>
-                          <span className="vote-type">Post</span>
-                          <p className="vote-text">{vote.post.title}</p>
-                        </>
-                      ) : vote.kategori_type === "COMMENT" && vote.comment ? (
-                        <>
-                          <span className="vote-type">Comment</span>
-                          <p className="vote-text">{vote.comment.content}</p>
-                        </>
-                      ) : null}
-                    </div>
-                    <p className="vote-date">
-                      {new Date(vote.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="empty-state">
                   <div className="empty-icon">👍</div>
@@ -541,39 +539,41 @@ const Profile = () => {
             <div className="content-section">
               <h2 className="section-title">Content You've Downvoted</h2>
               {Downvoted.length > 0 ? (
-                Downvoted.map((vote) => (
-                  <div
-                    key={vote.vote_id}
-                    className="vote-item"
-                    onClick={() => {
-                      if (vote.kategori_type === "POST" && vote.post) {
-                        navigate(`/post/${vote.post.post_id}`);
-                      } else if (vote.kategori_type === "COMMENT" && vote.comment) {
-                        navigate(`/post/${vote.comment.post_id}`);
-                      }
-                    }}
-                  >
-                    <div className="vote-icon downvote">
-                      <FaArrowDown />
+                Downvoted.map((vote) => {
+                  const postContext = vote.post || vote.comment?.post || null;
+                  return (
+                    <div
+                      key={vote.vote_id}
+                      className="vote-item"
+                      onClick={() => {
+                        if (postContext) {
+                          navigate(`/post/${postContext.post_id}`);
+                        }
+                      }}
+                    >
+                      <div className="vote-icon downvote">
+                        <FaArrowDown />
+                      </div>
+                      <div className="vote-content">
+                        {vote.kategori_type === "POST" && vote.post ? (
+                          <>
+                            <span className="vote-type">Post</span>
+                            <p className="vote-text">{vote.post.title}</p>
+                          </>
+                        ) : vote.kategori_type === "COMMENT" && vote.comment ? (
+                          <>
+                            <span className="vote-type">Comment</span>
+                            <p className="vote-text">{vote.comment.content}</p>
+                            <p className="vote-context">on post: <span className="context-highlight">{vote.comment.post?.title || vote.comment.post?.content}</span></p>
+                          </>
+                        ) : null}
+                      </div>
+                      <p className="vote-date">
+                        {new Date(vote.created_at).toLocaleString()}
+                      </p>
                     </div>
-                    <div className="vote-content">
-                      {vote.kategori_type === "POST" && vote.post ? (
-                        <>
-                          <span className="vote-type">Post</span>
-                          <p className="vote-text">{vote.post.title}</p>
-                        </>
-                      ) : vote.kategori_type === "COMMENT" && vote.comment ? (
-                        <>
-                          <span className="vote-type">Comment</span>
-                          <p className="vote-text">{vote.comment.content}</p>
-                        </>
-                      ) : null}
-                    </div>
-                    <p className="vote-date">
-                      {new Date(vote.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="empty-state">
                   <div className="empty-icon">👎</div>
