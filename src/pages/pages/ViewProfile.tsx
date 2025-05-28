@@ -63,6 +63,7 @@ const ViewProfile = () => {
     const [joinedCommunities, setJoinedCommunities] = useState<Subreddit[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [query, setQuery] = useState('');
+    const [isPicModalOpen, setPicModalOpen] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -126,6 +127,9 @@ const ViewProfile = () => {
         }
     };
 
+    const openPicModal = () => setPicModalOpen(true);
+    const closePicModal = () => setPicModalOpen(false);
+
     if (error) {
         return <div className="error-message">{error}</div>;
     }
@@ -161,7 +165,13 @@ const ViewProfile = () => {
                     <div className="view-profile-container">
                         {/* Profile Header */}
                         <div className="view-profile-header">
-                            <img src={user?.profile_pic || '/default.png'} alt={user?.username} className="view-profile-pic" />
+                            <img
+                                src={user?.profile_pic || '/default.png'}
+                                alt={user?.username}
+                                className="view-profile-pic"
+                                style={{ cursor: 'pointer' }}
+                                onClick={openPicModal}
+                            />
                             <div className="view-profile-info">
                                 <h1>{user?.username}</h1>
                                 <p>u/{user?.username}</p>
@@ -291,6 +301,18 @@ const ViewProfile = () => {
                     </div>
                 </div>
             </div>
+
+            {isPicModalOpen && (
+                <div className="profile-pic-modal-overlay" onClick={closePicModal}>
+                    <div className="profile-pic-modal-content" onClick={e => e.stopPropagation()}>
+                        <img
+                            src={user?.profile_pic || '/default.png'}
+                            alt={user?.username}
+                            className="profile-pic-modal-img"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

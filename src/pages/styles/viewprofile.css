@@ -281,6 +281,43 @@
     margin: 0 auto;
 }
 
+/* Modal overlay with blur */
+.profile-pic-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(10,10,10,0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* Modal content */
+.profile-pic-modal-content {
+  background: transparent;
+  border-radius: 16px;
+  padding: 0;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Zoomed image */
+.profile-pic-modal-img {
+  max-width: 80vw;
+  max-height: 80vh;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  background: #222;
+  border-radius: 100%;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1200px) {
     .feed {
