@@ -1,12 +1,12 @@
 /* Profile Page Main Layout */
-.main-content.view-profile {
-    max-width: 1200px;
-    margin: 0 auto;
+.home-wrapper .main-content.view-profile {
+    max-width: 100vw;
+    margin: auto 8vw;
     padding: 1rem;
 }
 
-.view-profile-container {
-    width: 100%;
+.home-wrapper .main-content.view-profile .view-profile-container {
+    width: 70vw;
     padding: 2rem;
     background-color: #1a1a1b;
     color: #d7dadc;
@@ -179,7 +179,7 @@
 
 /* Post Items */
 .view-profile-post-item {
-    width: 100%;
+    width: 95%;
     background-color: #232324;
     border-radius: 12px;
     padding: 1.5rem;

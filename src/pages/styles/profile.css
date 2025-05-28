@@ -1,16 +1,40 @@
 /* Main Layout */
 .profile-page-container {
-    width: 150%;
+    width: 100vw;
     font-family: 'Arial', sans-serif;
     color: #D7DADC;
     margin-top: -32.5px;
 }
 
-.profile-content-wrapper {
+.profile-flex-layout {
+    display: flex;
+    align-items: flex-start;
     width: 100%;
-    max-width: 1000px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* Sidebar styling */
+.profile-page-container .left-sidebar.profile-page {
+    min-width: 260px;
+    max-width: 300px;
+    width: 260px;
+    margin-left: 2vw;
+    border: none;
+    background-color: #030303;
+    z-index: 2;
+    margin-top: 0;
+    margin-right: 32px;
+}
+
+/* Main content styling */
+.profile-content-wrapper {
+    flex: 1;
+    max-width: 72vw;
+    margin: 10vh 0;
+    padding: 0;
+    z-index: 1;
+    /* Remove margin-left, let sidebar's margin-right handle the gap */
 }
 
 /* Profile Card */
@@ -21,6 +45,8 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     width: 100%;
     margin-bottom: 2rem;
+    margin-left: 0; /* Remove any left margin */
+    margin-right: 0;
 }
 
 /* Profile Header */
@@ -190,14 +216,6 @@
     width: 100%;
 }
 
-.section-title {
-    margin: 0 0 1.5rem 0;
-    font-size: 1.5rem;
-    color: #FF4500;
-    border-bottom: 1px solid #343536;
-    padding-bottom: 0.8rem;
-}
-
 /* Content Section */
 .content-section {
     min-height: 300px;
@@ -262,23 +280,23 @@
     color: #9494FF;
 }
 
-.post-icon + .item-content, 
-.item-type-indicator + .item-content {
+.post-icon+.item-content,
+.item-type-indicator+.item-content {
     border-left: 3px solid #FF4500;
     padding-left: 1rem;
 }
 
-.comment-icon + .item-content {
+.comment-icon+.item-content {
     border-left: 3px solid #0079D3;
     padding-left: 1rem;
 }
 
-.upvote-icon + .item-content {
+.upvote-icon+.item-content {
     border-left: 3px solid #FF8b60;
     padding-left: 1rem;
 }
 
-.downvote-icon + .item-content {
+.downvote-icon+.item-content {
     border-left: 3px solid #9494FF;
     padding-left: 1rem;
 }
@@ -630,7 +648,8 @@
     margin-top: 2rem;
 }
 
-.cancel-btn, .save-btn {
+.cancel-btn,
+.save-btn {
     padding: 0.8rem 1.8rem;
     border-radius: 8px;
     font-weight: bold;
@@ -753,81 +772,90 @@
     .profile-content-wrapper {
         padding: 1rem;
     }
-    
-    .profile-card, 
+
+    .profile-card,
     .profile-tab-content {
         padding: 1.5rem;
-        
+
     }
-    
+
     .profile-header {
         flex-direction: column;
         text-align: center;
         gap: 1.5rem;
     }
-    
+
     .profile-avatar {
         margin: 0 auto;
     }
-    
+
     .tab {
         max-width: none;
         flex-basis: calc(50% - 0.5rem);
     }
-    
+
     .profile-stats {
         flex-wrap: wrap;
     }
-    
+
     .profile-stat-item {
         flex-basis: calc(50% - 0.5rem);
         padding: 1rem;
     }
-}
 
-@media (max-width: 576px) {
-    .profile-content-wrapper {
-        padding: 0.5rem;
-    }
-    
-    .profile-card, 
-    .profile-tab-content {
-        padding: 1rem;
-    }
-    
-    .profile-stats {
-        flex-direction: column;
-    }
-    
-    .profile-stat-item {
-        flex-basis: 100%;
-    }
-    
-    .tab {
-        flex-basis: 100%;
-    }
-    
-    .post-header {
-        flex-direction: column;
-    }
-    
-    .post-actions {
-        width: 100%;
-        justify-content: space-between;
-    }
-    
-    .vote-item,
-    .overview-item {
-        flex-direction: column;
-    }
-    
-    .vote-icon,
-    .item-type-indicator {
-        margin-bottom: 1rem;
-    }
-    
-    .modal {
-        width: 95%;
-        padding: 1.5rem;
+    @media (max-width: 600px) {
+
+        .profile-card,
+        .profile-tab-content {
+            padding: 1rem;
+        }
+
+        .profile-stats {
+            flex-direction: column;
+        }
+
+        .profile-stat-item {
+            flex-basis: 100%;
+        }
+
+        .tab {
+            flex-basis: 100%;
+        }
+
+        .post-header {
+            flex-direction: column;
+        }
+
+        .post-actions {
+            width: 100%;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .vote-item,
+        .overview-item {
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .vote-icon,
+        .item-type-indicator {
+            margin-bottom: 1rem;
+        }
+
+        .modal {
+            width: 95%;
+            padding: 1.5rem;
+        }
+
+        .left-sidebar.profile-page {
+            position: relative;
+            width: 100%;
+            max-width: 260px;
+            margin: 0 auto 2rem auto;
+            border: none;
+            background-color: #030303;
+            z-index: 2;
+        }
     }
 }
