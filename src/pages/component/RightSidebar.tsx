@@ -25,7 +25,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ joinedSubreddits }) => {
   return (
     <div className="right-sidebar">
       <div className="joined-communities">
-        <h3>Joined Communities</h3>
+        <h3>Joined Subreddits</h3>
         <ul>
           {joinedSubreddits.length > 0 ? (
             joinedSubreddits.map((subreddit) => (
@@ -45,7 +45,7 @@ const RightSidebar: React.FC<RightSidebarProps> = ({ joinedSubreddits }) => {
               </li>
             ))
           ) : (
-            <li>No joined communities yet.</li>
+            <li>No joined subreddit yet.</li>
           )}
         </ul>
       </div>

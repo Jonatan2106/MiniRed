@@ -29,7 +29,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isProfilePage, joinedSubreddi
             </li>
           </ul>
           
-          <h2 className="title">Communities</h2>
+          <h2 className="title">Subreddits</h2>
           <ul>
             <li>
               <AiOutlinePlusCircle className="icon" />
@@ -43,7 +43,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isProfilePage, joinedSubreddi
                 </li>
               ))
             ) : (
-              <li>No joined communities yet.</li>
+              <li>No joined subreddit yet.</li>
             )}
           </ul>
         </div>
