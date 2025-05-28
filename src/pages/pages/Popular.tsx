@@ -228,10 +228,12 @@ const PostCard = ({ post, current_user }: { post: Post; current_user: any }) => 
                         <span className="subreddit-link"
                             onClick={e => {
                                 e.stopPropagation();
-                                navigate(subredditUrl);
+                                if (subredditName !== 'unknown') {
+                                    navigate(subredditUrl);
+                                }
                             }}
                         >
-                            r/{subredditName}
+                            {subredditName !== 'unknown' && `r/${subredditName}`}
                         </span>
                     </div>
                     <h2>{post.title}</h2>

@@ -139,12 +139,11 @@ const PostDetail = () => {
     }
 
     try {
-      const response = await fetchFromAPI(`/api/posts/${id}/comments`, 'POST', { content, parent_comment_id: parentCommentId });
+      const response = await fetchFromAPI(`/posts/${id}/comments`, 'POST', { content, parent_comment_id: parentCommentId });
       if (response) {
-        const newReply = await response.json();
-        console.log("API Response for new reply:", newReply);
+        const newReply = response.comment;
 
-        const updatedComments = addReplyToComment(comments, parentCommentId, newReply.comment);
+        const updatedComments = addReplyToComment(comments, parentCommentId, newReply);
         setComments(updatedComments);
         setReplyContent({ ...replyContent, [parentCommentId]: '' });
         await fetchPost();
