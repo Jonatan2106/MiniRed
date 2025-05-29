@@ -1,15 +1,15 @@
-.post-detail-page {
+.home-wrapper.post-detail-page {
     background-color: #030303;
     min-height: 100vh;
     width: 100%;
 }
 
-.post-detail-container {
+.post-detail-page .post-detail-container {
     background-color: #181818;
     color: #D7DADC;
     font-family: 'Arial', sans-serif;
     padding: 2rem;
-    margin: 2rem auto;
+    margin: 2rem 10%;
     border-radius: 8px;
     margin-top: 20px;
     max-width: 80%;

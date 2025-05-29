@@ -252,7 +252,7 @@ const PostDetail = () => {
   }
 
   return (
-    <div className="post-detail-page">
+    <div className="home-wrapper post-detail-page">
       {/* Navbar component */}
       <Navbar
         isLoggedIn={isLoggedIn}

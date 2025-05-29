@@ -244,7 +244,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="profile-page-container">
+    <div className="home-wrapper profile-page-container">
       {/* Add Navbar component */}
       <Navbar
         isLoggedIn={isLoggedIn}
