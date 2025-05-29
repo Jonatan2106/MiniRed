@@ -71,7 +71,6 @@ const CreateSubreddit = () => {
         name: subredditName,
         title: subredditTitle,
         description: subredditDescription,
-        is_privated: subredditPrivacy,
       });
 
       if (response) {

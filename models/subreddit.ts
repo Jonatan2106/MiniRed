@@ -47,12 +47,6 @@ export class Subreddit extends Model {
     })
     declare created_at: Date;
 
-    @Column({
-        type: DataType.BOOLEAN,
-        allowNull: false
-    })
-    declare is_privated: boolean;
-
     @BelongsTo(() => User, {
         foreignKey: 'user_id'
     })
