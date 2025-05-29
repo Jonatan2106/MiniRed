@@ -67,33 +67,100 @@ a:hover {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(ellipse at center, #232526 0%, #000 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
+  z-index: 20000;
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 2.2rem;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  transition: opacity 0.3s;
+  animation: fadeIn 0.5s;
 }
 
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(255, 255, 255, 0.3);
-  border-top: 5px solid #ff4500;
+.loading-screen .spinner {
+  width: 80px;
+  height: 80px;
+  border: 12px solid rgba(255, 255, 255, 0.18);
+  border-top: 12px solid #ff4500;
+  border-right: 12px solid #ffb199;
+  border-bottom: 12px solid #ff4500;
+  border-left: 12px solid #ffb199;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  animation: spin 0.7s cubic-bezier(0.4, 0.2, 0.2, 1) infinite;
+  margin-bottom: 2.2rem;
+  box-shadow: 0 0 32px #ff450055, 0 0 8px #fff2;
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.loading-message {
+  margin-top: 0.5rem;
+  font-size: 1.25rem;
+  color: #ffb199;
+  text-shadow: 0 0 12px #000a, 0 0 2px #ff4500;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+/* No Results UI */
+.no-results-ui {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 2rem 2rem 2rem;
+  background: rgba(30,30,30,0.92);
+  border-radius: 18px;
+  box-shadow: 0 2px 24px #000a, 0 0 0 2px #ff450033;
+  min-width: 800px;
+  min-height: 340px;
+  color: #fff;
+  text-align: center;
+}
+
+.no-results-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: contain;
+  margin-bottom: 1.2rem;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 12px #ff450055);
+}
+
+.no-results-text h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #ff4500;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.no-results-text p {
+  font-size: 1.1rem;
+  color: #ffb199;
+  margin: 0.2rem 0 0.2rem 0;
+}
+
+.no-results-query {
+  color: #fff;
+  background: #ff4500;
+  border-radius: 6px;
+  padding: 0.1em 0.5em;
+  font-weight: 600;
+  margin: 0 0.1em;
 }

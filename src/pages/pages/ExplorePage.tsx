@@ -172,7 +172,7 @@ const ExplorePage = () => {
 
   return (
     <div className="home-wrapper">
-      <Navbar 
+      <Navbar
         isLoggedIn={isLoggedIn}
         user={user}
         shouldHideSearch={false}
@@ -185,13 +185,13 @@ const ExplorePage = () => {
         handleCreatePost={handleCreatePost}
         handleSearch={handleSearch}
       />
-      
+
       <div className="main-content">
-        <LeftSidebar 
-          isProfilePage={true} 
-          joinedSubreddits={joinedSubreddits} 
+        <LeftSidebar
+          isProfilePage={true}
+          joinedSubreddits={joinedSubreddits}
         />
-        
+
         {/* Feed */}
         <div className="feed">
           {/* Display matching subreddits */}
@@ -200,7 +200,14 @@ const ExplorePage = () => {
               <SubredditCard key={subreddit.subreddit_id} subreddit={subreddit} users={users} />
             ))
           ) : (
-            <p className="text-gray-500">No subreddits found.</p>
+            <div className="no-results-ui">
+              <img src="/404.jpg" alt="No results" className="no-results-img" />
+              <div className="no-results-text">
+                <h2>No results found</h2>
+                {query && <p>We couldn't find anything for "<span className="no-results-query">{query}</span>".</p>}
+                <p>Try searching with different keywords or check your spelling.</p>
+              </div>
+            </div>
           )}
         </div>
 

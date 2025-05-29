@@ -240,12 +240,13 @@ const Home = () => {
               return null;
             })
           ) : (
-            <div className="no-results">
-              {query ? (
-                <p className="text-gray-500">No results found for "{query}".</p>
-              ) : (
-                <p className="text-gray-500">No content available.</p>
-              )}
+            <div className="no-results-ui">
+              <img src="/404.jpg" alt="No results" className="no-results-img" />
+              <div className="no-results-text">
+                <h2>No results found</h2>
+                {query && <p>We couldn't find anything for "<span className="no-results-query">{query}</span>".</p>}
+                <p>Try searching with different keywords or check your spelling.</p>
+              </div>
             </div>
           )}
         </div>

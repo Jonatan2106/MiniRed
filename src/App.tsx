@@ -13,8 +13,6 @@ import EditSubreddit from './pages/pages/EditSubreddit';
 import ExplorePage from './pages/pages/ExplorePage';
 import Popular from './pages/pages/Popular';
 import Loading from './pages/pages/Loading';
-import Navbar from './pages/component/Navbar';
-import React, { useState, useEffect } from 'react';
 import { ProtectedRoute } from './utils/protected_route';
 import { fetchFromAPI } from './api/auth';
 import { Routes, Route } from 'react-router-dom';

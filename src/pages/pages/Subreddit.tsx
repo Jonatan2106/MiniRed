@@ -10,6 +10,7 @@ import RightSidebar from '../component/RightSidebar';
 import '../styles/subreddit.css';
 import '../styles/main.css';
 import LeftSidebar from '../component/LeftSidebar';
+import Navbar from '../component/Navbar';
 
 interface Post {
     post_id: string;
@@ -61,6 +62,7 @@ const SubredditPage = () => {
     const [subreddit, setSubreddit] = useState<any>(null);
     const [isMember, setIsMember] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [query, setQuery] = useState('');
     const navigate = useNavigate();
     const [bannerPic, setBannerPic] = useState<string>(() => {
         return `/banner_${Math.floor(Math.random() * 3) + 1}.jpg`;
@@ -152,6 +154,41 @@ const SubredditPage = () => {
         setDropdownOpen((prev) => !prev);
     };
 
+    const useDebounce = (value: string, delay: number) => {
+        const [debouncedValue, setDebouncedValue] = useState(value);
+
+        useEffect(() => {
+            const handler = setTimeout(() => {
+                setDebouncedValue(value);
+            }, delay);
+
+            return () => {
+                clearTimeout(handler);
+            };
+        }, [value, delay]);
+
+        return debouncedValue;
+    };
+
+    // Remove mixedContent and setFilteredContent logic, and filter posts directly
+    const handleSearch = () => {
+        const trimmedQuery = query.trim().toLowerCase();
+        if (!trimmedQuery) {
+            setPosts(subreddit?.posts || []);
+            return;
+        }
+        const filtered = (subreddit?.posts || []).filter((post: any) =>
+            post.title?.toLowerCase().includes(trimmedQuery) ||
+            post.content?.toLowerCase().includes(trimmedQuery)
+        );
+        setPosts(filtered);
+    };
+
+    const debouncedQuery = useDebounce(query, 300);
+    useEffect(() => {
+        handleSearch();
+    }, [debouncedQuery, subreddit]);
+
     if (error) {
         return <div>Error: {error}</div>;
     }
@@ -162,6 +199,22 @@ const SubredditPage = () => {
 
     return (
         <div className="subreddit-wrapper">
+
+            {/* Navbar */}
+            <Navbar
+                isLoggedIn={isLoggedIn}
+                user={user}
+                shouldHideSearch={false}
+                shouldHideCreate={false}
+                query={query}
+                setQuery={setQuery}
+                isDropdownOpen={isDropdownOpen}
+                toggleDropdown={toggleDropdown}
+                handleLogout={handleLogout}
+                handleCreatePost={handleCreatePost}
+                handleSearch={handleSearch}
+            />
+
             {/* Main content */}
             <div className="main-content subreddit-page">
                 <LeftSidebar
@@ -212,14 +265,25 @@ const SubredditPage = () => {
                     </div>
                     {/* Feed */}
                     <div className="feed">
-                        {posts.map((post) => (
-                            <PostCard key={post.post_id} post={post} current_user={user} />
-                        ))}
+                        {posts.length > 0 ? (
+                            posts.map((post) => (
+                                <PostCard key={post.post_id} post={post} current_user={user} />
+                            ))
+                        ) : (
+                            <div className="no-results-ui">
+                                <img src="/404.jpg" alt="No results" className="no-results-img" />
+                                <div className="no-results-text">
+                                    <h2>No results found</h2>
+                                    {query && <p>We couldn't find anything for "<span className="no-results-query">{query}</span>".</p>}
+                                    <p>Try searching with different keywords or check your spelling.</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                 </div>
 
-                {/* Right Sidebar */}                {/* Right Sidebar */}
+                {/* Right Sidebar */}
                 <RightSidebar joinedSubreddits={joinedSubreddits} />
             </div>
         </div>

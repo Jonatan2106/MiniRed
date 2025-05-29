@@ -38,8 +38,9 @@ const Navbar: React.FC<NavbarProps> = ({
     const currentPath = location.pathname;
     const isHomePage = currentPath === '/'; 
     const isExplorePage = currentPath === '/explore';
+    const isSubredditPage = currentPath.startsWith('/r/');
     
-    setShowSearch(isHomePage || isExplorePage);
+    setShowSearch(isHomePage || isExplorePage || isSubredditPage);
   }, [location.pathname]);
   
   const handleKeyPress = (e: React.KeyboardEvent) => {
