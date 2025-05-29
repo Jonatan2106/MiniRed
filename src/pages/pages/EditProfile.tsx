@@ -143,7 +143,7 @@ const EditProfile = () => {
           return;
         }
         const verifyRes = await fetchFromAPI(`/verify-password`, 'POST', { password: currentPassword });
-        if (!verifyRes) {
+        if (verifyRes.message === "Incorrect password") {
           setModalError("Current password is incorrect.");
           setIsLoading(false);
           return;
@@ -191,7 +191,7 @@ const EditProfile = () => {
 
       const response = await fetchFromAPI(`/me`, 'PUT', payload);
 
-      setUser(response.user || response);
+      setUser(response.user);
       setFormData((prev) => ({
         ...prev,
         ...payload,
@@ -358,7 +358,7 @@ const EditProfile = () => {
                 </div>
                 <div className="form-card-preview">
                   <img 
-                    src={user?.profile_pic ? `http://localhost:5173${user.profile_pic}` : "/default.png"}
+                    src={user?.profile_pic ? `${import.meta.env.VITE_URL}${user.profile_pic}` : "/default.png"}
                     alt="Profile" 
                     className="form-card-profile-pic"
                   />
@@ -417,7 +417,7 @@ const EditProfile = () => {
                             />
                           ) : (
                             <img
-                              src={user?.profile_pic ? `http://localhost:5173${user.profile_pic}` : "/default.png"}
+                              src={user?.profile_pic ? `${import.meta.env.VITE_URL}${user.profile_pic}` : "/default.png"}
                               alt="Default Profile"
                               className="profile-pic-preview"
                             />

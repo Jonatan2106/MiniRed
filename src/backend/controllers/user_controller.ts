@@ -145,8 +145,6 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     const userObj = user.toJSON();
     userObj.upvoted = upvoted;
     userObj.downvoted = downvoted;
-    
-    console.log('Current User:', userObj);
     return userObj;
 };
 
@@ -260,11 +258,12 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     await user.save();
     return {
         message: 'User profile updated successfully',
-        user: {
-            userId: user.user_id,
+        user : {
+            user_id: user.user_id,
             username: user.username,
             email: user.email,
-            profilePic: user.profile_pic
+            profile_pic: user.profile_pic,
+            created_at: user.created_at
         }
     };
 };

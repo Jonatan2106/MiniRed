@@ -24,7 +24,7 @@ const Register = () => {
     try {
       const response = await fetchFromAPI('/register', 'POST', { username, email, password });
       console.log(response);
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       console.error('Registration failed', error);
       setError('Registration failed. Please try again.');
