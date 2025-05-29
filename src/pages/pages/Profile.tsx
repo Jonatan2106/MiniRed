@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { fetchFromAPI } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
-import { FaHome, FaUser, FaEdit, FaTrash, FaArrowUp, FaArrowDown, FaCommentAlt } from 'react-icons/fa';
+import { FaHome, FaUser, FaEdit, FaTrash, FaArrowUp, FaArrowDown, FaCommentAlt, FaEllipsisH } from 'react-icons/fa';
 import Loading from './Loading';
+import Navbar from '../component/Navbar';  // Import Navbar component
 
 import '../styles/profile.css';
 import '../styles/main.css';
@@ -52,6 +53,8 @@ interface Vote {
 }
 
 interface OverviewItem {
+  user_id: string;
+
   type: 'post' | 'comment' | 'upvoted' | 'downvoted';
   created_at: string;
   post_id?: string;
@@ -83,6 +86,7 @@ const Profile = () => {
   const [editPostContent, setEditPostContent] = useState('');
   const [editPostTitle, setEditPostTitle] = useState('');
   const [editModalError, setEditModalError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>(''); // For search functionality
 
 
   const calculatePostKarma = (posts: Post[]): number => {
@@ -216,12 +220,48 @@ const Profile = () => {
     }
   };
 
+  // Navbar related handlers
+  const toggleDropdown = () => {
+    setDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    navigate('/login');
+  };
+
+  const handleCreatePost = () => {
+    navigate('/create-post');
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
   if (isLoading) {
     return <Loading />;
   }
 
   return (
     <div className="profile-page-container">
+      {/* Add Navbar component */}
+      <Navbar
+        isLoggedIn={isLoggedIn}
+        user={user}
+        shouldHideSearch={false}
+        shouldHideCreate={false}
+        query={searchQuery}
+        setQuery={setSearchQuery}
+        isDropdownOpen={isDropdownOpen}
+        toggleDropdown={toggleDropdown}
+        handleLogout={handleLogout}
+        handleCreatePost={handleCreatePost}
+        handleSearch={handleSearch}
+      />
+
       {/* FLEX CONTAINER FOR SIDEBAR + MAIN */}
       <div className="profile-flex-layout">
         {/* Sidebar */}
@@ -356,7 +396,19 @@ const Profile = () => {
                         <div className="item-content">
                           {item.type === 'post' && (
                             <>
-                              <h3 className="item-title">{item.title}</h3>
+                              <div className="item-header">
+                                <h3 className="item-title">{item.title}</h3>
+
+                                {/* Add edit and delete buttons for posts in Overview */}
+                                {item.type === 'post' && user?.user_id && String(user.user_id) === String(item.user_id) && (
+                                  <div
+                                    className="post-actions"
+                                    onClick={e => e.stopPropagation()}
+                                  >
+                                    {/* Buttons */}
+                                  </div>
+                                )}
+                              </div>
                               <p className="item-body">{item.content}</p>
                             </>
                           )}
@@ -421,31 +473,37 @@ const Profile = () => {
 
                         {user?.user_id === post.user_id && (
                           <div
-                            className="post-actions"
+                            className="post-actions-container"
                             onClick={e => e.stopPropagation()}
                           >
-                            <button
-                              className="action-button edit-button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenEditModal(post);
-                              }}
-                            >
-                              <FaEdit /> Edit
+                            <button className="action-toggle-button">
+                              <FaEllipsisH />
                             </button>
-                            <button
-                              className="action-button delete-button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeletePost(post.post_id);
-                              }}
-                            >
-                              <FaTrash /> Delete
-                            </button>
+                            <div className="dropdown-actions">
+                              <button
+                                className="action-button edit-button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleOpenEditModal(post);
+                                }}
+                              >
+                                <FaEdit /> Edit
+                              </button>
+                              <button
+                                className="action-button delete-button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleDeletePost(post.post_id);
+                                }}
+                              >
+                                <FaTrash /> Delete
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>
-
                       <p className="post-content">{post.content}</p>
                       <p className="post-date">
                         Posted on {new Date(post.created_at).toLocaleString()}
