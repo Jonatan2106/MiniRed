@@ -383,7 +383,15 @@ export const updateUserProfile = async (req: Request, res: Response) => {
             user.profile_pic = imagePath;
         }
         await user.save();
-        res.status(200).json({ message: 'User profile updated successfully', user });
+        res.status(200).json({
+            message: 'User profile updated successfully',
+            user: {
+            userId: user.user_id,
+            username: user.username,
+            email: user.email,
+            profilePic: user.profile_pic
+            }
+        });
 
     } catch (error) {
         console.error('Error updating user profile:', error);
