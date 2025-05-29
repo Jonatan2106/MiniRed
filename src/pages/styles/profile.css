@@ -3,7 +3,8 @@
     width: 100vw;
     font-family: 'Arial', sans-serif;
     color: #D7DADC;
-    margin-top: -32.5px;
+    /* Remove negative margin-top since we're now including the navbar */
+    margin-top: 0;
 }
 
 .profile-flex-layout {
@@ -47,6 +48,7 @@
     margin-bottom: 2rem;
     margin-left: 0; /* Remove any left margin */
     margin-right: 0;
+    margin-top: -8vh;
 }
 
 /* Profile Header */
@@ -765,6 +767,145 @@
 
 .notification-btn.error:hover {
     background-color: #E44E46;
+}
+
+/* New Styles */
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+/* Ensure overview item stays clickable but doesn't interfere with buttons */
+.overview-item {
+  position: relative;
+}
+
+.overview-item .post-actions {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+  background-color: rgba(0, 0, 0, 0.3); /* Add background for visibility */
+  padding: 4px;
+  border-radius: 4px;
+}
+
+/* Make sure these elements work properly in the overview context */
+.overview-item .action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 0.5rem;
+}
+
+.overview-item .edit-button {
+  background-color: #0079D3;
+  color: white;
+}
+
+.overview-item .edit-button:hover {
+  background-color: #0060a8;
+}
+
+.overview-item .delete-button {
+  background-color: #FF4500;
+  color: white;
+}
+
+.overview-item .delete-button:hover {
+  background-color: #E03D00;
+}
+
+/* Post Actions Dropdown */
+.post-actions-container {
+  position: relative;
+}
+
+.action-toggle-button {
+  background: rgba(255, 69, 0, 0.1);
+  color: #FF4500;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-toggle-button:hover {
+  background: rgba(255, 69, 0, 0.2);
+}
+
+.dropdown-actions {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #272729;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  width: 150px;
+  z-index: 20;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: all 0.2s ease-in-out;
+}
+
+.post-actions-container:hover .dropdown-actions {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.dropdown-actions .action-button {
+  padding: 10px 12px;
+  text-align: left;
+  border-radius: 0;
+  margin-left: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #343536;
+  width: 100%;
+}
+
+.dropdown-actions .action-button:last-child {
+  border-bottom: none;
+}
+
+.dropdown-actions .edit-button {
+  background-color: transparent;
+  color: #0079D3;
+}
+
+.dropdown-actions .edit-button:hover {
+  background-color: #0079D3;
+  color: white;
+}
+
+.dropdown-actions .delete-button {
+  background-color: transparent;
+  color: #FF4500;
+}
+
+.dropdown-actions .delete-button:hover {
+  background-color: #FF4500;
+  color: white;
 }
 
 /* Responsive Design */

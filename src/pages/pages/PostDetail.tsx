@@ -1,4 +1,5 @@
 import Loading from './Loading';
+import Navbar from '../component/Navbar';
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -58,6 +59,10 @@ const PostDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [alert, setAlert] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const navigate = useNavigate();
+  
+  // Navbar related state
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -221,69 +226,108 @@ const PostDetail = () => {
     setTimeout(() => setAlert({ ...alert, show: false }), 2500);
   };
 
+  // Navbar handler functions
+  const toggleDropdown = () => {
+    setDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    navigate('/login');
+  };
+
+  const handleCreatePost = () => {
+    navigate('/create-post');
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
   if (isLoading) {
     return <Loading />;
   }
 
   return (
-    <div className="post-detail-container">
-      <button className="back-button" onClick={() => navigate(-1)}>
-        Back
-      </button>
-      {post && (
-        <>
-          <h1 className="post-detail-header">{post.title}</h1>
+    <div className="post-detail-page">
+      {/* Navbar component */}
+      <Navbar
+        isLoggedIn={isLoggedIn}
+        user={user ? { username: user.username, profile_pic: user.profilePic } : null}
+        shouldHideSearch={false}
+        shouldHideCreate={false}
+        query={searchQuery}
+        setQuery={setSearchQuery}
+        isDropdownOpen={isDropdownOpen}
+        toggleDropdown={toggleDropdown}
+        handleLogout={handleLogout}
+        handleCreatePost={handleCreatePost}
+        handleSearch={handleSearch}
+      />
+      
+      <div className="post-detail-container">
+        <button className="back-button" onClick={() => navigate(-1)}>
+          Back
+        </button>
+        
+        {post && (
+          <>
+            <h1 className="post-detail-header">{post.title}</h1>
 
-          {/* Display the image if it exists */}
-          {post.image && (
-            <div className="post-image-container">
-              <img
-                src={`http://localhost:5173${post.image}`}
-                alt="Post"
-                className="post-image"
-              />
-            </div>
-          )}
-
-          <p className="post-detail-content">{post.content}</p>
-
-          <div className="add-comment-section">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Add a comment..."
-              className="new-comment-input"
-            />
-            <button onClick={(e) => handleAddComment(e)}>Submit Comment</button>
-          </div>
-
-          <div className="comment-section">
-            <h2 className="comment-header">Comments</h2>
-            {comments.length > 0 ? (
-              comments.map((comment) => (
-                <Comment
-                  key={comment.comment_id}
-                  comment={comment}
-                  replyContent={replyContent}
-                  setReplyContent={setReplyContent}
-                  handleReply={handleReply}
-                  fetchPostAndComments={fetchPost}
-                  currentUser={user}
-                  showAlert={showAlert}
+            {/* Display the image if it exists */}
+            {post.image && (
+              <div className="post-image-container">
+                <img
+                  src={`http://localhost:5173${post.image}`}
+                  alt="Post"
+                  className="post-image"
                 />
-              ))
-            ) : (
-              <p>No comments yet</p>
+              </div>
             )}
-          </div>
-        </>
-      )}
 
-      {alert.show && (
-        <div className={`custom-alert ${alert.type}`}>
-          {alert.message}
-        </div>
-      )}
+            <p className="post-detail-content">{post.content}</p>
+
+            <div className="add-comment-section">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Add a comment..."
+                className="new-comment-input"
+              />
+              <button onClick={(e) => handleAddComment(e)}>Submit Comment</button>
+            </div>
+
+            <div className="comment-section">
+              <h2 className="comment-header">Comments</h2>
+              {comments.length > 0 ? (
+                comments.map((comment) => (
+                  <Comment
+                    key={comment.comment_id}
+                    comment={comment}
+                    replyContent={replyContent}
+                    setReplyContent={setReplyContent}
+                    handleReply={handleReply}
+                    fetchPostAndComments={fetchPost}
+                    currentUser={user}
+                    showAlert={showAlert}
+                  />
+                ))
+              ) : (
+                <p>No comments yet</p>
+              )}
+            </div>
+          </>
+        )}
+
+        {alert.show && (
+          <div className={`custom-alert ${alert.type}`}>
+            {alert.message}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
