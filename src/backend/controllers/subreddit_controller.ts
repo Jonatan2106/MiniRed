@@ -9,321 +9,276 @@ import { Comment as CommentModel } from '../../../models/comment';
 
 // POST /subreddits - Create a new subreddit/community
 export const createSubreddit = async (req: Request, res: Response) => {
-  try {
-    const subreddit_id = v4();
-    const { name, title, description } = req.body;
-    const user_id = req.body.userId;
+  const subreddit_id = v4();
+  const { name, title, description } = req.body;
+  const user_id = req.body.userId;
 
-    const alreadyExists = await Subreddit.findOne({ where: { name } });
-    if (alreadyExists) {
-      res.status(400).json({ message: 'Subreddit name already exists' });
-    }
-    else {
-      const newSubreddit = await Subreddit.create({
-        subreddit_id,
-        user_id,
-        name,
-        title,
-        description,
-      });
+  const alreadyExists = await Subreddit.findOne({ where: { name } });
+  if (alreadyExists) {
+    return { message: 'Subreddit name already exists' };
+  }
+  else {
+    const newSubreddit = await Subreddit.create({
+      subreddit_id,
+      user_id,
+      name,
+      title,
+      description,
+    });
 
-      await SubredditMember.create({
-        subreddit_id,
-        user_id,
-        joined_at: new Date(),
-        is_moderator: true
-      });
+    await SubredditMember.create({
+      subreddit_id,
+      user_id,
+      joined_at: new Date(),
+      is_moderator: true
+    });
 
-      res.status(201).json(newSubreddit);
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to create subreddit' });
+    return newSubreddit;
   }
 };
 
 // GET /subreddits - List all subreddits
 export const getAllSubreddits = async (req: Request, res: Response) => {
-  try {
-    const subreddits = await Subreddit.findAll({
-      include: [
-        {
-          model: User,
-          attributes: ['user_id', 'username', 'profile_pic']
-        },
-        {
-          model: SubredditMember,
-          attributes: ['subreddit_id', 'user_id', 'is_moderator'],
-          required: false,
-          include: [
-            {
-              model: User,
-              attributes: ['user_id', 'username', 'profile_pic']
-            }
-          ]
-        },
-        {
-          model: Post,
-          attributes: ['post_id'],
-          required: false
-        }
-      ]
-    });
-    // Add postCount for each subreddit
-    const result = subreddits.map((sub: any) => {
-      const subJSON = sub.toJSON();
-      subJSON.postCount = subJSON.posts ? subJSON.posts.length : 0;
-      delete subJSON.posts;
-      return subJSON;
-    });
-    res.json(result);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to fetch subreddits' });
-  }
+  const subreddits = await Subreddit.findAll({
+    include: [
+      {
+        model: User,
+        attributes: ['user_id', 'username', 'profile_pic']
+      },
+      {
+        model: SubredditMember,
+        attributes: ['subreddit_id', 'user_id', 'is_moderator'],
+        required: false,
+        include: [
+          {
+            model: User,
+            attributes: ['user_id', 'username', 'profile_pic']
+          }
+        ]
+      },
+      {
+        model: Post,
+        attributes: ['post_id'],
+        required: false
+      }
+    ]
+  });
+  const result = subreddits.map((sub: any) => {
+    const subJSON = sub.toJSON();
+    subJSON.postCount = subJSON.posts ? subJSON.posts.length : 0;
+    delete subJSON.posts;
+    return subJSON;
+  });
+  return result;
 };
 
 // GET /subreddits/:id - Get subreddit details
 export const getSubredditById = async (req: Request, res: Response) => {
-  try {
-    const subreddit = await Subreddit.findByPk(req.params.id, {
-      include: [
-        {
-          model: User,
-          attributes: ['user_id', 'username', 'profile_pic']
-        },
-        {
-          model: SubredditMember,
-          attributes: ['subreddit_id', 'user_id', 'is_moderator'],
-          required: false,
-          include: [
-            {
-              model: User,
-              attributes: ['user_id', 'username', 'profile_pic']
-            }
-          ]
-        },
-        {
-          model: Post,
-          required: false,
-          include: [
-            {
-              model: User,
-              attributes: ['user_id', 'username', 'profile_pic']
-            },
-            {
-              model: Vote,
-              attributes: ['vote_id', 'user_id', 'vote_type'],
-              required: false
-            },
-            {
-              model: CommentModel,
-              attributes: ['comment_id'],
-              required: false
-            }
-          ]
-        }
-      ]
-    });
-    if (!subreddit) {
-      res.status(404).json({ message: 'Subreddit not found' });
-    } else {
-      const subJSON = subreddit.toJSON();
-      // Bundle post info
-      if (subJSON.posts) {
-        subJSON.posts = subJSON.posts.map((post: any) => {
-          const upvotes = post.votes?.filter((v: any) => v.vote_type === true).length || 0;
-          const downvotes = post.votes?.filter((v: any) => v.vote_type === false).length || 0;
-          const commentCount = post.comments?.length || 0;
-          return {
-            ...post,
-            upvotes,
-            downvotes,
-            commentCount
-          };
-        });
+  const subreddit = await Subreddit.findByPk(req.params.id, {
+    include: [
+      {
+        model: User,
+        attributes: ['user_id', 'username', 'profile_pic']
+      },
+      {
+        model: SubredditMember,
+        attributes: ['subreddit_id', 'user_id', 'is_moderator'],
+        required: false,
+        include: [
+          {
+            model: User,
+            attributes: ['user_id', 'username', 'profile_pic']
+          }
+        ]
+      },
+      {
+        model: Post,
+        required: false,
+        include: [
+          {
+            model: User,
+            attributes: ['user_id', 'username', 'profile_pic']
+          },
+          {
+            model: Vote,
+            attributes: ['vote_id', 'user_id', 'vote_type'],
+            required: false
+          },
+          {
+            model: CommentModel,
+            attributes: ['comment_id'],
+            required: false
+          }
+        ]
       }
-      res.json(subJSON);
+    ]
+  });
+  if (!subreddit) {
+    return { message: 'Subreddit not found' };
+  } else {
+    const subJSON = subreddit.toJSON();
+
+    if (subJSON.posts) {
+      subJSON.posts = subJSON.posts.map((post: any) => {
+        const upvotes = post.votes?.filter((v: any) => v.vote_type === true).length || 0;
+        const downvotes = post.votes?.filter((v: any) => v.vote_type === false).length || 0;
+        const commentCount = post.comments?.length || 0;
+        return {
+          ...post,
+          upvotes,
+          downvotes,
+          commentCount
+        };
+      });
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to fetch subreddit' });
+    return subJSON;
   }
 };
 
 // PUT /subreddits/:id - Update a subreddit
 export const updateSubreddit = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { name, title, description } = req.body;
+  const { id } = req.params;
+  const { name, title, description } = req.body;
 
-    const subreddit = await Subreddit.findByPk(id);
-    if (!subreddit) {
-      res.status(404).json({ message: 'Subreddit not found' });
-    }
-    else {
-      await subreddit.update({ name, title, description });
-      res.json(subreddit);
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to update subreddit' });
+  const subreddit = await Subreddit.findByPk(id);
+  if (!subreddit) {
+    return { message: 'Subreddit not found' };
+  }
+  else {
+    await subreddit.update({ name, title, description });
+    return subreddit;
   }
 };
 
 // DELETE /subreddits/:id - Delete a subreddit
 export const deleteSubreddit = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const user_id = req.body.userId;
+  const { id } = req.params;
+  const user_id = req.body.userId;
 
-    const subreddit = await Subreddit.findByPk(id);
-    if (!subreddit) {
-      res.status(404).json({ message: 'Subreddit not found' });
-      return;
-    }
-
-    if (subreddit.user_id !== user_id) {
-      res.status(403).json({ message: 'Only the creator can delete this subreddit' });
-      return;
-    }
-
-    await subreddit.destroy();
-    res.json({ message: 'Subreddit deleted successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to delete subreddit' });
+  const subreddit = await Subreddit.findByPk(id);
+  if (!subreddit) {
+    return { message: 'Subreddit not found' };
   }
+
+  if (subreddit.user_id !== user_id) {
+    return { message: 'Only the creator can delete this subreddit' };
+  }
+
+  await subreddit.destroy();
+  return { message: 'Subreddit deleted successfully' };
 };
 
 // GET /subreddits/name/:name - Get subreddit by name
 export const getSubredditByName = async (req: Request, res: Response) => {
-  try {
-    const { name } = req.params;
-    const subreddit = await Subreddit.findOne({
-      where: { name },
-      include: [
-        {
-          model: User,
-          attributes: ['user_id', 'username', 'profile_pic']
-        },
-        {
-          model: SubredditMember,
-          attributes: ['subreddit_id', 'user_id', 'is_moderator'],
-          required: false,
-          include: [
-            {
-              model: User,
-              attributes: ['user_id', 'username', 'profile_pic']
-            }
-          ]
-        },
-        {
-          model: Post,
-          required: false,
-          include: [
-            {
-              model: User,
-              attributes: ['user_id', 'username', 'profile_pic']
-            },
-            {
-              model: Vote,
-              attributes: ['vote_id', 'user_id', 'vote_type'],
-              required: false
-            },
-            {
-              model: CommentModel,
-              attributes: ['comment_id'],
-              required: false,
-              include: [
-                {
-                  model: Vote,
-                  attributes: ['vote_id', 'user_id', 'vote_type'],
-                  required: false
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    });
-    if (!subreddit) {
-      res.status(404).json({ message: 'Subreddit not found' });
-    } else {
-      const subJSON = subreddit.toJSON();
-      // Bundle post info
-      if (subJSON.posts) {
-        subJSON.posts = subJSON.posts.map((post: any) => {
-          const upvotes = post.votes?.filter((v: any) => v.vote_type === true).length || 0;
-          const downvotes = post.votes?.filter((v: any) => v.vote_type === false).length || 0;
-          const commentCount = post.comments?.length || 0;
-          return {
-            ...post,
-            upvotes,
-            downvotes,
-            commentCount
-          };
-        });
+  const { name } = req.params;
+  const subreddit = await Subreddit.findOne({
+    where: { name },
+    include: [
+      {
+        model: User,
+        attributes: ['user_id', 'username', 'profile_pic']
+      },
+      {
+        model: SubredditMember,
+        attributes: ['subreddit_id', 'user_id', 'is_moderator'],
+        required: false,
+        include: [
+          {
+            model: User,
+            attributes: ['user_id', 'username', 'profile_pic']
+          }
+        ]
+      },
+      {
+        model: Post,
+        required: false,
+        include: [
+          {
+            model: User,
+            attributes: ['user_id', 'username', 'profile_pic']
+          },
+          {
+            model: Vote,
+            attributes: ['vote_id', 'user_id', 'vote_type'],
+            required: false
+          },
+          {
+            model: CommentModel,
+            attributes: ['comment_id'],
+            required: false,
+            include: [
+              {
+                model: Vote,
+                attributes: ['vote_id', 'user_id', 'vote_type'],
+                required: false
+              }
+            ]
+          }
+        ]
       }
-      res.status(200).json(subJSON);
+    ]
+  });
+  if (!subreddit) {
+    return { message: 'Subreddit not found' };
+  } else {
+    const subJSON = subreddit.toJSON();
+    // Bundle post info
+    if (subJSON.posts) {
+      subJSON.posts = subJSON.posts.map((post: any) => {
+        const upvotes = post.votes?.filter((v: any) => v.vote_type === true).length || 0;
+        const downvotes = post.votes?.filter((v: any) => v.vote_type === false).length || 0;
+        const commentCount = post.comments?.length || 0;
+        return {
+          ...post,
+          upvotes,
+          downvotes,
+          commentCount
+        };
+      });
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to fetch subreddit' });
+    return subJSON;
   }
 };
 
 // POST /subreddits/:id/join - Join a subreddit
 export const joinSubreddit = async (req: Request, res: Response) => {
-  try {
-    const { id: subreddit_id } = req.params;
-    const user_id = req.body.userId;
+  const { id: subreddit_id } = req.params;
+  const user_id = req.body.userId;
 
-    const existingMember = await SubredditMember.findOne({ where: { subreddit_id, user_id } });
-    if (existingMember) {
-      res.status(400).json({ message: 'Already joined' });
-    }
-    else {
-      const newMember = await SubredditMember.create({
-        subreddit_id,
-        user_id,
-        is_moderator: false
-      });
-      res.status(201).json(newMember);
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to join subreddit' });
+  const existingMember = await SubredditMember.findOne({ where: { subreddit_id, user_id } });
+  if (existingMember) {
+    return { message: 'Already joined' };
+  }
+  else {
+    const newMember = await SubredditMember.create({
+      subreddit_id,
+      user_id,
+      is_moderator: false
+    });
+    return newMember;
   }
 };
 
 // POST /subreddits/:id/leave - Leave a subreddit
 export const leaveSubreddit = async (req: Request, res: Response) => {
-  try {
-    const { id: subreddit_id } = req.params;
-    const user_id = req.body.userId;
+  const { id: subreddit_id } = req.params;
+  const user_id = req.body.userId;
 
-    const subreddit = await Subreddit.findByPk(subreddit_id);
-    if (!subreddit) {
-      res.status(404).json({ message: 'Subreddit not found' });
-      return;
-    }
+  const subreddit = await Subreddit.findByPk(subreddit_id);
+  if (!subreddit) {
+    return { message: 'Subreddit not found' };
+  }
 
-    if (subreddit.user_id === user_id) {
-      res.status(400).json({ message: 'Subreddit creator cannot leave their own subreddit' });
-      return;
-    }
+  if (subreddit.user_id === user_id) {
+    return { message: 'Subreddit creator cannot leave their own subreddit' };
+  }
 
-    const member = await SubredditMember.findOne({ where: { subreddit_id, user_id } });
-    if (!member) {
-      res.status(404).json({ message: 'Not a member' });
-    }
-    else {
-      await member.destroy();
-      res.json({ message: 'Left subreddit successfully' });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Failed to leave subreddit' });
+  const member = await SubredditMember.findOne({ where: { subreddit_id, user_id } });
+  if (!member) {
+    return { message: 'Not a member' };
+  }
+  else {
+    await member.destroy();
+    return { message: 'Left subreddit successfully' };
   }
 };

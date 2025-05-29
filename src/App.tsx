@@ -2,7 +2,6 @@ import Home from './pages/pages/Home';
 import PostDetail from './pages/pages/PostDetail';
 import Login from './pages/pages/Login';
 import Register from './pages/pages/Register';
-import Search from './pages/pages/Search';
 import Profile from './pages/pages/Profile';
 import NotFound from './pages/pages/NotFound';
 import EditProfile from './pages/pages/EditProfile';
@@ -28,7 +27,6 @@ function App() {
       <Route path="/popular" element={<Popular />} />
       <Route path="/r/:subredditName" element={<SubredditPage />} />
       <Route path="/post/:id" element={<PostDetail />} />
-      <Route path="/search" element={<Search />} />
       <Route path="/u/:username" element={
         <ProtectedRoute>
           <ViewProfile />
