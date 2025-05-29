@@ -1,11 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { UUIDTypes } from 'uuid';
 
-const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key'; // Make sure to set this in .env
+const SECRET_KEY = process.env.JWT_SECRET || '123';
 
 // Generate a JWT token
 export const generateToken = (userId: UUIDTypes): string => {
-  return jwt.sign({ userId }, SECRET_KEY, { expiresIn: '30d' }); // Token expires in 1 hour
+  return jwt.sign({ userId }, SECRET_KEY, { expiresIn: '30d' });
 };
 
 // Verify a JWT token

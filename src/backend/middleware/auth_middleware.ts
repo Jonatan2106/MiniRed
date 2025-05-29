@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt_helper';
-// import jwt from 'jsonwebtoken';
 import { UUIDTypes } from 'uuid';
 import { middlewareWrapper } from '../utils/middlewareWrapper';
 
@@ -8,7 +7,7 @@ interface JwtPayloadWithUserId {
     userId: string | UUIDTypes;
 }
 
-export const authenticateJWT = middlewareWrapper(async (req: Request, res: Response, next: NextFunction) => {
+export const Authentication = async (req: Request, res: Response, next: NextFunction) => {
     const token = req.headers['authorization']?.split(' ')[1];
 
     if (!token) {
@@ -28,8 +27,10 @@ export const authenticateJWT = middlewareWrapper(async (req: Request, res: Respo
             }
 
             req.body.userId = userId;
-
-            return next();
+            
         }
     }
-});
+};
+
+export const authenticateJWT = middlewareWrapper(Authentication);
+

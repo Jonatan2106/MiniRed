@@ -13,6 +13,7 @@ import userRouter from './routes/user_routes';
 import voteRouter from './routes/vote_routes';
 import subredditRouter from './routes/subreddit_routes';
 import commentRouter from './routes/comment_routes';
+import { authenticateJWT } from './middleware/auth_middleware';
 
 dotenv.config();
 
@@ -60,10 +61,6 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     console.error(err.stack);
     res.status(500).json({ error: 'Something went wrong!' });
 });
-
-// app.listen(port, () => {
-//   console.log(`Server is running on http://localhost:${port}`);
-// });
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server is running on http://${process.env.DB_HOST}:${port}`);

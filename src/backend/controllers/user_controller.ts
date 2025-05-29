@@ -145,7 +145,8 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     const userObj = user.toJSON();
     userObj.upvoted = upvoted;
     userObj.downvoted = downvoted;
-
+    
+    console.log('Current User:', userObj);
     return userObj;
 };
 
