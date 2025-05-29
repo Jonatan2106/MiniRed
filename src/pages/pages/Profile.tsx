@@ -3,8 +3,7 @@ import { fetchFromAPI } from '../../api/auth';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaUser, FaEdit, FaTrash, FaArrowUp, FaArrowDown, FaCommentAlt, FaEllipsisH } from 'react-icons/fa';
 import Loading from './Loading';
-import Navbar from '../component/Navbar';  // Import Navbar component
-
+import Navbar from '../component/Navbar';
 import '../styles/profile.css';
 import '../styles/main.css';
 import LeftSidebar from '../component/LeftSidebar';
@@ -15,7 +14,7 @@ interface Post {
   title: string;
   content: string;
   created_at: string;
-  votes?: Vote[]; // Add votes for karma calculation
+  votes?: Vote[];
 }
 
 interface Comment {
@@ -25,7 +24,7 @@ interface Comment {
   user_id: string;
   content: string;
   created_at: string;
-  votes?: Vote[]; // Add votes for karma calculation
+  votes?: Vote[];
 }
 
 interface Subreddit {
@@ -54,7 +53,6 @@ interface Vote {
 
 interface OverviewItem {
   user_id: string;
-
   type: 'post' | 'comment' | 'upvoted' | 'downvoted';
   created_at: string;
   post_id?: string;
@@ -84,7 +82,12 @@ const Profile = () => {
   const [editPostContent, setEditPostContent] = useState('');
   const [editPostTitle, setEditPostTitle] = useState('');
   const [editModalError, setEditModalError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>(''); // For search functionality
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
 
   const calculatePostKarma = (posts: Post[]): number => {
@@ -150,22 +153,39 @@ const Profile = () => {
     return combinedData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   };
 
-  const handleDeletePost = async (postId: string) => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
+  const addClickEffect = (e: React.MouseEvent) => {
+    const button = e.currentTarget;
+    button.classList.add('button-clicked');
+    
+    setTimeout(() => {
+      button.classList.remove('button-clicked');
+    }, 300);
+  };
 
+  const handleDeletePost = (postId: string) => {
+    setPostToDelete(postId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeletePost = async () => {
+    if (!postToDelete) return;
+    
     try {
-      await fetchFromAPI(`/posts/${postId}`, 'DELETE');
-
-      setPosts((prev) => prev.filter((post) => post.post_id !== postId));
-
-      setComments((prev) => prev.filter((comment) => comment.post_id !== postId));
-
-      alert('Post deleted successfully!');
+      setIsDeleting(true);
+      
+      await fetchFromAPI(`/posts/${postToDelete}`, 'DELETE');
+      
+      // Update local state after successful deletion
+      setPosts((prev) => prev.filter((post) => post.post_id !== postToDelete));
+      setComments((prev) => prev.filter((comment) => comment.post_id !== postToDelete));
+      
+      // Close the modal
+      setIsDeleteModalOpen(false);
+      setPostToDelete(null);
     } catch (error) {
       console.error('Error deleting post:', error);
-      alert('Error deleting post.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -174,6 +194,7 @@ const Profile = () => {
     setEditPostTitle(post.title);
     setEditPostContent(post.content);
     setEditModalError(null);
+    setUpdateSuccess(false);
     setIsEditPostModalOpen(true);
   };
 
@@ -192,8 +213,10 @@ const Profile = () => {
         return;
       }
 
+      setIsUpdating(true);
+      setEditModalError(null);
+
       const updateData = {
-        title: editPostTitle,
         content: editPostContent
       };
 
@@ -207,14 +230,21 @@ const Profile = () => {
         )
       );
 
-      setIsEditPostModalOpen(false);
-      setCurrentEditingPost(null);
-
-      alert('Post updated successfully!');
+      // Show success state
+      setUpdateSuccess(true);
+      
+      // Close modal after a short delay to show success state
+      setTimeout(() => {
+        setIsEditPostModalOpen(false);
+        setCurrentEditingPost(null);
+        setUpdateSuccess(false);
+      }, 1500);
 
     } catch (err: any) {
       console.error("Error updating post:", err.message);
       setEditModalError(err.message || "Failed to update post");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -462,29 +492,43 @@ const Profile = () => {
                           className="post-actions-container"
                           onClick={e => e.stopPropagation()}
                         >
-                          <button className="action-toggle-button">
+                          <button
+                            className="action-toggle-button"
+                            aria-label="Post actions"
+                            title="Post actions"
+                          >
                             <FaEllipsisH />
                           </button>
+
                           <div className="dropdown-actions">
                             <button
                               className="action-button edit-button"
                               onClick={e => {
                                 e.preventDefault();
                                 e.stopPropagation();
+                                addClickEffect(e);
                                 handleOpenEditModal(post);
                               }}
                             >
-                              <FaEdit /> Edit
+                              <div className="button-icon">
+                                <FaEdit />
+                              </div>
+                              <span className="button-text">Edit</span>
                             </button>
+
                             <button
                               className="action-button delete-button"
                               onClick={e => {
                                 e.preventDefault();
                                 e.stopPropagation();
+                                addClickEffect(e);
                                 handleDeletePost(post.post_id);
                               }}
                             >
-                              <FaTrash /> Delete
+                              <div className="button-icon">
+                                <FaTrash />
+                              </div>
+                              <span className="button-text">Delete</span>
                             </button>
                           </div>
                         </div>
@@ -640,37 +684,56 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* Edit Post Modal */}
+      {/* Enhanced Edit Post Modal */}
       {isEditPostModalOpen && currentEditingPost && (
         <div className="overlay" onClick={() => setIsEditPostModalOpen(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
+          <div className="modal edit-post-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Edit Post</h3>
+              <button 
+                className="close-modal-btn" 
+                onClick={() => setIsEditPostModalOpen(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
             </div>
+            
             <p className="modal-subtext">Update your post content below.</p>
 
             {/* Show title as read-only */}
             <div className="modal-field">
-              <label>Post Title:</label>
-              <div className="read-only-field">{editPostTitle}</div>
+              <label htmlFor="post-title">Post Title:</label>
+              <div className="read-only-field title-preview">{editPostTitle}</div>
             </div>
 
             {/* Allow editing only the content */}
             <div className="modal-field">
-              <label>Post Content:</label>
-              <textarea
-                className="modal-input"
-                placeholder="Post Content"
-                value={editPostContent}
-                onChange={(e) => setEditPostContent(e.target.value)}
-                rows={5}
-              />
+              <label htmlFor="post-content">Post Content:</label>
+              <div className="textarea-container">
+                <textarea
+                  id="post-content"
+                  className="modal-input animated-input"
+                  placeholder="What's on your mind?"
+                  value={editPostContent}
+                  onChange={(e) => setEditPostContent(e.target.value)}
+                  rows={6}
+                />
+                <div className="character-count">
+                  {editPostContent.length} characters
+                </div>
+              </div>
             </div>
 
+            {/* Error message display */}
             {editModalError && (
-              <div className="modal-error">{editModalError}</div>
+              <div className="modal-error">
+                <div className="error-icon">⚠️</div>
+                <div className="error-content">{editModalError}</div>
+              </div>
             )}
 
+            {/* Action buttons */}
             <div className="modal-actions">
               <button
                 className="cancel-btn"
@@ -679,10 +742,65 @@ const Profile = () => {
                 Cancel
               </button>
               <button
-                className="save-btn"
+                className={`save-btn ${isUpdating ? 'loading' : ''} ${updateSuccess ? 'success' : ''}`}
                 onClick={handleUpdatePost}
+                disabled={!editPostContent.trim() || isUpdating}
               >
-                Save Changes
+                {isUpdating ? (
+                  <>
+                    <span className="spinner"></span>
+                    Saving...
+                  </>
+                ) : updateSuccess ? (
+                  <>
+                    <span className="check-icon">✓</span>
+                    Saved!
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="overlay" onClick={() => setIsDeleteModalOpen(false)}>
+          <div className="modal delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header delete-header">
+              <div className="delete-warning-icon">⚠️</div>
+              <h3>Delete Post?</h3>
+            </div>
+            
+            <p className="modal-subtext">
+              This action cannot be undone. This will permanently delete your post and all associated comments.
+            </p>
+            
+            <div className="modal-actions delete-actions">
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setPostToDelete(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="delete-confirm-btn"
+                onClick={confirmDeletePost}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <span className="spinner"></span>
+                    Deleting...
+                  </>
+                ) : (
+                  'Yes, Delete'
+                )}
               </button>
             </div>
           </div>
