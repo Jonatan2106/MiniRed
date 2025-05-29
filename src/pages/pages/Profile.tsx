@@ -398,16 +398,6 @@ const Profile = () => {
                             <>
                               <div className="item-header">
                                 <h3 className="item-title">{item.title}</h3>
-
-                                {/* Add edit and delete buttons for posts in Overview */}
-                                {item.type === 'post' && user?.user_id && String(user.user_id) === String(item.user_id) && (
-                                  <div
-                                    className="post-actions"
-                                    onClick={e => e.stopPropagation()}
-                                  >
-                                    {/* Buttons */}
-                                  </div>
-                                )}
                               </div>
                               <p className="item-body">{item.content}</p>
                             </>
@@ -470,39 +460,36 @@ const Profile = () => {
                     >
                       <div className="post-header">
                         <h3 className="post-title">{post.title}</h3>
-
-                        {user?.user_id === post.user_id && (
-                          <div
-                            className="post-actions-container"
-                            onClick={e => e.stopPropagation()}
-                          >
-                            <button className="action-toggle-button">
-                              <FaEllipsisH />
+                        <div
+                          className="post-actions-container"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <button className="action-toggle-button">
+                            <FaEllipsisH />
+                          </button>
+                          <div className="dropdown-actions">
+                            <button
+                              className="action-button edit-button"
+                              onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleOpenEditModal(post);
+                              }}
+                            >
+                              <FaEdit /> Edit
                             </button>
-                            <div className="dropdown-actions">
-                              <button
-                                className="action-button edit-button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleOpenEditModal(post);
-                                }}
-                              >
-                                <FaEdit /> Edit
-                              </button>
-                              <button
-                                className="action-button delete-button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  handleDeletePost(post.post_id);
-                                }}
-                              >
-                                <FaTrash /> Delete
-                              </button>
-                            </div>
+                            <button
+                              className="action-button delete-button"
+                              onClick={e => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleDeletePost(post.post_id);
+                              }}
+                            >
+                              <FaTrash /> Delete
+                            </button>
                           </div>
-                        )}
+                        </div>
                       </div>
                       <p className="post-content">{post.content}</p>
                       <p className="post-date">
