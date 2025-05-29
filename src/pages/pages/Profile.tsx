@@ -38,7 +38,7 @@ interface Subreddit {
 interface User {
   user_id: string;
   username: string;
-  profilePic: string;
+  profile_pic: string;
 }
 
 interface Vote {
@@ -66,8 +66,7 @@ interface OverviewItem {
 }
 
 const Profile = () => {
-  const [users, setUsers] = useState<Map<string, User>>(new Map());
-  const [user, setUser] = useState<{ username: string; profilePic: string; user_id?: string } | null>(null);
+  const [user, setUser] = useState<{ username: string; profile_pic: string; user_id?: string } | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
@@ -79,7 +78,6 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [postKarma, setPostKarma] = useState<number>(0);
   const [commentKarma, setCommentKarma] = useState<number>(0);
-  const [openMenuPostId, setOpenMenuPostId] = useState<string | null>(null);
   const navigate = useNavigate();
   const [isEditPostModalOpen, setIsEditPostModalOpen] = useState(false);
   const [currentEditingPost, setCurrentEditingPost] = useState<Post | null>(null);
@@ -111,7 +109,7 @@ const Profile = () => {
           const downvotedArr = Array.isArray(data.downvoted) ? data.downvoted : [];
           const joinedSubsArr = Array.isArray(data.joinedSubreddits) ? data.joinedSubreddits : [];
 
-          setUser({ username: data.username, profilePic: data.profile_pic, user_id: data.user_id });
+          setUser({ username: data.username, profile_pic: data.profile_pic, user_id: data.user_id });
           setPosts(postsArr);
           setComments(commentsArr);
           setUpVotes(upvotedArr);
@@ -279,7 +277,7 @@ const Profile = () => {
             <div className="profile-header">
               <div className="profile-avatar">
                 <img
-                  src={user?.profilePic ? "http://localhost:5173" + user?.profilePic : "/default.png"}
+                  src={user?.profile_pic ? `${import.meta.env.VITE_URL}${user?.profile_pic}` : "/default.png"}
                   alt={user?.username}
                   className="avatar"
                 />
