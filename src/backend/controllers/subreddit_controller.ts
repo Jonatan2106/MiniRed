@@ -164,6 +164,8 @@ export const deleteSubreddit = async (req: Request, res: Response) => {
     return { message: 'Only the creator can delete this subreddit' };
   }
 
+  await Post.update({ subreddit_id: null }, { where: { subreddit_id: id } });
+
   await subreddit.destroy();
   return { message: 'Subreddit deleted successfully' };
 };

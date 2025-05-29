@@ -1,8 +1,8 @@
 import Loading from './Loading';
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { IoIosArrowForward } from "react-icons/io";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import { fetchFromAPI } from '../../api/auth';
 
 import '../styles/editsubreddit.css';
@@ -18,6 +18,8 @@ const EditSubreddit = () => {
     const [modalField, setModalField] = useState('');
     const [modalValue, setModalValue] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -30,8 +32,7 @@ const EditSubreddit = () => {
                 setDescription(data.description);
             })
             .catch((error) => {
-                console.error('Error fetching subreddit:', error);
-                alert('Failed to load subreddit data');
+                setStatus({ type: 'error', message: 'Failed to load subreddit data' });
             })
             .finally(() => {
                 setIsLoading(false);
@@ -40,25 +41,21 @@ const EditSubreddit = () => {
 
     const handleUpdate = (updatedName: string, updatedTitle: string, updatedDescription: string) => {
         setIsLoading(true);
+        setStatus(null);
         fetchFromAPI(`/subreddits/${subredditId}`, 'PUT', {
             name: updatedName,
             title: updatedTitle,
             description: updatedDescription,
         })
-
             .then((response) => {
-                console.log('Update response:', response);
-
                 setSubreddit(response);
                 setTitle(response.title || updatedTitle);
                 setName(response.name || updatedName);
                 setDescription(response.description || updatedDescription);
-
-                alert('Subreddit updated successfully!');
+                setStatus({ type: 'success', message: 'Subreddit updated successfully!' });
             })
             .catch((error) => {
-                console.error('Error updating subreddit:', error);
-                alert(error.message || 'Failed to update subreddit');
+                setStatus({ type: 'error', message: error.message || 'Failed to update subreddit' });
             })
             .finally(() => {
                 setIsLoading(false);
@@ -73,7 +70,7 @@ const EditSubreddit = () => {
 
     const handleSave = async () => {
         if (!modalValue.trim()) {
-            alert('Please enter a value');
+            setStatus({ type: 'error', message: 'Please enter a value' });
             return;
         }
 
@@ -92,15 +89,27 @@ const EditSubreddit = () => {
             setDescription(modalValue);
         }
 
-        console.log(`Saving ${modalField}: ${modalValue}`);
-        console.log(`Updated values: Name: ${updatedName}, Title: ${updatedTitle}, Description: ${updatedDescription}`);
-
         handleUpdate(updatedName, updatedTitle, updatedDescription);
         setIsModalOpen(false);
     };
 
     const handleCancel = () => {
         setIsModalOpen(false);
+    };
+
+    const handleDelete = async () => {
+        setIsLoading(true);
+        setStatus(null);
+        try {
+            await fetchFromAPI(`/subreddits/${subredditId}`, "DELETE");
+            setStatus({ type: 'success', message: 'Subreddit deleted successfully!' });
+            setTimeout(() => navigate("/"), 1200);
+        } catch (err: any) {
+            setStatus({ type: 'error', message: err.message || "Failed to delete subreddit" });
+        } finally {
+            setIsLoading(false);
+            setShowConfirm(false);
+        }
     };
 
     if (isLoading) {
@@ -122,7 +131,9 @@ const EditSubreddit = () => {
                         onClick={() => handleCardClick('Subreddit Name', name)}
                     >
                         <div className="edit-subreddit-item-content">
-                            <h2 className="edit-subreddit-item-title">Subreddit Name</h2>
+                            <h2 className="edit-subreddit-item-title">
+                                <FaEdit className="edit-icon" /> Subreddit Name
+                            </h2>
                             <p className="edit-subreddit-item-description">
                                 Update the name of your subreddit.
                             </p>
@@ -134,7 +145,9 @@ const EditSubreddit = () => {
                         onClick={() => handleCardClick('Subreddit Title', title)}
                     >
                         <div className="edit-subreddit-item-content">
-                            <h2 className="edit-subreddit-item-title">Subreddit Title</h2>
+                            <h2 className="edit-subreddit-item-title">
+                                <FaEdit className="edit-icon" /> Subreddit Title
+                            </h2>
                             <p className="edit-subreddit-item-description">
                                 Update the title of your subreddit.
                             </p>
@@ -146,7 +159,9 @@ const EditSubreddit = () => {
                         onClick={() => handleCardClick('About Description', description)}
                     >
                         <div className="edit-subreddit-item-content">
-                            <h2 className="edit-subreddit-item-title">About Description</h2>
+                            <h2 className="edit-subreddit-item-title">
+                                <FaEdit className="edit-icon" /> About Description
+                            </h2>
                             <p className="edit-subreddit-item-description">
                                 Update the description of your subreddit.
                             </p>
@@ -154,8 +169,19 @@ const EditSubreddit = () => {
                         <span className="edit-subreddit-item-arrow"><IoIosArrowForward /></span>
                     </li>
                 </ul>
+                <button
+                    className="delete-subreddit-btn"
+                    onClick={() => setShowConfirm(true)}
+                    disabled={isLoading}
+                >
+                    <FaTrash className="delete-icon" /> Delete Subreddit
+                </button>
+                {status && (
+                    <div className={`status-message ${status.type}`}>
+                        {status.message}
+                    </div>
+                )}
             </div>
-
             {/* Modal */}
             {isModalOpen && (
                 <div className="modal-overlay">
@@ -185,6 +211,30 @@ const EditSubreddit = () => {
                             </button>
                             <button className="modal-save" onClick={handleSave}>
                                 Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Custom Delete Confirmation Modal */}
+            {showConfirm && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <div className="modal-header">
+                            <h2>Delete Subreddit</h2>
+                            <button className="modal-close" onClick={() => setShowConfirm(false)}>
+                                ✕
+                            </button>
+                        </div>
+                        <p className="modal-description">
+                            Are you sure you want to delete this subreddit? This action cannot be undone.
+                        </p>
+                        <div className="modal-actions">
+                            <button className="modal-cancel" onClick={() => setShowConfirm(false)}>
+                                Cancel
+                            </button>
+                            <button className="modal-save" style={{background:'#FF4500'}} onClick={handleDelete} disabled={isLoading}>
+                                Delete
                             </button>
                         </div>
                     </div>
